@@ -1,0 +1,41 @@
+import 'package:auto_route/auto_route.dart';
+import 'app_router.gr.dart';
+
+@AutoRouterConfig(replaceInRouteName: 'Screen|Page,Route')
+class AppRouter extends RootStackRouter {
+  @override
+  RouteType get defaultRouteType => const RouteType.adaptive();
+
+  @override
+  List<AutoRoute> get routes => [
+        AutoRoute(page: LoginRoute.page, initial: true),
+        AutoRoute(
+          path: '/',
+          page: ShellRoute.page,
+          children: [
+            AutoRoute(path: '', page: DashboardRoute.page),
+            AutoRoute(page: DashboardRoute.page),
+            AutoRoute(page: AdminPanelRoute.page),
+            AutoRoute(page: UserFormRoute.page),
+            AutoRoute(page: StudentListRoute.page),
+            AutoRoute(page: StudentFormRoute.page),
+            AutoRoute(page: StudentDetailRoute.page),
+            AutoRoute(page: GroupListRoute.page),
+            AutoRoute(page: GroupFormRoute.page),
+            AutoRoute(page: PaymentListRoute.page),
+            AutoRoute(page: PaymentFormRoute.page),
+            AutoRoute(page: QrScannerRoute.page),
+            AutoRoute(page: AttendanceListRoute.page),
+            AutoRoute(page: ExamListRoute.page),
+            AutoRoute(page: ExamsManagementRoute.page),
+            AutoRoute(page: ExamFormRoute.page),
+            AutoRoute(page: ExamDetailRoute.page),
+            AutoRoute(page: MarkEntryRoute.page),
+            AutoRoute(page: ReportRoute.page),
+          ],
+        ),
+      ];
+
+  @override
+  List<AutoRouteGuard> get guards => [];
+}
