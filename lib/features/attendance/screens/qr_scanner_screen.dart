@@ -8,8 +8,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
+import '../../../../app/router/app_router.gr.dart';
 import '../../../../generated/locale_keys.g.dart';
 import '../cubits/attendance_cubit.dart';
+import '../models/attendance.dart';
 import '../../../../app/shared/screens/shell_screen.dart';
 import '../../../../app/shared/widgets/responsive_layout.dart';
 
@@ -33,6 +35,12 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
     if (!_isDesktop) {
       _cameraController = MobileScannerController();
     }
+    // Load recent scans when screen is opened
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<AttendanceCubit>().loadRecentScans();
+      }
+    });
   }
 
   @override
@@ -95,36 +103,55 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
                 
               SizedBox(height: 32.h),
               
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('recent_record'.tr(), style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                  TextButton(onPressed: () {}, child: Text('view_all'.tr())),
-                ],
-              ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('recent_record'.tr(), style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                    TextButton(
+                      onPressed: () {
+                         context.router.push(AttendanceListRoute());
+                      }, 
+                      child: Text('view_all'.tr()),
+                    ),
+                  ],
+                ),
               SizedBox(height: 16.h),
               
-              // Recent Scans Layout Placeholder matching the design
-              _buildRecentScanCard(
-                name: 'Elias Thorne',
-                time: '08:45 AM • Hall 4',
-                status: 'Present',
-                isDark: isDark,
-                colorScheme: colorScheme,
-                textTheme: textTheme,
-                isSuccess: true,
-                avatarId: '15',
-              ),
-              SizedBox(height: 16.h),
-              _buildRecentScanCard(
-                name: 'Mira Vance',
-                time: '09:05 AM • Chemistry Lab',
-                status: 'Missed',
-                isDark: isDark,
-                colorScheme: colorScheme,
-                textTheme: textTheme,
-                isSuccess: false,
-                avatarId: '44',
+              BlocBuilder<AttendanceCubit, AttendanceState>(
+                builder: (context, state) {
+                  if (state.records.isEmpty) {
+                    return Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(32.r),
+                        child: Text(
+                          'No recent records found.',
+                          style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant),
+                        ),
+                      ),
+                    );
+                  }
+                  
+                  return ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: state.records.length,
+                    separatorBuilder: (context, index) => SizedBox(height: 16.h),
+                    itemBuilder: (context, index) {
+                      final record = state.records[index];
+                      final bool isSuccess = record['status'] == AttendanceStatus.attended.name;
+                      
+                      return _buildRecentScanCard(
+                        name: record['student_name'] as String? ?? 'Unknown',
+                        time: record['date'] as String? ?? '',
+                        status: isSuccess ? LocaleKeys.attended.tr() : 'Another Group',
+                        isDark: isDark,
+                        colorScheme: colorScheme,
+                        textTheme: textTheme,
+                        isSuccess: isSuccess,
+                      );
+                    },
+                  );
+                },
               ),
             ],
           ),
@@ -318,7 +345,6 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
     required ColorScheme colorScheme,
     required TextTheme textTheme,
     required bool isSuccess,
-    required String avatarId,
   }) {
     final Color statusColor = isSuccess ? const Color(0xFF6750A4) : const Color(0xFFB3261E);
     
@@ -330,31 +356,17 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
       ),
       child: Column(
         children: [
-          Stack(
-            alignment: Alignment.bottomRight,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(24),
-                child: Image.network(
-                  'https://i.pravatar.cc/150?u=$avatarId',
-                  width: 80,
-                  height: 80,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: colorScheme.surface,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  isSuccess ? Icons.check_circle : Icons.cancel,
-                  color: isSuccess ? Colors.green : Colors.red,
-                  size: 20,
-                ),
-              ),
-            ],
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              isSuccess ? Icons.check_circle : Icons.info_outline,
+              color: isSuccess ? Colors.green : Colors.orange,
+              size: 40,
+            ),
           ),
           const SizedBox(height: 16),
           Text(name, style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
@@ -369,7 +381,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
             ),
             child: Text(
               status,
-              style: textTheme.labelLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+              style: textTheme.labelMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
             ),
           ),
         ],

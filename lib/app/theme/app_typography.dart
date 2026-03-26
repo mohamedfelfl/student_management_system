@@ -9,25 +9,25 @@ class AppTypography {
 
   // ─── DISPLAY ───
 
-  /// Display Large — scaled down from 42px
+  /// Display Large — scaled down from 44px
   static TextStyle displayLarge({Color? color}) => GoogleFonts.cairo(
-    fontSize: 42,
+    fontSize: 44,
     fontWeight: FontWeight.w800,
     height: 1.12,
     color: color,
   );
 
-  /// Display Medium — scaled down from 32px
+  /// Display Medium — scaled down from 34px
   static TextStyle displayMedium({Color? color}) => GoogleFonts.cairo(
-    fontSize: 32,
+    fontSize: 34,
     fontWeight: FontWeight.w700,
     height: 1.18,
     color: color,
   );
 
-  /// Display Small — scaled down from 28px
+  /// Display Small — scaled down from 30px
   static TextStyle displaySmall({Color? color}) => GoogleFonts.cairo(
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: FontWeight.w700,
     height: 1.22,
     color: color,
@@ -35,25 +35,25 @@ class AppTypography {
 
   // ─── HEADLINES ───
 
-  /// Headline Large — scaled down from 24px, page titles
+  /// Headline Large — scaled down from 26px, page titles
   static TextStyle headlineLarge({Color? color}) => GoogleFonts.cairo(
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: FontWeight.w700,
     height: 1.25,
     color: color,
   );
 
-  /// Headline Medium — scaled down from 20px
+  /// Headline Medium — scaled down from 22px
   static TextStyle headlineMedium({Color? color}) => GoogleFonts.cairo(
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: FontWeight.w600,
     height: 1.29,
     color: color,
   );
 
-  /// Headline Small — scaled down from 18px
+  /// Headline Small — scaled down from 20px
   static TextStyle headlineSmall({Color? color}) => GoogleFonts.cairo(
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: FontWeight.w600,
     height: 1.33,
     color: color,
@@ -61,25 +61,25 @@ class AppTypography {
 
   // ─── TITLE ───
 
-  /// Title Large — scaled down from 18px
+  /// Title Large — scaled down from 20px
   static TextStyle titleLarge({Color? color}) => GoogleFonts.cairo(
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: FontWeight.w700,
     height: 1.27,
     color: color,
   );
 
-  /// Title Medium — scaled down from 14px
+  /// Title Medium — scaled down from 16px
   static TextStyle titleMedium({Color? color}) => GoogleFonts.cairo(
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: FontWeight.w700,
     height: 1.5,
     color: color,
   );
 
-  /// Title Small — scaled down from 12px
+  /// Title Small — scaled down from 14px
   static TextStyle titleSmall({Color? color}) => GoogleFonts.cairo(
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: FontWeight.w600,
     height: 1.43,
     color: color,
@@ -87,25 +87,25 @@ class AppTypography {
 
   // ─── BODY ───
 
-  /// Body Large — scaled down from 14px, line height 1.6 for readability
+  /// Body Large — scaled down from 16px, line height 1.6 for readability
   static TextStyle bodyLarge({Color? color}) => GoogleFonts.cairo(
+    fontSize: 16,
+    fontWeight: FontWeight.w500,
+    height: 1.6,
+    color: color,
+  );
+
+  /// Body Medium — scaled down from 14px
+  static TextStyle bodyMedium({Color? color}) => GoogleFonts.cairo(
     fontSize: 14,
     fontWeight: FontWeight.w500,
     height: 1.6,
     color: color,
   );
 
-  /// Body Medium — scaled down from 12px
-  static TextStyle bodyMedium({Color? color}) => GoogleFonts.cairo(
-    fontSize: 12,
-    fontWeight: FontWeight.w500,
-    height: 1.6,
-    color: color,
-  );
-
-  /// Body Small — scaled down from 10px
+  /// Body Small — scaled down from 12px
   static TextStyle bodySmall({Color? color}) => GoogleFonts.cairo(
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: FontWeight.w500,
     height: 1.6,
     color: color,
@@ -113,25 +113,25 @@ class AppTypography {
 
   // ─── LABELS ───
 
-  /// Label Large — scaled down from 12px
+  /// Label Large — scaled down from 14px
   static TextStyle labelLarge({Color? color}) => GoogleFonts.cairo(
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: FontWeight.w600,
     height: 1.43,
     color: color,
   );
 
-  /// Label Medium — scaled down from 10px, metadata (IDs, timestamps)
+  /// Label Medium — scaled down from 12px, metadata (IDs, timestamps)
   static TextStyle labelMedium({Color? color}) => GoogleFonts.cairo(
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: FontWeight.w600,
     height: 1.33,
     color: color,
   );
 
-  /// Label Small — scaled down from 9px
+  /// Label Small — scaled down from 11px
   static TextStyle labelSmall({Color? color}) => GoogleFonts.cairo(
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: FontWeight.w600,
     height: 1.45,
     color: color,

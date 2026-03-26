@@ -13,8 +13,7 @@ class AppRouter extends RootStackRouter {
           path: '/',
           page: ShellRoute.page,
           children: [
-            AutoRoute(path: '', page: DashboardRoute.page),
-            AutoRoute(page: DashboardRoute.page),
+            AutoRoute(path: '', page: DashboardRoute.page, initial: true),
             AutoRoute(page: AdminPanelRoute.page),
             AutoRoute(page: UserFormRoute.page),
             AutoRoute(page: StudentListRoute.page),

@@ -42,24 +42,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
         return Scaffold(
           appBar: AppBar(
-            title: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  LocaleKeys.app_title.tr(),
-                  style: textTheme.titleLarge?.copyWith(
-                    color: colorScheme.primary,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                SizedBox(width: 8.w),
-                const CircleAvatar(
-                  radius: 16,
-                  backgroundImage: NetworkImage(
-                    'https://i.pravatar.cc/150?img=11',
-                  ),
-                ),
-              ],
+            title: Text(
+              LocaleKeys.app_title.tr(),
+              style: textTheme.titleLarge?.copyWith(
+                color: colorScheme.primary,
+                fontWeight: FontWeight.w800,
+              ),
             ),
             centerTitle: true,
             leading: ResponsiveLayout.isMobile(context)
@@ -69,13 +57,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   )
                 : null,
             actions: [
-              IconButton(
-                icon: Icon(
-                  Icons.notifications_outlined,
-                  color: colorScheme.onSurface,
-                ),
-                onPressed: () {},
-              ),
               IconButton(
                 icon: const Icon(Icons.language),
                 onPressed: () {
@@ -183,13 +164,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   SizedBox(height: 32.h),
 
                   // Quick Actions Grid
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(LocaleKeys.quick_actions.tr(), style: textTheme.titleLarge),
-                      Icon(Icons.tune, color: colorScheme.onSurfaceVariant),
-                    ],
-                  ),
+                  Text(LocaleKeys.quick_actions.tr(), style: textTheme.titleLarge),
                   SizedBox(height: 16.h),
                   LayoutBuilder(
                     builder:
@@ -260,23 +235,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   SizedBox(height: 32.h),
 
-                  // Recent Activity
-                  if (state.recentAttendance.isNotEmpty) ...[
-                    Text(LocaleKeys.recent_attendance.tr(), style: textTheme.titleLarge),
-                    SizedBox(height: 16.h),
-                    ...state.recentAttendance.map(
-                      (Map<String, Object?> a) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _ActivityCard(
-                          status: a['status'] as String,
-                          name: a['student_name']?.toString() ?? 'Unknown',
-                          date: a['date']?.toString() ?? '',
-                          colorScheme: colorScheme,
-                          textTheme: textTheme,
-                        ),
-                      ),
-                    ),
-                  ],
+
                   const SizedBox(height: 24),
                 ],
               ),
@@ -394,91 +353,3 @@ class _ActionCard extends StatelessWidget {
   }
 }
 
-class _ActivityCard extends StatelessWidget {
-  final String status;
-  final String name;
-  final String date;
-  final ColorScheme colorScheme;
-  final TextTheme textTheme;
-
-  const _ActivityCard({
-    required this.status,
-    required this.name,
-    required this.date,
-    required this.colorScheme,
-    required this.textTheme,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    Color statusColor;
-    IconData statusIcon;
-
-    switch (status) {
-      case 'attended':
-        statusColor = const Color(0xFF4CAF50);
-        statusIcon = Icons.check_circle_rounded;
-        break;
-      case 'missed':
-        statusColor = const Color(0xFFE91E63);
-        statusIcon = Icons.cancel_rounded;
-        break;
-      default:
-        statusColor = const Color(0xFFFF9800);
-        statusIcon = Icons.info_rounded;
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark
-            ? colorScheme.surfaceContainerHigh
-            : colorScheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          if (!isDark)
-            BoxShadow(
-              color: colorScheme.outlineVariant.withValues(alpha: 0.08),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: statusColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(statusIcon, color: statusColor, size: 24),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  date,
-                  style: textTheme.labelSmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Icon(Icons.chevron_right_rounded, color: colorScheme.outlineVariant),
-        ],
-      ),
-    );
-  }
-}

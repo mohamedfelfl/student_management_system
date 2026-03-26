@@ -53,7 +53,7 @@ class _ExamListScreenState extends State<ExamListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          LocaleKeys.academic_atelier.tr(),
+          LocaleKeys.exams.tr(),
           style: textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.w800,
             color: colorScheme.primary,
@@ -392,7 +392,7 @@ class _ExamListScreenState extends State<ExamListScreen> {
                               ),
                               title: Text(
                                 title,
-                                style: textTheme.titleSmall?.copyWith(
+                                style: textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -452,26 +452,36 @@ class _ExamListScreenState extends State<ExamListScreen> {
                           ),
                         ],
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.calendar_month),
-                        onPressed: () async {
-                          final DateTimeRange? picked =
-                              await showDateRangePicker(
-                                context: context,
-                                firstDate: DateTime(2020),
-                                lastDate: DateTime.now().add(
-                                  const Duration(days: 365),
-                                ),
-                              );
-                          if (picked != null) {
-                            if (context.mounted) {
-                              context.read<ExamCubit>().getTopStudents(
-                                startDate: picked.start,
-                                endDate: picked.end,
-                              );
-                            }
-                          }
-                        },
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.description_outlined),
+                            onPressed: () {
+                              _showExamFilterDialog(context, state.exams);
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.calendar_month),
+                            onPressed: () async {
+                              final DateTimeRange? picked =
+                                  await showDateRangePicker(
+                                    context: context,
+                                    firstDate: DateTime(2020),
+                                    lastDate: DateTime.now().add(
+                                      const Duration(days: 365),
+                                    ),
+                                  );
+                              if (picked != null) {
+                                if (context.mounted) {
+                                  context.read<ExamCubit>().getTopStudents(
+                                    startDate: picked.start,
+                                    endDate: picked.end,
+                                  );
+                                }
+                              }
+                            },
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -489,7 +499,6 @@ class _ExamListScreenState extends State<ExamListScreen> {
                                 SizedBox(width: 12.w),
                             itemBuilder: (context, index) {
                               final student = state.topStudents[index];
-                              print(student.studentName);
                               return SizedBox(
                                 width: 150.w,
                                 child: _HonorCard(
@@ -748,6 +757,43 @@ class _ExamListScreenState extends State<ExamListScreen> {
           );
         },
       ),
+    );
+  }
+
+  void _showExamFilterDialog(BuildContext context, List<Map<String, dynamic>> exams) {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      ),
+      builder: (BuildContext bottomSheetContext) {
+        return ListView.builder(
+          padding: EdgeInsets.symmetric(vertical: 16.h),
+          itemCount: exams.length + 1,
+          itemBuilder: (context, index) {
+            if (index == 0) {
+              return ListTile(
+                leading: const Icon(Icons.all_inclusive),
+                title: Text(LocaleKeys.view_all.tr()),
+                onTap: () {
+                  this.context.read<ExamCubit>().getTopStudents(); // Reset filter
+                  Navigator.pop(bottomSheetContext);
+                },
+              );
+            }
+            final exam = exams[index - 1];
+            return ListTile(
+              leading: const Icon(Icons.description),
+              title: Text(exam['name'] as String),
+              subtitle: Text(exam['date']?.toString() ?? ''),
+              onTap: () {
+                this.context.read<ExamCubit>().getTopStudents(examId: exam['id'] as int);
+                Navigator.pop(bottomSheetContext);
+              },
+            );
+          },
+        );
+      },
     );
   }
 }

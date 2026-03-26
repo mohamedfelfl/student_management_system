@@ -123,16 +123,22 @@ class ExamCubit extends Cubit<ExamState> {
     }
   }
 
-  Future<void> getTopStudents({DateTime? startDate, DateTime? endDate}) async {
+  Future<void> getTopStudents({DateTime? startDate, DateTime? endDate, int? examId}) async {
     try {
       final Database db = await _databaseService.database;
-      String whereClause = '';
+      final List<String> conditions = [];
       List<Object?> args = [];
 
       if (startDate != null && endDate != null) {
-        whereClause = 'WHERE e.date BETWEEN ? AND ?';
-        args = [startDate.toIso8601String().split('T').first, endDate.toIso8601String().split('T').first];
+        conditions.add('e.date BETWEEN ? AND ?');
+        args.addAll([startDate.toIso8601String().split('T').first, endDate.toIso8601String().split('T').first]);
       }
+      if (examId != null) {
+        conditions.add('e.id = ?');
+        args.add(examId);
+      }
+
+      final String whereClause = conditions.isNotEmpty ? 'WHERE ${conditions.join(' AND ')}' : '';
 
       final List<Map<String, Object?>> results = await db.rawQuery('''
         SELECT 

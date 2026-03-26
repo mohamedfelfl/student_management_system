@@ -13,30 +13,16 @@ import '../widgets/responsive_layout.dart';
 import '../../../generated/locale_keys.g.dart';
 
 @RoutePage(name: 'ShellRoute')
-class ShellScreen extends StatefulWidget {
+class ShellScreen extends StatelessWidget {
   const ShellScreen({super.key});
 
   /// Global key to access the shell's [ScaffoldState] from child screens.
-  static final GlobalKey<ScaffoldState> scaffoldKey =
-      GlobalKey<ScaffoldState>();
-
-  @override
-  State<ShellScreen> createState() => _ShellScreenState();
-}
-
-class _ShellScreenState extends State<ShellScreen> {
-  int _selectedIndex = 0;
-
-  void _onDestinationSelected(int index, List<PageRouteInfo> filteredRoutes) {
-    setState(() => _selectedIndex = index);
-    context.router.replace(filteredRoutes[index]);
-  }
+  static final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
-
 
     return BlocBuilder<AuthCubit, AuthState>(
       builder: (context, authState) {
@@ -124,60 +110,62 @@ class _ShellScreenState extends State<ShellScreen> {
         final List<PageRouteInfo> filteredRoutes = menuItems.map((e) => e.route).toList();
         final List<NavigationRailDestination> destinations = menuItems.map((e) => e.destination).toList();
 
-        // Ensure selected index is within bounds
-        if (_selectedIndex >= filteredRoutes.length) {
-          _selectedIndex = 0;
-        }
-
-        return Scaffold(
-          key: ShellScreen.scaffoldKey,
-          drawer: ResponsiveLayout.isMobile(context)
-              ? _buildDrawer(context, isDark, colorScheme, destinations, filteredRoutes)
-              : null,
-          body: ResponsiveLayout(
-            selectedIndex: _selectedIndex,
-            onDestinationSelected: (idx) => _onDestinationSelected(idx, filteredRoutes),
-            destinations: destinations,
-            leading: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Icon(Icons.school, color: colorScheme.primary, size: 32),
-            ),
-            trailing: Expanded(
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: IconButton(
-                    icon: const Icon(Icons.logout),
-                    onPressed: () => context.read<AuthCubit>().logout(),
-                    tooltip: 'logout'.tr(),
-                    color: colorScheme.error,
+        return AutoTabsRouter(
+          routes: filteredRoutes,
+          builder: (context, child) {
+            final tabsRouter = AutoTabsRouter.of(context);
+            
+            return Scaffold(
+              key: ShellScreen.scaffoldKey,
+              drawer: ResponsiveLayout.isMobile(context)
+                  ? _buildDrawer(context, isDark, colorScheme, destinations, tabsRouter)
+                  : null,
+              body: ResponsiveLayout(
+                selectedIndex: tabsRouter.activeIndex,
+                onDestinationSelected: tabsRouter.setActiveIndex,
+                destinations: destinations,
+                leading: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Icon(Icons.school, color: colorScheme.primary, size: 32),
+                ),
+                trailing: Expanded(
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: IconButton(
+                        icon: const Icon(Icons.logout),
+                        onPressed: () => context.read<AuthCubit>().logout(),
+                        tooltip: 'logout'.tr(),
+                        color: colorScheme.error,
+                      ),
+                    ),
                   ),
                 ),
+                mobileBody: child,
+                desktopBody: child,
               ),
-            ),
-            mobileBody: const AutoRouter(),
-            desktopBody: const AutoRouter(),
-          ),
-          bottomNavigationBar: ResponsiveLayout.isMobile(context)
-              ? NavigationBar(
-                  selectedIndex: _selectedIndex < destinations.length ? _selectedIndex : 0,
-                  onDestinationSelected: (idx) => _onDestinationSelected(idx, filteredRoutes),
-                  destinations: [
-                    ...destinations
-                        .take(5)
-                        .map((d) => NavigationDestination(
-                              icon: d.icon,
-                              selectedIcon: d.selectedIcon,
-                              label: (d.label as Text).data ?? '',
-                            )),
-                    NavigationDestination(
-                      icon: const Icon(Icons.logout),
-                      label: 'logout'.tr(),
-                    ),
-                  ],
-                )
-              : null,
+              bottomNavigationBar: ResponsiveLayout.isMobile(context)
+                  ? NavigationBar(
+                      selectedIndex: tabsRouter.activeIndex < destinations.length ? tabsRouter.activeIndex : 0,
+                      onDestinationSelected: tabsRouter.setActiveIndex,
+                      destinations: [
+                        ...destinations
+                            .take(5)
+                            .map((d) => NavigationDestination(
+                                  icon: d.icon,
+                                  selectedIcon: d.selectedIcon,
+                                  label: (d.label as Text).data ?? '',
+                                )),
+                        NavigationDestination(
+                          icon: const Icon(Icons.logout),
+                          label: 'logout'.tr(),
+                        ),
+                      ],
+                    )
+                  : null,
+            );
+          },
         );
       },
     );
@@ -188,7 +176,7 @@ class _ShellScreenState extends State<ShellScreen> {
     bool isDark,
     ColorScheme colorScheme,
     List<NavigationRailDestination> destinations,
-    List<PageRouteInfo> filteredRoutes,
+    TabsRouter tabsRouter,
   ) {
     return Drawer(
       child: ClipRRect(
@@ -217,7 +205,7 @@ class _ShellScreenState extends State<ShellScreen> {
               ),
               ...List.generate(destinations.length, (int i) {
                 final NavigationRailDestination dest = destinations[i];
-                final bool isSelected = _selectedIndex == i;
+                final bool isSelected = tabsRouter.activeIndex == i;
                 return ListTile(
                   leading: IconTheme(
                     data: IconThemeData(
@@ -244,7 +232,7 @@ class _ShellScreenState extends State<ShellScreen> {
                   ),
                   onTap: () {
                     Navigator.pop(context);
-                    _onDestinationSelected(i, filteredRoutes);
+                    tabsRouter.setActiveIndex(i);
                   },
                 );
               }),

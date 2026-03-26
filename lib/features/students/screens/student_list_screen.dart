@@ -375,7 +375,7 @@ class _StudentListScreenState extends State<StudentListScreen> {
                                           children: [
                                             Text(
                                               s['name']?.toString() ?? '',
-                                              style: textTheme.titleLarge
+                                              style: textTheme.titleMedium
                                                   ?.copyWith(
                                                     fontWeight: FontWeight.bold,
                                                   ),

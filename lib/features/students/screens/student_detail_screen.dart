@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/router/app_router.gr.dart';
 import '../../../generated/locale_keys.g.dart';
@@ -204,7 +205,6 @@ class _InfoTab extends StatelessWidget {
                 value, 
                 style: textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
-                  fontSize: 18.sp,
                 ),
               ),
             ],
@@ -320,7 +320,7 @@ class _AttendanceTab extends StatelessWidget {
                   const SizedBox(width: 12),
                   Expanded(child: Text(a['date']?.toString() ?? '')),
                   Chip(
-                    label: Text(statusLabel, style: TextStyle(color: chipColor, fontSize: 12)),
+                    label: Text(statusLabel, style: TextStyle(color: chipColor, fontSize: 10.sp)),
                     visualDensity: VisualDensity.compact,
                   ),
                 ],

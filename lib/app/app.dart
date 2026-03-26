@@ -56,10 +56,7 @@ class _StudentsManagementAppState extends State<StudentsManagementApp> {
               return BlocListener<AuthCubit, AuthState>(
                 listener: (context, state) {
                   state.maybeWhen(
-                    authenticated: (_) {
-                      context.read<DashboardCubit>().loadDashboard();
-                      _appRouter.replaceAll([const ShellRoute()]);
-                    },
+                    authenticated: (_) => _appRouter.replaceAll([const ShellRoute()]),
                     initial: () => _appRouter.replaceAll([const LoginRoute()]),
                     orElse: () {},
                   );
