@@ -6,7 +6,6 @@ import 'package:easy_localization/easy_localization.dart';
 import '../../../app/shared/widgets/responsive_layout.dart';
 import '../../../app/router/app_router.gr.dart';
 import '../../../generated/locale_keys.g.dart';
-import '../../../app/shared/screens/shell_screen.dart';
 import '../cubits/group_cubit.dart';
 
 @RoutePage()
@@ -39,7 +38,7 @@ class _GroupListScreenState extends State<GroupListScreen> {
         leading: ResponsiveLayout.isMobile(context)
             ? IconButton(
                 icon: const Icon(Icons.menu),
-                onPressed: () => ShellScreen.scaffoldKey.currentState?.openDrawer(),
+                onPressed: () => Scaffold.of(context).openDrawer(),
               )
             : null,
       ),

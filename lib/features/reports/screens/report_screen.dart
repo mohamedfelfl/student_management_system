@@ -7,7 +7,6 @@ import 'package:printing/printing.dart';
 import '../../../../generated/locale_keys.g.dart';
 import '../../../app/shared/widgets/responsive_layout.dart';
 
-import '../../../app/shared/screens/shell_screen.dart';
 import '../cubits/report_cubit.dart';
 import '../../students/cubits/student_cubit.dart';
 
@@ -70,7 +69,7 @@ class _ReportScreenState extends State<ReportScreen> {
           leading: ResponsiveLayout.isMobile(context)
               ? IconButton(
                   icon: const Icon(Icons.menu),
-                  onPressed: () => ShellScreen.scaffoldKey.currentState?.openDrawer(),
+                  onPressed: () => Scaffold.of(context).openDrawer(),
                 )
               : null,
         ),

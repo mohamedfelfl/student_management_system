@@ -8,7 +8,6 @@ import '../../../generated/locale_keys.g.dart';
 
 import '../../../app/router/app_router.gr.dart';
 import '../../../app/shared/widgets/responsive_layout.dart';
-import '../../../app/shared/screens/shell_screen.dart';
 import '../../auth/cubits/auth_cubit.dart';
 import '../../auth/models/user.dart';
 import '../cubits/dashboard_cubit.dart';
@@ -53,7 +52,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             leading: ResponsiveLayout.isMobile(context)
                 ? IconButton(
                     icon: Icon(Icons.menu, color: colorScheme.onSurface),
-                    onPressed: () => ShellScreen.scaffoldKey.currentState?.openDrawer(),
+                    onPressed: () => Scaffold.of(context).openDrawer(),
                   )
                 : null,
             actions: [

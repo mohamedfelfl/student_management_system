@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../app/shared/screens/shell_screen.dart';
 import '../../../app/shared/widgets/responsive_layout.dart';
 import '../../../generated/locale_keys.g.dart';
 import '../../students/cubits/student_cubit.dart';
@@ -49,7 +48,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
             ? IconButton(
                 icon: const Icon(Icons.menu),
                 onPressed: () =>
-                    ShellScreen.scaffoldKey.currentState?.openDrawer(),
+                    Scaffold.of(context).openDrawer(),
               )
             : null,
         backgroundColor: Colors.transparent,
@@ -693,7 +692,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                   children: [
                     Expanded(
                       child: DropdownButtonFormField<int>(
-                        value: selectedMonth,
+                        initialValue: selectedMonth,
                         decoration: InputDecoration(
                           labelText: LocaleKeys.month.tr(),
                         ),
@@ -716,7 +715,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: DropdownButtonFormField<int>(
-                        value: selectedYear,
+                        initialValue: selectedYear,
                         decoration: InputDecoration(
                           labelText: LocaleKeys.year.tr(),
                         ),
@@ -873,7 +872,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${LocaleKeys.semester_fee.tr(args: ['${payment['month']}/${payment['year']}'])}',
+                  LocaleKeys.semester_fee.tr(args: ['${payment['month']}/${payment['year']}']),
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
@@ -884,8 +883,9 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                     FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
                   ],
                   onChanged: (_) {
-                    if (errorMessage != null)
+                    if (errorMessage != null) {
                       setDialogState(() => errorMessage = null);
+                    }
                   },
                   decoration: InputDecoration(
                     labelText: LocaleKeys.total_amount.tr(),
@@ -899,8 +899,9 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                     FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
                   ],
                   onChanged: (_) {
-                    if (errorMessage != null)
+                    if (errorMessage != null) {
                       setDialogState(() => errorMessage = null);
+                    }
                   },
                   decoration: InputDecoration(
                     labelText: LocaleKeys.paid_amount.tr(),

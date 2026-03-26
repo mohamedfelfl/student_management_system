@@ -6,7 +6,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../app/router/app_router.gr.dart';
-import '../../../app/shared/screens/shell_screen.dart';
 import '../../../app/shared/widgets/responsive_layout.dart';
 import '../../../generated/locale_keys.g.dart';
 import '../cubits/student_cubit.dart';
@@ -51,7 +50,7 @@ class _StudentListScreenState extends State<StudentListScreen> {
             ? IconButton(
                 icon: const Icon(Icons.menu),
                 onPressed: () =>
-                    ShellScreen.scaffoldKey.currentState?.openDrawer(),
+                    Scaffold.of(context).openDrawer(),
               )
             : null,
       ),

@@ -5,19 +5,18 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../cubits/locale_cubit.dart';
 import '../../../features/auth/cubits/auth_cubit.dart';
 import '../../../features/auth/models/user.dart';
+import '../../../generated/locale_keys.g.dart';
+import '../../cubits/locale_cubit.dart';
 import '../../router/app_router.gr.dart';
 import '../widgets/responsive_layout.dart';
-import '../../../generated/locale_keys.g.dart';
 
 @RoutePage(name: 'ShellRoute')
 class ShellScreen extends StatelessWidget {
   const ShellScreen({super.key});
 
-  /// Global key to access the shell's [ScaffoldState] from child screens.
-  static final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +32,10 @@ class ShellScreen extends StatelessWidget {
 
         if (user == null) return const Scaffold();
 
-        final List<({PageRouteInfo route, NavigationRailDestination destination})> menuItems = [
+        final List<
+          ({PageRouteInfo route, NavigationRailDestination destination})
+        >
+        menuItems = [
           (
             route: const DashboardRoute(),
             destination: NavigationRailDestination(
@@ -96,7 +98,8 @@ class ShellScreen extends StatelessWidget {
                 label: Text('reports'.tr()),
               ),
             ),
-          if (user.role == UserRole.admin || user.can(UserPermission.manageUsers))
+          if (user.role == UserRole.admin ||
+              user.can(UserPermission.manageUsers))
             (
               route: const AdminPanelRoute(),
               destination: NavigationRailDestination(
@@ -107,18 +110,27 @@ class ShellScreen extends StatelessWidget {
             ),
         ];
 
-        final List<PageRouteInfo> filteredRoutes = menuItems.map((e) => e.route).toList();
-        final List<NavigationRailDestination> destinations = menuItems.map((e) => e.destination).toList();
+        final List<PageRouteInfo> filteredRoutes = menuItems
+            .map((e) => e.route)
+            .toList();
+        final List<NavigationRailDestination> destinations = menuItems
+            .map((e) => e.destination)
+            .toList();
 
         return AutoTabsRouter(
           routes: filteredRoutes,
           builder: (context, child) {
             final tabsRouter = AutoTabsRouter.of(context);
-            
+
             return Scaffold(
-              key: ShellScreen.scaffoldKey,
               drawer: ResponsiveLayout.isMobile(context)
-                  ? _buildDrawer(context, isDark, colorScheme, destinations, tabsRouter)
+                  ? _buildDrawer(
+                      context,
+                      isDark,
+                      colorScheme,
+                      destinations,
+                      tabsRouter,
+                    )
                   : null,
               body: ResponsiveLayout(
                 selectedIndex: tabsRouter.activeIndex,
@@ -126,7 +138,11 @@ class ShellScreen extends StatelessWidget {
                 destinations: destinations,
                 leading: Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Icon(Icons.school, color: colorScheme.primary, size: 32),
+                  child: Icon(
+                    Icons.school,
+                    color: colorScheme.primary,
+                    size: 32,
+                  ),
                 ),
                 trailing: Expanded(
                   child: Align(
@@ -147,16 +163,21 @@ class ShellScreen extends StatelessWidget {
               ),
               bottomNavigationBar: ResponsiveLayout.isMobile(context)
                   ? NavigationBar(
-                      selectedIndex: tabsRouter.activeIndex < destinations.length ? tabsRouter.activeIndex : 0,
+                      selectedIndex:
+                          tabsRouter.activeIndex < destinations.length
+                          ? tabsRouter.activeIndex
+                          : 0,
                       onDestinationSelected: tabsRouter.setActiveIndex,
                       destinations: [
                         ...destinations
                             .take(5)
-                            .map((d) => NavigationDestination(
-                                  icon: d.icon,
-                                  selectedIcon: d.selectedIcon,
-                                  label: (d.label as Text).data ?? '',
-                                )),
+                            .map(
+                              (d) => NavigationDestination(
+                                icon: d.icon,
+                                selectedIcon: d.selectedIcon,
+                                label: (d.label as Text).data ?? '',
+                              ),
+                            ),
                         NavigationDestination(
                           icon: const Icon(Icons.logout),
                           label: 'logout'.tr(),
@@ -186,9 +207,7 @@ class ShellScreen extends StatelessWidget {
             padding: EdgeInsets.zero,
             children: [
               DrawerHeader(
-                decoration: BoxDecoration(
-                  color: colorScheme.primary,
-                ),
+                decoration: BoxDecoration(color: colorScheme.primary),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -222,11 +241,15 @@ class ShellScreen extends StatelessWidget {
                       fontWeight: isSelected
                           ? FontWeight.bold
                           : FontWeight.normal,
-                      color: isSelected ? colorScheme.primary : colorScheme.onSurface,
+                      color: isSelected
+                          ? colorScheme.primary
+                          : colorScheme.onSurface,
                     ),
                   ),
                   selected: isSelected,
-                  selectedTileColor: colorScheme.primaryContainer.withValues(alpha: 0.5),
+                  selectedTileColor: colorScheme.primaryContainer.withValues(
+                    alpha: 0.5,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -242,7 +265,10 @@ class ShellScreen extends StatelessWidget {
                 leading: Icon(Icons.logout, color: colorScheme.error),
                 title: Text(
                   'logout'.tr(),
-                  style: TextStyle(color: colorScheme.error, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: colorScheme.error,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 onTap: () {
                   Navigator.pop(context);

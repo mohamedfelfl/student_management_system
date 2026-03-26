@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../app/shared/screens/shell_screen.dart';
 import '../../../app/shared/widgets/responsive_layout.dart';
 import '../../../generated/locale_keys.g.dart';
 import '../cubits/group_cubit.dart';
@@ -127,7 +126,7 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
             ? IconButton(
                 icon: const Icon(Icons.menu),
                 onPressed: () =>
-                    ShellScreen.scaffoldKey.currentState?.openDrawer(),
+                    Scaffold.of(context).openDrawer(),
               )
             : IconButton(
                 icon: const Icon(Icons.arrow_back),

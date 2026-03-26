@@ -12,7 +12,6 @@ import '../../../../app/router/app_router.gr.dart';
 import '../../../../generated/locale_keys.g.dart';
 import '../cubits/attendance_cubit.dart';
 import '../models/attendance.dart';
-import '../../../../app/shared/screens/shell_screen.dart';
 import '../../../../app/shared/widgets/responsive_layout.dart';
 
 @RoutePage()
@@ -61,7 +60,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
         leading: ResponsiveLayout.isMobile(context)
             ? IconButton(
                 icon: const Icon(Icons.menu),
-                onPressed: () => ShellScreen.scaffoldKey.currentState?.openDrawer(),
+                onPressed: () => Scaffold.of(context).openDrawer(),
               )
             : null,
         title: Text('qr_attendance'.tr(), style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
