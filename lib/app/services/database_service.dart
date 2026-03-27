@@ -13,7 +13,7 @@ import 'encryption_service.dart';
 /// The database is encrypted using a passphrase stored in secure storage.
 class DatabaseService {
   static Database? _database;
-  static const int _dbVersion = 3;
+  static const int _dbVersion = 5;
   static const String _dbName = 'student_management.db';
 
   // ignore: unused_field
@@ -125,6 +125,7 @@ class DatabaseService {
         school TEXT NOT NULL DEFAULT '',
         previous_teacher TEXT NOT NULL DEFAULT '',
         group_id INTEGER,
+        grade TEXT,
         created_at TEXT NOT NULL DEFAULT (datetime('now')),
         FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE SET NULL
       )
@@ -267,6 +268,44 @@ class DatabaseService {
         )
       ''');
       await batch.commit(noResult: true);
+    }
+
+    if (oldVersion < 4) {
+      // Remove UNIQUE constraint from payments table to allow multiple partial payments
+      await db.transaction((txn) async {
+        // 1. Rename existing table
+        await txn.execute('ALTER TABLE payments RENAME TO payments_old');
+
+        // 2. Create new table without UNIQUE constraint
+        await txn.execute('''
+          CREATE TABLE payments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            student_id INTEGER NOT NULL,
+            month INTEGER NOT NULL,
+            year INTEGER NOT NULL,
+            total_amount REAL NOT NULL,
+            paid_amount REAL NOT NULL DEFAULT 0,
+            paid_date TEXT,
+            FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+          )
+        ''');
+
+        // 3. Copy data
+        await txn.execute('''
+          INSERT INTO payments (id, student_id, month, year, total_amount, paid_amount, paid_date)
+          SELECT id, student_id, month, year, total_amount, paid_amount, paid_date FROM payments_old
+        ''');
+
+        // 4. Drop old table
+        await txn.execute('DROP TABLE payments_old');
+
+        // 5. Re-create index for performance
+        await txn.execute('CREATE INDEX idx_payments_student ON payments(student_id)');
+      });
+    }
+
+    if (oldVersion < 5) {
+      await db.execute('ALTER TABLE students ADD COLUMN grade TEXT');
     }
   }
 

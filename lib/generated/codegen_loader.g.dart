@@ -225,7 +225,23 @@ class CodegenLoader extends AssetLoader{
   "select_group": "اختر المجموعة",
   "no_honor_students": "لا يوجد طلاب في لوحة الشرف بعد",
   "academic_atelier": "أكاديميك أتيليه",
-  "attendance_date": "تاريخ الحضور"
+  "attendance_date": "تاريخ الحضور",
+  "no_students": "لا يوجد طلاب في هذه المجموعة",
+  "daily_payments": "المدفوعات اليومية",
+  "paid_date": "تاريخ الدفع",
+  "grade": "المرحلة الدراسية",
+  "primary_1": "الصف الأول الابتدائي",
+  "primary_2": "الصف الثاني الابتدائي",
+  "primary_3": "الصف الثالث الابتدائي",
+  "primary_4": "الصف الرابع الابتدائي",
+  "primary_5": "الصف الخامس الابتدائي",
+  "primary_6": "الصف السادس الابتدائي",
+  "prep_1": "الصف الأول الإعدادي",
+  "prep_2": "الصف الثاني الإعدادي",
+  "prep_3": "الصف الثالث الإعدادي",
+  "sec_1": "الصف الأول الثانوي",
+  "sec_2": "الصف الثاني الثانوي",
+  "sec_3": "الصف الثالث الثانوي"
 };
 static const Map<String,dynamic> _en = {
   "app_title": "Student Management System",
@@ -438,7 +454,23 @@ static const Map<String,dynamic> _en = {
   "select_group": "Select Group",
   "no_honor_students": "No students in the honor board yet",
   "academic_atelier": "Academic Atelier",
-  "attendance_date": "Attendance Date"
+  "attendance_date": "Attendance Date",
+  "no_students": "No students found in this group",
+  "daily_payments": "Daily Payments",
+  "paid_date": "Paid Date",
+  "grade": "Grade",
+  "primary_1": "1st Primary",
+  "primary_2": "2nd Primary",
+  "primary_3": "3rd Primary",
+  "primary_4": "4th Primary",
+  "primary_5": "5th Primary",
+  "primary_6": "6th Primary",
+  "prep_1": "1st Preparatory",
+  "prep_2": "2nd Preparatory",
+  "prep_3": "3rd Preparatory",
+  "sec_1": "1st Secondary",
+  "sec_2": "2nd Secondary",
+  "sec_3": "3rd Secondary"
 };
 static const Map<String, Map<String,dynamic>> mapLocales = {"ar": _ar, "en": _en};
 }

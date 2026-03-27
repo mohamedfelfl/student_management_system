@@ -15,6 +15,7 @@ abstract class ExamState with _$ExamState {
     @Default([]) List<Map<String, dynamic>> marks,
     @Default([]) List<Map<String, dynamic>> groups,
     @Default([]) List<Map<String, dynamic>> groupStudents,
+    @Default({}) Map<String, List<Map<String, dynamic>>> groupedExamStudents,
     @Default([]) List<StudentExamResult> topStudents,
     @Default(0.0) double averageScore,
     @Default(false) bool isLoading,
@@ -205,6 +206,40 @@ class ExamCubit extends Cubit<ExamState> {
       emit(state.copyWith(groupStudents: results));
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
+    }
+  }
+
+  Future<void> loadExamStudents(int examId) async {
+    emit(state.copyWith(isLoading: true, error: null));
+    try {
+      final Database db = await _databaseService.database;
+      
+      // Get all students from groups linked to this exam
+      final List<Map<String, Object?>> results = await db.rawQuery('''
+        SELECT s.*, g.name as group_name
+        FROM students s
+        JOIN exam_groups eg ON s.group_id = eg.group_id
+        JOIN groups g ON s.group_id = g.id
+        WHERE eg.exam_id = ?
+        ORDER BY g.name ASC, s.name ASC
+      ''', [examId]);
+
+      // Group them by group_name
+      final Map<String, List<Map<String, dynamic>>> grouped = {};
+      for (final student in results) {
+        final groupName = student['group_name'] as String;
+        if (!grouped.containsKey(groupName)) {
+          grouped[groupName] = [];
+        }
+        grouped[groupName]!.add(student);
+      }
+
+      emit(state.copyWith(
+        groupedExamStudents: grouped,
+        isLoading: false,
+      ));
+    } catch (e) {
+      emit(state.copyWith(error: e.toString(), isLoading: false));
     }
   }
 

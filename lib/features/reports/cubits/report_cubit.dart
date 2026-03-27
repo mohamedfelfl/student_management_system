@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -8,7 +9,7 @@ import '../../../app/services/database_service.dart';
 
 part 'report_cubit.freezed.dart';
 
-enum ReportType { student, weekly, monthly, highestMarks, collection, attendanceDate }
+enum ReportType { student, weekly, monthly, highestMarks, collection, attendanceDate, dailyPayments }
 
 @freezed
 abstract class ReportState with _$ReportState {
@@ -91,6 +92,79 @@ class ReportCubit extends Cubit<ReportState> {
             _buildAttendanceSection(attendance),
             pw.SizedBox(height: 20),
             _buildPaymentSection(payments),
+          ],
+        ),
+      );
+
+      emit(ReportState(isGenerated: true, pdfDocument: pdf));
+    } catch (e) {
+      emit(ReportState(error: e.toString()));
+    }
+  }
+
+  /// Generate a report for payments made on a specific day.
+  Future<void> generateDailyPaymentReport(DateTime date) async {
+    emit(const ReportState(isLoading: true));
+    try {
+      final db = await _databaseService.database;
+      final String dateStr = date.toIso8601String().split('T').first;
+
+      final results = await db.rawQuery('''
+        SELECT p.*, s.name as student_name, s.serial_number
+        FROM payments p
+        JOIN students s ON p.student_id = s.id
+        WHERE p.paid_date LIKE ?
+        ORDER BY s.name ASC
+      ''', ['$dateStr%']);
+
+      final pdf = await _createDocument();
+      pdf.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a4,
+          textDirection: pw.TextDirection.rtl,
+          build: (context) => [
+            pw.Header(
+              level: 0,
+              child: pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                   pw.Text('تقرير المدفوعات اليومية',
+                      style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+                   pw.Text(dateStr, style: const pw.TextStyle(fontSize: 16)),
+                ],
+              ),
+            ),
+            pw.SizedBox(height: 20),
+            if (results.isEmpty)
+              pw.Center(child: pw.Text('لا توجد مدفوعات في هذا اليوم', style: const pw.TextStyle(fontSize: 18)))
+            else ...[
+              pw.TableHelper.fromTextArray(
+                headers: ['الطالب', 'التسلسل', 'الشهر/السنة', 'المبلغ المدفوع', 'الوقت'],
+                data: results.map((r) {
+                   final paidDate = DateTime.parse(r['paid_date'].toString());
+                   final timeStr = DateFormat('HH:mm').format(paidDate);
+                   return [
+                      r['student_name'].toString(),
+                      r['serial_number'].toString(),
+                      '${r['month']}/${r['year']}',
+                      'EGP ${(r['paid_amount'] as num).toDouble().toStringAsFixed(2)}',
+                     timeStr,
+                   ];
+                }).toList(),
+              ),
+              pw.SizedBox(height: 20),
+              pw.Divider(),
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.end,
+                children: [
+                  pw.Text('الإجمالي: ', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+                  pw.Text(
+                    'EGP ${results.fold(0.0, (sum, r) => sum + (r['paid_amount'] as num).toDouble()).toStringAsFixed(2)}',
+                    style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
       );
@@ -355,9 +429,9 @@ class ReportCubit extends Cubit<ReportState> {
               final paid = (p['paid_amount'] as num).toDouble();
               return [
                 '${p['month']}/${p['year']}',
-                total.toStringAsFixed(2),
-                paid.toStringAsFixed(2),
-                (total - paid).toStringAsFixed(2),
+                'EGP ${total.toStringAsFixed(2)}',
+                'EGP ${paid.toStringAsFixed(2)}',
+                'EGP ${(total - paid).toStringAsFixed(2)}',
               ];
             }).toList(),
           ),

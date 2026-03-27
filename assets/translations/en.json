@@ -209,5 +209,21 @@
   "select_group": "Select Group",
   "no_honor_students": "No students in the honor board yet",
   "academic_atelier": "Academic Atelier",
-  "attendance_date": "Attendance Date"
+  "attendance_date": "Attendance Date",
+  "no_students": "No students found in this group",
+  "daily_payments": "Daily Payments",
+  "paid_date": "Paid Date",
+  "grade": "Grade",
+  "primary_1": "1st Primary",
+  "primary_2": "2nd Primary",
+  "primary_3": "3rd Primary",
+  "primary_4": "4th Primary",
+  "primary_5": "5th Primary",
+  "primary_6": "6th Primary",
+  "prep_1": "1st Preparatory",
+  "prep_2": "2nd Preparatory",
+  "prep_3": "3rd Preparatory",
+  "sec_1": "1st Secondary",
+  "sec_2": "2nd Secondary",
+  "sec_3": "3rd Secondary"
 }

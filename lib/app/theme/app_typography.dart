@@ -11,7 +11,7 @@ class AppTypography {
 
   /// Display Large — scaled down from 44px
   static TextStyle displayLarge({Color? color}) => GoogleFonts.cairo(
-    fontSize: 44,
+    fontSize: 48,
     fontWeight: FontWeight.w800,
     height: 1.12,
     color: color,
@@ -19,7 +19,7 @@ class AppTypography {
 
   /// Display Medium — scaled down from 34px
   static TextStyle displayMedium({Color? color}) => GoogleFonts.cairo(
-    fontSize: 34,
+    fontSize: 38,
     fontWeight: FontWeight.w700,
     height: 1.18,
     color: color,
@@ -27,7 +27,7 @@ class AppTypography {
 
   /// Display Small — scaled down from 30px
   static TextStyle displaySmall({Color? color}) => GoogleFonts.cairo(
-    fontSize: 30,
+    fontSize: 34,
     fontWeight: FontWeight.w700,
     height: 1.22,
     color: color,
@@ -37,7 +37,7 @@ class AppTypography {
 
   /// Headline Large — scaled down from 26px, page titles
   static TextStyle headlineLarge({Color? color}) => GoogleFonts.cairo(
-    fontSize: 26,
+    fontSize: 30,
     fontWeight: FontWeight.w700,
     height: 1.25,
     color: color,
@@ -45,7 +45,7 @@ class AppTypography {
 
   /// Headline Medium — scaled down from 22px
   static TextStyle headlineMedium({Color? color}) => GoogleFonts.cairo(
-    fontSize: 22,
+    fontSize: 26,
     fontWeight: FontWeight.w600,
     height: 1.29,
     color: color,
@@ -53,7 +53,7 @@ class AppTypography {
 
   /// Headline Small — scaled down from 20px
   static TextStyle headlineSmall({Color? color}) => GoogleFonts.cairo(
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: FontWeight.w600,
     height: 1.33,
     color: color,
@@ -63,7 +63,7 @@ class AppTypography {
 
   /// Title Large — scaled down from 20px
   static TextStyle titleLarge({Color? color}) => GoogleFonts.cairo(
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: FontWeight.w700,
     height: 1.27,
     color: color,
@@ -71,7 +71,7 @@ class AppTypography {
 
   /// Title Medium — scaled down from 16px
   static TextStyle titleMedium({Color? color}) => GoogleFonts.cairo(
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: FontWeight.w700,
     height: 1.5,
     color: color,
@@ -79,7 +79,7 @@ class AppTypography {
 
   /// Title Small — scaled down from 14px
   static TextStyle titleSmall({Color? color}) => GoogleFonts.cairo(
-    fontSize: 14,
+    fontSize: 18,
     fontWeight: FontWeight.w600,
     height: 1.43,
     color: color,
@@ -89,7 +89,7 @@ class AppTypography {
 
   /// Body Large — scaled down from 16px, line height 1.6 for readability
   static TextStyle bodyLarge({Color? color}) => GoogleFonts.cairo(
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: FontWeight.w500,
     height: 1.6,
     color: color,
@@ -97,7 +97,7 @@ class AppTypography {
 
   /// Body Medium — scaled down from 14px
   static TextStyle bodyMedium({Color? color}) => GoogleFonts.cairo(
-    fontSize: 14,
+    fontSize: 18,
     fontWeight: FontWeight.w500,
     height: 1.6,
     color: color,
@@ -105,7 +105,7 @@ class AppTypography {
 
   /// Body Small — scaled down from 12px
   static TextStyle bodySmall({Color? color}) => GoogleFonts.cairo(
-    fontSize: 12,
+    fontSize: 16,
     fontWeight: FontWeight.w500,
     height: 1.6,
     color: color,
@@ -115,7 +115,7 @@ class AppTypography {
 
   /// Label Large — scaled down from 14px
   static TextStyle labelLarge({Color? color}) => GoogleFonts.cairo(
-    fontSize: 14,
+    fontSize: 18,
     fontWeight: FontWeight.w600,
     height: 1.43,
     color: color,
@@ -123,7 +123,7 @@ class AppTypography {
 
   /// Label Medium — scaled down from 12px, metadata (IDs, timestamps)
   static TextStyle labelMedium({Color? color}) => GoogleFonts.cairo(
-    fontSize: 12,
+    fontSize: 16,
     fontWeight: FontWeight.w600,
     height: 1.33,
     color: color,
@@ -131,7 +131,7 @@ class AppTypography {
 
   /// Label Small — scaled down from 11px
   static TextStyle labelSmall({Color? color}) => GoogleFonts.cairo(
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: FontWeight.w600,
     height: 1.45,
     color: color,

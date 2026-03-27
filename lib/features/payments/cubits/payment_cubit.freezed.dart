@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$PaymentState {
 
- List<Map<String, dynamic>> get payments; bool get isLoading; double get totalSurplus; String? get error;
+ List<Map<String, dynamic>> get payments; List<Map<String, dynamic>> get dailyPayments; bool get isLoading; double get totalSurplus; String? get error;
 /// Create a copy of PaymentState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $PaymentStateCopyWith<PaymentState> get copyWith => _$PaymentStateCopyWithImpl<P
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PaymentState&&const DeepCollectionEquality().equals(other.payments, payments)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.totalSurplus, totalSurplus) || other.totalSurplus == totalSurplus)&&(identical(other.error, error) || other.error == error));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PaymentState&&const DeepCollectionEquality().equals(other.payments, payments)&&const DeepCollectionEquality().equals(other.dailyPayments, dailyPayments)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.totalSurplus, totalSurplus) || other.totalSurplus == totalSurplus)&&(identical(other.error, error) || other.error == error));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(payments),isLoading,totalSurplus,error);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(payments),const DeepCollectionEquality().hash(dailyPayments),isLoading,totalSurplus,error);
 
 @override
 String toString() {
-  return 'PaymentState(payments: $payments, isLoading: $isLoading, totalSurplus: $totalSurplus, error: $error)';
+  return 'PaymentState(payments: $payments, dailyPayments: $dailyPayments, isLoading: $isLoading, totalSurplus: $totalSurplus, error: $error)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $PaymentStateCopyWith<$Res>  {
   factory $PaymentStateCopyWith(PaymentState value, $Res Function(PaymentState) _then) = _$PaymentStateCopyWithImpl;
 @useResult
 $Res call({
- List<Map<String, dynamic>> payments, bool isLoading, double totalSurplus, String? error
+ List<Map<String, dynamic>> payments, List<Map<String, dynamic>> dailyPayments, bool isLoading, double totalSurplus, String? error
 });
 
 
@@ -62,9 +62,10 @@ class _$PaymentStateCopyWithImpl<$Res>
 
 /// Create a copy of PaymentState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? payments = null,Object? isLoading = null,Object? totalSurplus = null,Object? error = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? payments = null,Object? dailyPayments = null,Object? isLoading = null,Object? totalSurplus = null,Object? error = freezed,}) {
   return _then(_self.copyWith(
 payments: null == payments ? _self.payments : payments // ignore: cast_nullable_to_non_nullable
+as List<Map<String, dynamic>>,dailyPayments: null == dailyPayments ? _self.dailyPayments : dailyPayments // ignore: cast_nullable_to_non_nullable
 as List<Map<String, dynamic>>,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,totalSurplus: null == totalSurplus ? _self.totalSurplus : totalSurplus // ignore: cast_nullable_to_non_nullable
 as double,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
@@ -153,10 +154,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<Map<String, dynamic>> payments,  bool isLoading,  double totalSurplus,  String? error)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<Map<String, dynamic>> payments,  List<Map<String, dynamic>> dailyPayments,  bool isLoading,  double totalSurplus,  String? error)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PaymentState() when $default != null:
-return $default(_that.payments,_that.isLoading,_that.totalSurplus,_that.error);case _:
+return $default(_that.payments,_that.dailyPayments,_that.isLoading,_that.totalSurplus,_that.error);case _:
   return orElse();
 
 }
@@ -174,10 +175,10 @@ return $default(_that.payments,_that.isLoading,_that.totalSurplus,_that.error);c
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<Map<String, dynamic>> payments,  bool isLoading,  double totalSurplus,  String? error)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<Map<String, dynamic>> payments,  List<Map<String, dynamic>> dailyPayments,  bool isLoading,  double totalSurplus,  String? error)  $default,) {final _that = this;
 switch (_that) {
 case _PaymentState():
-return $default(_that.payments,_that.isLoading,_that.totalSurplus,_that.error);case _:
+return $default(_that.payments,_that.dailyPayments,_that.isLoading,_that.totalSurplus,_that.error);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -194,10 +195,10 @@ return $default(_that.payments,_that.isLoading,_that.totalSurplus,_that.error);c
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<Map<String, dynamic>> payments,  bool isLoading,  double totalSurplus,  String? error)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<Map<String, dynamic>> payments,  List<Map<String, dynamic>> dailyPayments,  bool isLoading,  double totalSurplus,  String? error)?  $default,) {final _that = this;
 switch (_that) {
 case _PaymentState() when $default != null:
-return $default(_that.payments,_that.isLoading,_that.totalSurplus,_that.error);case _:
+return $default(_that.payments,_that.dailyPayments,_that.isLoading,_that.totalSurplus,_that.error);case _:
   return null;
 
 }
@@ -209,7 +210,7 @@ return $default(_that.payments,_that.isLoading,_that.totalSurplus,_that.error);c
 
 
 class _PaymentState implements PaymentState {
-  const _PaymentState({final  List<Map<String, dynamic>> payments = const [], this.isLoading = false, this.totalSurplus = 0.0, this.error}): _payments = payments;
+  const _PaymentState({final  List<Map<String, dynamic>> payments = const [], final  List<Map<String, dynamic>> dailyPayments = const [], this.isLoading = false, this.totalSurplus = 0.0, this.error}): _payments = payments,_dailyPayments = dailyPayments;
   
 
  final  List<Map<String, dynamic>> _payments;
@@ -217,6 +218,13 @@ class _PaymentState implements PaymentState {
   if (_payments is EqualUnmodifiableListView) return _payments;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_payments);
+}
+
+ final  List<Map<String, dynamic>> _dailyPayments;
+@override@JsonKey() List<Map<String, dynamic>> get dailyPayments {
+  if (_dailyPayments is EqualUnmodifiableListView) return _dailyPayments;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_dailyPayments);
 }
 
 @override@JsonKey() final  bool isLoading;
@@ -233,16 +241,16 @@ _$PaymentStateCopyWith<_PaymentState> get copyWith => __$PaymentStateCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PaymentState&&const DeepCollectionEquality().equals(other._payments, _payments)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.totalSurplus, totalSurplus) || other.totalSurplus == totalSurplus)&&(identical(other.error, error) || other.error == error));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PaymentState&&const DeepCollectionEquality().equals(other._payments, _payments)&&const DeepCollectionEquality().equals(other._dailyPayments, _dailyPayments)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.totalSurplus, totalSurplus) || other.totalSurplus == totalSurplus)&&(identical(other.error, error) || other.error == error));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_payments),isLoading,totalSurplus,error);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_payments),const DeepCollectionEquality().hash(_dailyPayments),isLoading,totalSurplus,error);
 
 @override
 String toString() {
-  return 'PaymentState(payments: $payments, isLoading: $isLoading, totalSurplus: $totalSurplus, error: $error)';
+  return 'PaymentState(payments: $payments, dailyPayments: $dailyPayments, isLoading: $isLoading, totalSurplus: $totalSurplus, error: $error)';
 }
 
 
@@ -253,7 +261,7 @@ abstract mixin class _$PaymentStateCopyWith<$Res> implements $PaymentStateCopyWi
   factory _$PaymentStateCopyWith(_PaymentState value, $Res Function(_PaymentState) _then) = __$PaymentStateCopyWithImpl;
 @override @useResult
 $Res call({
- List<Map<String, dynamic>> payments, bool isLoading, double totalSurplus, String? error
+ List<Map<String, dynamic>> payments, List<Map<String, dynamic>> dailyPayments, bool isLoading, double totalSurplus, String? error
 });
 
 
@@ -270,9 +278,10 @@ class __$PaymentStateCopyWithImpl<$Res>
 
 /// Create a copy of PaymentState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? payments = null,Object? isLoading = null,Object? totalSurplus = null,Object? error = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? payments = null,Object? dailyPayments = null,Object? isLoading = null,Object? totalSurplus = null,Object? error = freezed,}) {
   return _then(_PaymentState(
 payments: null == payments ? _self._payments : payments // ignore: cast_nullable_to_non_nullable
+as List<Map<String, dynamic>>,dailyPayments: null == dailyPayments ? _self._dailyPayments : dailyPayments // ignore: cast_nullable_to_non_nullable
 as List<Map<String, dynamic>>,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,totalSurplus: null == totalSurplus ? _self.totalSurplus : totalSurplus // ignore: cast_nullable_to_non_nullable
 as double,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable

@@ -10,6 +10,7 @@ part 'payment_cubit.freezed.dart';
 abstract class PaymentState with _$PaymentState {
   const factory PaymentState({
     @Default([]) List<Map<String, dynamic>> payments,
+    @Default([]) List<Map<String, dynamic>> dailyPayments,
     @Default(false) bool isLoading,
     @Default(0.0) double totalSurplus,
     String? error,
@@ -48,8 +49,8 @@ class PaymentCubit extends Cubit<PaymentState> {
     }
   }
 
-  /// Add or update a monthly payment. If it exists, adds to paid amount and updates total. If new, creates it with surplus.
-  Future<void> addOrUpdateMonthPayment({
+  /// Adds a new payment transaction. Each call creates a new record.
+  Future<void> addPaymentTransaction({
     required int studentId,
     required int month,
     required int year,
@@ -58,48 +59,42 @@ class PaymentCubit extends Cubit<PaymentState> {
   }) async {
     try {
       final Database db = await _databaseService.database;
-
-      // Check if a payment for this month/year already exists
-      final List<Map<String, Object?>> existing = await db.query(
-        'payments',
-        where: 'student_id = ? AND month = ? AND year = ?',
-        whereArgs: <Object?>[studentId, month, year],
-      );
-
-      if (existing.isNotEmpty) {
-        // Update existing record
-        final Map<String, Object?> record = existing.first;
-        final int id = record['id'] as int;
-        final double currentPaid = (record['paid_amount'] as num).toDouble();
-        
-        await db.update(
-          'payments',
-          <String, Object?>{
-            'total_amount': totalAmount,
-            'paid_amount': currentPaid + paidAmount,
-            'paid_date': DateTime.now().toIso8601String(),
-          },
-          where: 'id = ?',
-          whereArgs: <Object?>[id],
-        );
-      } else {
-        // Check for existing surplus from previous months
-        final double previousSurplus = await _getAccumulatedSurplus(studentId, month, year);
-        final double effectivePaid = paidAmount + previousSurplus;
-
-        await db.insert('payments', <String, Object?>{
-          'student_id': studentId,
-          'month': month,
-          'year': year,
-          'total_amount': totalAmount,
-          'paid_amount': effectivePaid,
-          'paid_date': DateTime.now().toIso8601String(),
-        });
-      }
+      
+      await db.insert('payments', <String, Object?>{
+        'student_id': studentId,
+        'month': month,
+        'year': year,
+        'total_amount': totalAmount,
+        'paid_amount': paidAmount,
+        'paid_date': DateTime.now().toIso8601String(),
+      });
 
       await loadPayments(studentId);
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
+    }
+  }
+
+  Future<void> loadDailyPayments(DateTime date) async {
+    emit(state.copyWith(isLoading: true, error: null));
+    try {
+      final Database db = await _databaseService.database;
+      final String dateStr = date.toIso8601String().split('T')[0];
+      
+      final List<Map<String, Object?>> results = await db.rawQuery('''
+        SELECT p.*, s.name as student_name
+        FROM payments p
+        JOIN students s ON p.student_id = s.id
+        WHERE p.paid_date LIKE ?
+        ORDER BY p.paid_date DESC
+      ''', ['$dateStr%']);
+
+      emit(state.copyWith(
+        dailyPayments: results,
+        isLoading: false,
+      ));
+    } catch (e) {
+      emit(state.copyWith(error: e.toString(), isLoading: false));
     }
   }
 
@@ -126,32 +121,27 @@ class PaymentCubit extends Cubit<PaymentState> {
     }
   }
 
-  /// Calculate accumulated surplus from all previous months.
-  Future<double> _getAccumulatedSurplus(int studentId, int currentMonth, int currentYear) async {
-    final Database db = await _databaseService.database;
-    final List<Map<String, Object?>> results = await db.query(
-      'payments',
-      where: 'student_id = ? AND ((year < ?) OR (year = ? AND month < ?))',
-      whereArgs: <Object?>[studentId, currentYear, currentYear, currentMonth],
-      orderBy: 'year ASC, month ASC',
-    );
-
-    double surplus = 0;
-    for (final Map<String, Object?> row in results) {
-      final double total = (row['total_amount'] as num).toDouble();
-      final double paid = (row['paid_amount'] as num).toDouble();
-      if (paid > total) {
-        surplus += (paid - total);
-      }
-    }
-    return surplus;
-  }
-
   double _calculateTotalSurplus(List<Map<String, Object?>> payments) {
-    double surplus = 0;
+    if (payments.isEmpty) return 0;
+
+    // Group payments by month and year
+    final Map<String, double> monthlyPaid = {};
+    final Map<String, double> monthlyTotal = {};
+
     for (final Map<String, Object?> p in payments) {
-      final double total = (p['total_amount'] as num).toDouble();
+      final String key = '${p['year']}_${p['month']}';
       final double paid = (p['paid_amount'] as num).toDouble();
+      final double total = (p['total_amount'] as num).toDouble();
+
+      monthlyPaid[key] = (monthlyPaid[key] ?? 0) + paid;
+      // We assume total_amount is the same for all records of the same month
+      monthlyTotal[key] = total; 
+    }
+
+    double surplus = 0;
+    for (final String key in monthlyPaid.keys) {
+      final double paid = monthlyPaid[key]!;
+      final double total = monthlyTotal[key]!;
       if (paid > total) {
         surplus += (paid - total);
       }
