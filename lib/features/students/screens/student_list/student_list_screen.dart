@@ -24,6 +24,7 @@ class StudentListScreen extends StatefulWidget {
 
 class _StudentListScreenState extends State<StudentListScreen> {
   final _searchController = TextEditingController();
+  int _rowsPerPage = 10;
 
   @override
   void initState() {
@@ -78,6 +79,12 @@ class _StudentListScreenState extends State<StudentListScreen> {
                   onSearchChanged: (String q) =>
                       context.read<StudentCubit>().search(q),
                   onAddPressed: () => context.router.push(StudentFormRoute()),
+                  rowsPerPage: _rowsPerPage,
+                  onRowsPerPageChanged: (int? value) {
+                    if (value != null) {
+                      setState(() => _rowsPerPage = value);
+                    }
+                  },
                   onBulkDeletePressed: hasSelection
                       ? () => _confirmBulkDelete(state.selectedIds)
                       : null,
@@ -101,6 +108,7 @@ class _StudentListScreenState extends State<StudentListScreen> {
                           : StudentDataTable(
                               students: state.students,
                               selectedIds: state.selectedIds,
+                              rowsPerPage: _rowsPerPage,
                               onToggleAll: () =>
                                   context.read<StudentCubit>().toggleAll(),
                               onToggleSelection: (id) => context

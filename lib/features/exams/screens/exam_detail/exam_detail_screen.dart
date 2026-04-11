@@ -143,7 +143,15 @@ class ExamDetailScreen extends StatelessWidget {
                   subtitle: 'enter_marks_desc'.tr(),
                   icon: Icons.grade_rounded,
                   color: const Color(0xFF633B48),
-                  onTap: () => context.router.push(MarkEntryRoute(id: examId)),
+                  onTap: () async {
+                    await context.router.push(MarkEntryRoute(id: examId));
+                    if (context.mounted) {
+                      // Refresh exam marks and statistics after returning
+                      context.read<ExamCubit>().loadMarks(examId);
+                      context.read<ExamCubit>().calculateAverageScore();
+                      context.read<ExamCubit>().getTopStudents();
+                    }
+                  },
                 ),
               ],
             ),

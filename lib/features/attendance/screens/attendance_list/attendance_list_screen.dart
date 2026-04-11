@@ -141,12 +141,30 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
                         final String status =
                             a['status']?.toString() ?? 'attended';
                         final int attendanceId = a['id'] as int;
+                        final String notes = a['notes']?.toString() ?? '';
 
                         return Padding(
                           padding: EdgeInsets.symmetric(vertical: 8.h),
                           child: Row(
                             children: [
-                              _statusIcon(status),
+                              // Status indicator with icon
+                              Container(
+                                width: 40.r,
+                                height: 40.r,
+                                decoration: BoxDecoration(
+                                  color: _statusColor(status).withValues(alpha: 0.15),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  status == 'attended'
+                                      ? Icons.check_circle_outline
+                                      : status == 'missed'
+                                          ? Icons.cancel_outlined
+                                          : Icons.swap_horiz_rounded,
+                                  color: _statusColor(status),
+                                  size: 22.r,
+                                ),
+                              ),
                               SizedBox(width: 12.w),
                               Expanded(
                                 child: Column(
@@ -163,16 +181,59 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
                                     ],
                                     Text(
                                       a['date']?.toString() ?? '',
-                                      style: textTheme.bodyMedium,
+                                      style: textTheme.bodySmall?.copyWith(
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
                                     ),
-                                    if ((a['notes']?.toString() ?? '')
-                                        .isNotEmpty)
-                                      Text(
-                                        a['notes'].toString(),
-                                        style: textTheme.bodySmall?.copyWith(
-                                          color: colorScheme.onSurfaceVariant,
+                                    if (notes.isNotEmpty) ...[
+                                      SizedBox(height: 6.h),
+                                      // Attendance type badge - prominent display
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 10.w,
+                                          vertical: 4.h,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: status == 'attended'
+                                              ? Colors.green.withValues(alpha: 0.1)
+                                              : Colors.orange.withValues(alpha: 0.1),
+                                          borderRadius: BorderRadius.circular(8.r),
+                                          border: Border.all(
+                                            color: status == 'attended'
+                                                ? Colors.green.withValues(alpha: 0.3)
+                                                : Colors.orange.withValues(alpha: 0.3),
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              status == 'attended'
+                                                  ? Icons.groups_outlined
+                                                  : Icons.swap_horiz_rounded,
+                                              size: 14.r,
+                                              color: status == 'attended'
+                                                  ? Colors.green.shade700
+                                                  : Colors.orange.shade700,
+                                            ),
+                                            SizedBox(width: 4.w),
+                                            Flexible(
+                                              child: Text(
+                                                notes,
+                                                style: textTheme.labelSmall?.copyWith(
+                                                  color: status == 'attended'
+                                                      ? Colors.green.shade700
+                                                      : Colors.orange.shade700,
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 8.sp,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
+                                    ],
                                   ],
                                 ),
                               ),
@@ -239,16 +300,6 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
     );
   }
 
-  Widget _statusIcon(String status) {
-    return Container(
-      width: 10,
-      height: 10,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: _statusColor(status),
-      ),
-    );
-  }
 
   Color _statusColor(String status) {
     switch (status) {

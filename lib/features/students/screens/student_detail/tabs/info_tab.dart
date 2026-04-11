@@ -21,6 +21,24 @@ class InfoTab extends StatelessWidget {
             children: [
               _infoRow(LocaleKeys.grade.tr(), _getGradeLabel(student['grade']?.toString()), Icons.school, textTheme, colorScheme),
               _divider(),
+              _infoRow(
+                LocaleKeys.student_status.tr(),
+                student['student_status']?.toString() == 'free'
+                    ? LocaleKeys.free.tr()
+                    : LocaleKeys.normal.tr(),
+                Icons.verified_user_outlined,
+                textTheme,
+                colorScheme,
+              ),
+              _divider(),
+              _infoRow(
+                LocaleKeys.attendance_day.tr(),
+                _getDayLabel(student['attendance_day']?.toString()),
+                Icons.calendar_today_outlined,
+                textTheme,
+                colorScheme,
+              ),
+              _divider(),
               _infoRow(LocaleKeys.address.tr(), student['address']?.toString() ?? '-', Icons.location_on_outlined, textTheme, colorScheme),
               _divider(),
               _infoRow(LocaleKeys.phone1.tr(), student['phone1']?.toString() ?? '-', Icons.phone, textTheme, colorScheme),
@@ -57,6 +75,17 @@ class InfoTab extends StatelessWidget {
     if (grade == 'sec_1') return LocaleKeys.sec_1.tr();
     if (grade == 'sec_2') return LocaleKeys.sec_2.tr();
     if (grade == 'sec_3') return LocaleKeys.sec_3.tr();
+    return LocaleKeys.na.tr();
+  }
+
+  String _getDayLabel(String? day) {
+    if (day == 'Monday') return LocaleKeys.monday.tr();
+    if (day == 'Tuesday') return LocaleKeys.tuesday.tr();
+    if (day == 'Wednesday') return LocaleKeys.wednesday.tr();
+    if (day == 'Thursday') return LocaleKeys.thursday.tr();
+    if (day == 'Friday') return LocaleKeys.friday.tr();
+    if (day == 'Saturday') return LocaleKeys.saturday.tr();
+    if (day == 'Sunday') return LocaleKeys.sunday.tr();
     return LocaleKeys.na.tr();
   }
 

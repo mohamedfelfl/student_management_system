@@ -37,7 +37,9 @@ class _StudentDetailScreenState extends State<StudentDetailScreen>
   }
 
   Future<void> _loadData() async {
-    final student = await context.read<StudentCubit>().getStudentById(widget.id);
+    final student = await context.read<StudentCubit>().getStudentById(
+      widget.id,
+    );
     setState(() => _student = student);
 
     if (mounted) {
@@ -83,11 +85,21 @@ class _StudentDetailScreenState extends State<StudentDetailScreen>
                     children: [
                       IconButton(
                         onPressed: () => context.router.maybePop(),
-                        icon: Icon(Icons.arrow_back, color: colorScheme.onPrimary),
+                        icon: Icon(
+                          Icons.arrow_back,
+                          color: colorScheme.onPrimary,
+                        ),
                       ),
                       const Spacer(),
                       IconButton(
-                        onPressed: () => context.router.push(StudentFormRoute(id: widget.id)),
+                        onPressed: () async {
+                          await context.router.push(
+                            StudentFormRoute(id: widget.id),
+                          );
+                          if (mounted) {
+                            _loadData();
+                          }
+                        },
                         icon: Icon(Icons.edit, color: colorScheme.onPrimary),
                       ),
                     ],
@@ -128,9 +140,16 @@ class _StudentDetailScreenState extends State<StudentDetailScreen>
               controller: _tabController,
               children: [
                 InfoTab(student: _student!),
-                PaymentsTab(studentId: widget.id),
+                PaymentsTab(
+                  studentId: widget.id,
+                  studentStatus:
+                      _student!['student_status']?.toString() ?? 'normal',
+                ),
                 AttendanceTab(studentId: widget.id),
-                MarksTab(studentId: widget.id),
+                MarksTab(
+                  studentId: widget.id,
+                  onRefresh: _loadData,
+                ),
               ],
             ),
           ),
@@ -139,5 +158,3 @@ class _StudentDetailScreenState extends State<StudentDetailScreen>
     );
   }
 }
-
-

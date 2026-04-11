@@ -42,4 +42,6 @@ const _$UserPermissionEnumMap = {
   UserPermission.manageExams: 'manageExams',
   UserPermission.viewReports: 'viewReports',
   UserPermission.manageUsers: 'manageUsers',
+  UserPermission.manageAssistants: 'manageAssistants',
+  UserPermission.manageNotes: 'manageNotes',
 };

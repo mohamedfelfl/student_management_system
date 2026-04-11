@@ -1,6 +1,6 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:student_management_system/generated/locale_keys.g.dart';
 
 class PaymentStatsCard extends StatelessWidget {
@@ -13,47 +13,62 @@ class PaymentStatsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    final TextTheme textTheme = Theme.of(context).textTheme;
-    final outlineColor = colorScheme.outlineVariant.withValues(alpha: 0.3);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
 
     return Container(
       padding: EdgeInsets.all(32.r),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(32.r),
-        border: Border.all(color: outlineColor),
+        borderRadius: BorderRadius.circular(28.r),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+        ),
       ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           SizedBox(
-            width: 160.r,
-            height: 160.r,
+            width: 192.r,
+            height: 192.r,
             child: Stack(
               fit: StackFit.expand,
               children: [
                 CircularProgressIndicator(
                   value: 1.0,
-                  strokeWidth: 16.r,
-                  valueColor: AlwaysStoppedAnimation(
-                    colorScheme.surfaceContainerHigh,
-                  ),
+                  strokeWidth: 12.r,
+                  color: colorScheme.surfaceContainerHighest,
                 ),
                 CircularProgressIndicator(
                   value: progress,
-                  strokeWidth: 16.r,
-                  strokeCap: StrokeCap.round,
-                  valueColor: AlwaysStoppedAnimation(
-                    colorScheme.primary,
-                  ),
+                  strokeWidth: 12.r,
+                  color: colorScheme.primary,
+                  backgroundColor: Colors.transparent,
                 ),
                 Center(
-                  child: Text(
-                    '${(progress * 100).toInt()}%',
-                    style: textTheme.displayMedium?.copyWith(
-                      color: colorScheme.onSurface,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          '${(progress * 100).toInt()}%',
+                          style: textTheme.displayMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onSurface,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        'تم السداد',
+                        style: textTheme.labelSmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                          letterSpacing: 2.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -63,8 +78,8 @@ class PaymentStatsCard extends StatelessWidget {
           Text(
             LocaleKeys.overall_payment_status.tr(),
             style: textTheme.titleLarge?.copyWith(
-              color: colorScheme.onSurface,
               fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
             ),
           ),
           SizedBox(height: 8.h),
@@ -72,10 +87,11 @@ class PaymentStatsCard extends StatelessWidget {
             progress >= 1.0
                 ? LocaleKeys.payment_success_msg.tr()
                 : LocaleKeys.payment_ontrack_msg.tr(),
-            style: textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
             textAlign: TextAlign.center,
+            style: textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              height: 1.5,
+            ),
           ),
         ],
       ),

@@ -96,8 +96,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   opacity: 0.1,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(24),
-                    child: Image.network(
-                      'https://lh3.googleusercontent.com/aida-public/AB6AXuDzr9uaJVSgoGstozPQthgCIkTpTYf5el2I22OjQ01VX5l4thQvyCdV2MeHM4LI7qDuC95npyJQGFqwX65uwH2iw2uNefAy3ZtsOne23Qm2ZGgvK0AGFijU-WOxoY_Ucjva4WZYhFi5ZV8OOjlsZ4aseuqTKxgHMWX2Pn6ArrRtWo4QyaCswT0Lyg8eXMRsW3T37wQBONc_q6rFuVRerLd5uHqiAEDB7d-2b9MLYcTDPGkuKvrKKpfXIsDO687PwKhSPphtmrNlhnrw',
+                    child: Image.asset(
+                      'assets/images/login_bg.jpg',
                       width: 400,
                       height: 600,
                       fit: BoxFit.cover,
@@ -131,10 +131,14 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ],
                           ),
-                          child: Icon(
-                            Icons.school,
-                            size: 40,
-                            color: colorScheme.onPrimaryContainer,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.asset(
+                              'assets/images/logo.png',
+                              width: 60,
+                              height: 60,
+                              fit: BoxFit.cover,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 24),
@@ -185,6 +189,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 const SizedBox(height: 8),
                                 TextFormField(
                                   controller: _usernameController,
+                                  autofocus: true,
                                   decoration: _buildInputDecoration(
                                     hintText: LocaleKeys.username_hint.tr(),
                                     icon: Icons.badge_outlined,

@@ -200,7 +200,7 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
     );
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     
     final examData = {
@@ -210,10 +210,13 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
     };
 
     if (widget.examId != null) {
-      context.read<ExamCubit>().updateExam(widget.examId!, examData, groupIds: _selectedGroupIds);
+      await context.read<ExamCubit>().updateExam(widget.examId!, examData, groupIds: _selectedGroupIds);
     } else {
-      context.read<ExamCubit>().createExam(examData, groupIds: _selectedGroupIds);
+      await context.read<ExamCubit>().createExam(examData, groupIds: _selectedGroupIds);
     }
-    context.router.maybePop();
+    
+    if (mounted) {
+      context.router.maybePop();
+    }
   }
 }

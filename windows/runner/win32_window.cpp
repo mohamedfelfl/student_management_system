@@ -179,6 +179,25 @@ Win32Window::MessageHandler(HWND hwnd,
                             WPARAM const wparam,
                             LPARAM const lparam) noexcept {
   switch (message) {
+    case WM_GETMINMAXINFO: {
+      auto info = reinterpret_cast<MINMAXINFO*>(lparam);
+      // Fallback DPI if GetDpiForWindow is not available
+      UINT dpi = 96;
+      typedef UINT(WINAPI * GetDpiForWindowProc)(HWND);
+      HMODULE user32 = GetModuleHandleA("user32.dll");
+      if (user32) {
+        GetDpiForWindowProc get_dpi_for_window = 
+            (GetDpiForWindowProc)GetProcAddress(user32, "GetDpiForWindow");
+        if (get_dpi_for_window) {
+          dpi = get_dpi_for_window(hwnd);
+        }
+      }
+      double scale_factor = dpi / 96.0;
+      info->ptMinTrackSize.x = static_cast<LONG>(800 * scale_factor);
+      info->ptMinTrackSize.y = static_cast<LONG>(600 * scale_factor);
+      return 0;
+    }
+
     case WM_DESTROY:
       window_handle_ = nullptr;
       Destroy();

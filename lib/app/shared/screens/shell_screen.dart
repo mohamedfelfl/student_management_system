@@ -64,7 +64,7 @@ class ShellScreen extends StatelessWidget {
             ),
           if (user.can(UserPermission.managePayments))
             (
-              route: const PaymentListRoute(),
+              route: PaymentListRoute(),
               destination: NavigationRailDestination(
                 icon: const Icon(Icons.payment_outlined),
                 selectedIcon: const Icon(Icons.payment),
@@ -89,6 +89,15 @@ class ShellScreen extends StatelessWidget {
                 label: Text('groups'.tr()),
               ),
             ),
+          if (user.can(UserPermission.manageNotes))
+            (
+              route: const NotesRoute(),
+              destination: NavigationRailDestination(
+                icon: const Icon(Icons.menu_book_outlined),
+                selectedIcon: const Icon(Icons.menu_book),
+                label: Text(LocaleKeys.notes.tr()),
+              ),
+            ),
           if (user.can(UserPermission.viewReports))
             (
               route: const ReportRoute(),
@@ -106,6 +115,15 @@ class ShellScreen extends StatelessWidget {
                 icon: const Icon(Icons.admin_panel_settings_outlined),
                 selectedIcon: const Icon(Icons.admin_panel_settings),
                 label: Text('admin'.tr()),
+              ),
+            ),
+          if (user.can(UserPermission.manageAssistants))
+            (
+              route: const AssistantListRoute(),
+              destination: NavigationRailDestination(
+                icon: const Icon(Icons.support_agent_outlined),
+                selectedIcon: const Icon(Icons.support_agent),
+                label: Text(LocaleKeys.assistants_directory.tr()),
               ),
             ),
         ];
@@ -138,10 +156,11 @@ class ShellScreen extends StatelessWidget {
                 destinations: destinations,
                 leading: Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Icon(
-                    Icons.school,
-                    color: colorScheme.primary,
-                    size: 32,
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    width: 48,
+                    height: 48,
+                    fit: BoxFit.contain,
                   ),
                 ),
                 trailing: Expanded(
@@ -164,10 +183,16 @@ class ShellScreen extends StatelessWidget {
               bottomNavigationBar: ResponsiveLayout.isMobile(context)
                   ? NavigationBar(
                       selectedIndex:
-                          tabsRouter.activeIndex < destinations.length
+                          tabsRouter.activeIndex < destinations.take(5).length
                           ? tabsRouter.activeIndex
                           : 0,
-                      onDestinationSelected: tabsRouter.setActiveIndex,
+                      onDestinationSelected: (int index) {
+                        if (index == destinations.take(5).length) {
+                          context.read<AuthCubit>().logout();
+                        } else {
+                          tabsRouter.setActiveIndex(index);
+                        }
+                      },
                       destinations: [
                         ...destinations
                             .take(5)
@@ -212,7 +237,15 @@ class ShellScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    Icon(Icons.school, color: colorScheme.onPrimary, size: 48),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        width: 48,
+                        height: 48,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     Text(
                       'SMS',

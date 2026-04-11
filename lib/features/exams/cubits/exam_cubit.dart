@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import '../../../app/services/database_service.dart';
 
@@ -13,6 +13,7 @@ abstract class ExamState with _$ExamState {
   const factory ExamState({
     @Default([]) List<Map<String, dynamic>> exams,
     @Default([]) List<Map<String, dynamic>> marks,
+    @Default([]) List<Map<String, dynamic>> studentMarks,
     @Default([]) List<Map<String, dynamic>> groups,
     @Default([]) List<Map<String, dynamic>> groupStudents,
     @Default({}) Map<String, List<Map<String, dynamic>>> groupedExamStudents,
@@ -273,9 +274,20 @@ class ExamCubit extends Cubit<ExamState> {
         FROM marks m
         JOIN exams e ON m.exam_id = e.id
         WHERE m.student_id = ?
-        ORDER BY e.date DESC
+        ORDER BY e.date DESC, m.id DESC
       ''', <Object?>[studentId]);
-      emit(state.copyWith(marks: results, isLoading: false));
+      
+      final Set<int> seenExams = <int>{};
+      final List<Map<String, Object?>> deduplicated = <Map<String, Object?>>[];
+      for (final Map<String, Object?> row in results) {
+        final int examId = row['exam_id'] as int;
+        if (!seenExams.contains(examId)) {
+          seenExams.add(examId);
+          deduplicated.add(row);
+        }
+      }
+
+      emit(state.copyWith(studentMarks: deduplicated, isLoading: false));
     } catch (e) {
       emit(state.copyWith(error: e.toString(), isLoading: false));
     }
@@ -324,6 +336,29 @@ class ExamCubit extends Cubit<ExamState> {
       await loadMarks(examId);
       await calculateAverageScore();
       await getTopStudents();
+    } catch (e) {
+      emit(state.copyWith(error: e.toString()));
+    }
+  }
+
+  /// Batch save marks without triggering state reloads.
+  /// Used when saving before navigating away to avoid state churn.
+  Future<void> saveMarksQuietly(int examId, Map<int, double> studentScores) async {
+    try {
+      final Database db = await _databaseService.database;
+      final Batch batch = db.batch();
+      for (final MapEntry<int, double> entry in studentScores.entries) {
+        batch.insert(
+          'marks',
+          <String, Object?>{
+            'exam_id': examId,
+            'student_id': entry.key,
+            'score': entry.value,
+          },
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
+      await batch.commit(noResult: true);
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
     }

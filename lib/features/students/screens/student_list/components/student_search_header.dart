@@ -10,11 +10,16 @@ class StudentSearchHeader extends StatelessWidget {
   final VoidCallback? onBulkDeletePressed;
   final int? selectedCount;
 
+  final int rowsPerPage;
+  final ValueChanged<int?> onRowsPerPageChanged;
+
   const StudentSearchHeader({
     super.key,
     required this.searchController,
     required this.onSearchChanged,
     required this.onAddPressed,
+    required this.rowsPerPage,
+    required this.onRowsPerPageChanged,
     this.onBulkDeletePressed,
     this.selectedCount,
   });
@@ -27,6 +32,7 @@ class StudentSearchHeader extends StatelessWidget {
     return Row(
       children: [
         Expanded(
+          flex: 4,
           child: TextField(
             controller: searchController,
             onChanged: onSearchChanged,
@@ -38,20 +44,42 @@ class StudentSearchHeader extends StatelessWidget {
           ),
         ),
         SizedBox(width: 12.w),
+        // ── Rows Per Page Dropdown ──
+        Container(
+          height: 60.h,
+          padding: EdgeInsets.symmetric(horizontal: 16.w),
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(color: colorScheme.outlineVariant),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<int>(
+              value: rowsPerPage,
+              items: [10, 20, 50, 100].map((int value) {
+                return DropdownMenuItem<int>(
+                  value: value,
+                  child: Text(
+                    '$value',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                );
+              }).toList(),
+              onChanged: onRowsPerPageChanged,
+              icon: Icon(Icons.format_list_numbered, size: 20),
+            ),
+          ),
+        ),
+        SizedBox(width: 12.w),
         if (hasSelection && onBulkDeletePressed != null) ...[
           ElevatedButton.icon(
             onPressed: onBulkDeletePressed,
             icon: const Icon(Icons.delete_sweep),
-            label: Text(
-              '${LocaleKeys.delete_selected.tr()} ($selectedCount)',
-            ),
+            label: Text('${LocaleKeys.delete_selected.tr()} ($selectedCount)'),
             style: ElevatedButton.styleFrom(
               backgroundColor: colorScheme.error,
               foregroundColor: colorScheme.onError,
-              padding: EdgeInsets.symmetric(
-                horizontal: 16.w,
-                vertical: 24.h,
-              ),
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 24.h),
             ),
           ),
           SizedBox(width: 12.w),
@@ -61,10 +89,7 @@ class StudentSearchHeader extends StatelessWidget {
           icon: const Icon(Icons.person_add),
           label: Text(LocaleKeys.add_new.tr()),
           style: ElevatedButton.styleFrom(
-            padding: EdgeInsets.symmetric(
-              horizontal: 20.w,
-              vertical: 24.h,
-            ),
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 24.h),
           ),
         ),
       ],

@@ -1,6 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:sqflite/sqflite.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:sqflite_sqlcipher/sqflite.dart';
+import '../../../../generated/locale_keys.g.dart';
 
 import '../../../app/services/database_service.dart';
 import '../models/attendance.dart';
@@ -105,31 +107,68 @@ class AttendanceCubit extends Cubit<AttendanceState> {
       final int studentId = student['id'] as int;
       final String studentName = student['name'] as String;
       final int? groupId = student['group_id'] as int?;
-      final String today = DateTime.now().toIso8601String().split('T').first;
+      final now = DateTime.now();
+      final String currentDayName = DateFormat('EEEE', 'en_US').format(now);
+      final String currentDayNameAr = _getArabicDayName(currentDayName);
+      final String currentDayNameArAlt = currentDayNameAr.replaceAll('أ', 'ا').replaceAll('إ', 'ا');
+      final String today = now.toIso8601String().split('T').first;
 
-      // Determine correct status based on group schedules
+      // Determine attendance type based on group schedule
       AttendanceStatus finalStatus = status;
+      String notesToInsert = notes;
+
       if (groupId != null) {
-        final List<Map<String, Object?>> schedules = await db.query(
+        // Get the student's own group schedule days
+        final List<Map<String, Object?>> groupSchedules = await db.query(
           'group_schedules',
           where: 'group_id = ?',
           whereArgs: [groupId],
         );
 
-        final int weekday = DateTime.now().weekday;
-        const List<String> weekdayNames = [
-          'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
-        ];
-        final String currentDayName = weekdayNames[weekday - 1];
+        final bool isStudentGroupDay = groupSchedules.any((s) {
+          final day = s['day_of_week']?.toString() ?? '';
+          return day == currentDayName || day == currentDayNameAr || day == currentDayNameArAlt;
+        });
 
-        bool isGroupDay = false;
-        for (final schedule in schedules) {
-          if (schedule['day_of_week'] == currentDayName) {
-            isGroupDay = true;
-            break;
+        if (isStudentGroupDay) {
+          // Case 1: Today is one of the student's group scheduled days
+          // → "attended in his group"
+          finalStatus = AttendanceStatus.attended;
+          notesToInsert = LocaleKeys.attended_his_group.tr();
+        } else {
+          // Case 2: Today is NOT the student's group day
+          // → Find which group meets today closest to current time
+          finalStatus = AttendanceStatus.otherLesson;
+          final List<Map<String, Object?>> otherGroupsToday = await db.rawQuery('''
+            SELECT g.name, gs.time 
+            FROM group_schedules gs
+            JOIN groups g ON gs.group_id = g.id
+            WHERE gs.day_of_week IN (?, ?, ?)
+          ''', [currentDayName, currentDayNameAr, currentDayNameArAlt]);
+
+          if (otherGroupsToday.isNotEmpty) {
+            final String groupName = _findClosestGroup(otherGroupsToday, now);
+            notesToInsert = LocaleKeys.attended_another_group.tr(args: [groupName]);
+          } else {
+            // No groups scheduled today at all — generic other lesson
+            finalStatus = AttendanceStatus.otherLesson;
+            notesToInsert = ''; // Empty notes will fall back to "LocaleKeys.other_lesson" in UI
           }
         }
-        finalStatus = isGroupDay ? AttendanceStatus.attended : AttendanceStatus.otherLesson;
+      } else {
+        // No group assigned to student — check if any group meets today
+        final List<Map<String, Object?>> anyGroupsToday = await db.rawQuery('''
+          SELECT g.name, gs.time
+          FROM group_schedules gs
+          JOIN groups g ON gs.group_id = g.id
+          WHERE gs.day_of_week IN (?, ?, ?)
+        ''', [currentDayName, currentDayNameAr, currentDayNameArAlt]);
+
+        if (anyGroupsToday.isNotEmpty) {
+          final String groupName = _findClosestGroup(anyGroupsToday, now);
+          notesToInsert = LocaleKeys.attended_another_group.tr(args: [groupName]);
+          finalStatus = AttendanceStatus.otherLesson;
+        }
       }
 
       // Check if already recorded today
@@ -151,7 +190,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
         'student_id': studentId,
         'date': today,
         'status': finalStatus.name,
-        'notes': notes,
+        'notes': notesToInsert,
       });
 
       // Reload attendance history so UI gets the latest
@@ -223,5 +262,65 @@ class AttendanceCubit extends Cubit<AttendanceState> {
 
   void resetScanState() {
     emit(state.copyWith(scanSuccess: false, lastScannedStudent: null, error: null));
+  }
+
+  String _findClosestGroup(List<Map<String, Object?>> groupsWithTimes, DateTime now) {
+    String? closestGroupName;
+    int minDifference = 999999999;
+
+    for (final group in groupsWithTimes) {
+      final String? timeStr = group['time'] as String?;
+      final String name = group['name'] as String;
+      
+      if (timeStr == null || timeStr.isEmpty) {
+        closestGroupName ??= name;
+        continue;
+      }
+      
+      final DateTime? parsedDate = _parseTimeToDateTime(timeStr, now);
+      if (parsedDate != null) {
+        final int diff = (parsedDate.millisecondsSinceEpoch - now.millisecondsSinceEpoch).abs();
+        if (diff < minDifference) {
+          minDifference = diff;
+          closestGroupName = name;
+        }
+      } else {
+        closestGroupName ??= name;
+      }
+    }
+    return closestGroupName ?? (groupsWithTimes.isNotEmpty ? groupsWithTimes.first['name'] as String : '');
+  }
+
+  DateTime? _parseTimeToDateTime(String timeString, DateTime now) {
+    if (timeString.isEmpty) return null;
+    try {
+      final RegExp re = RegExp(r'(\d{1,2}):(\d{2})\s*(AM|PM)?', caseSensitive: false);
+      final match = re.firstMatch(timeString);
+      if (match != null) {
+        int hour = int.parse(match.group(1)!);
+        final int minute = int.parse(match.group(2)!);
+        final String? period = match.group(3);
+        
+        if (period != null) {
+          if (period.toUpperCase() == 'PM' && hour < 12) hour += 12;
+          if (period.toUpperCase() == 'AM' && hour == 12) hour = 0;
+        }
+        return DateTime(now.year, now.month, now.day, hour, minute);
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  String _getArabicDayName(String englishDayName) {
+    switch (englishDayName) {
+      case 'Saturday': return 'السبت';
+      case 'Sunday': return 'الأحد';
+      case 'Monday': return 'الإثنين';
+      case 'Tuesday': return 'الثلاثاء';
+      case 'Wednesday': return 'الأربعاء';
+      case 'Thursday': return 'الخميس';
+      case 'Friday': return 'الجمعة';
+      default: return englishDayName;
+    }
   }
 }

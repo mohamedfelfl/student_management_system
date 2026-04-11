@@ -18,6 +18,8 @@ enum UserPermission {
   manageExams,
   viewReports,
   manageUsers,
+  manageAssistants,
+  manageNotes,
 }
 
 @freezed

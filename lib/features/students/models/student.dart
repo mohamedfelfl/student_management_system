@@ -15,10 +15,13 @@ abstract class Student with _$Student {
     @Default('') String fatherJob,
     @Default('') String school,
     @Default('') String previousTeacher,
+    String? grade,
     /// Foreign key to the Group table
     int? groupId,
     /// Populated as a join field — not stored in student table
     String? groupName,
+    @Default('normal') String studentStatus,
+    String? attendanceDay,
     DateTime? createdAt,
   }) = _Student;
 

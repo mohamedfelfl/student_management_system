@@ -18,6 +18,9 @@ import '../features/payments/cubits/payment_cubit.dart';
 import '../features/attendance/cubits/attendance_cubit.dart';
 import '../features/exams/cubits/exam_cubit.dart';
 import '../features/reports/cubits/report_cubit.dart';
+import '../features/assistants/cubits/assistant_cubit.dart';
+import '../features/assistants/cubits/assistant_attendance_cubit.dart';
+import '../features/notes/cubits/notes_cubit.dart';
 
 class StudentsManagementApp extends StatefulWidget {
   const StudentsManagementApp({super.key});
@@ -45,6 +48,9 @@ class _StudentsManagementAppState extends State<StudentsManagementApp> {
         BlocProvider(create: (_) => AttendanceCubit(databaseService: dbService)),
         BlocProvider(create: (_) => ExamCubit(databaseService: dbService)),
         BlocProvider(create: (_) => ReportCubit(databaseService: dbService)),
+        BlocProvider(create: (_) => AssistantCubit(databaseService: dbService)),
+        BlocProvider(create: (_) => AssistantAttendanceCubit(databaseService: dbService)),
+        BlocProvider(create: (_) => NotesCubit(databaseService: dbService)),
       ],
       child: BlocBuilder<LocaleCubit, LocaleState>(
         builder: (context, localeState) {

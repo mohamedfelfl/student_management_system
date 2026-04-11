@@ -5,6 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../app/shared/widgets/responsive_layout.dart';
+import '../../../../app/router/app_router.gr.dart';
 import '../../../../generated/locale_keys.g.dart';
 import '../../cubits/group_cubit.dart';
 
@@ -47,20 +48,24 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
   }
 
   void _loadGroup() {
-    final List<Map<String, dynamic>> groups =
-        context.read<GroupCubit>().state.groups;
+    final List<Map<String, dynamic>> groups = context
+        .read<GroupCubit>()
+        .state
+        .groups;
     final Map<String, dynamic>? g = groups
         .where((Map<String, dynamic> g) => g['id'] == widget.id)
         .firstOrNull;
     if (g != null) {
       _nameController.text = g['name']?.toString() ?? '';
-      
+
       final List<dynamic> schedules = g['schedules'] ?? [];
       for (final s in schedules) {
-        final day = s['day_of_week']?.toString();
-        final timeStr = s['time']?.toString();
-        if (day != null && timeStr != null) {
-          _selectedDays.add(day);
+        final day = _normalizeDay(s['day_of_week']?.toString().trim() ?? '');
+        final timeStr = s['time']?.toString().trim();
+        if (day.isNotEmpty && timeStr != null) {
+          if (!_selectedDays.contains(day)) {
+            _selectedDays.add(day);
+          }
           final time = _parseTime(timeStr);
           if (time != null) {
             _dayTimes[day] = time;
@@ -71,10 +76,59 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
     }
   }
 
+  String _normalizeDay(String day) {
+    if (day.isEmpty) return day;
+    switch (day) {
+      case 'السبت':
+        return 'Saturday';
+      case 'الأحد':
+      case 'الاحد':
+        return 'Sunday';
+      case 'الإثنين':
+      case 'الاثنين':
+        return 'Monday';
+      case 'الثلاثاء':
+        return 'Tuesday';
+      case 'الأربعاء':
+      case 'الاربعاء':
+        return 'Wednesday';
+      case 'الخميس':
+        return 'Thursday';
+      case 'الجمعة':
+        return 'Friday';
+      default:
+        return day;
+    }
+  }
+
+  String _translateDay(String day) {
+    switch (day) {
+      case 'Saturday':
+        return LocaleKeys.saturday.tr();
+      case 'Sunday':
+        return LocaleKeys.sunday.tr();
+      case 'Monday':
+        return LocaleKeys.monday.tr();
+      case 'Tuesday':
+        return LocaleKeys.tuesday.tr();
+      case 'Wednesday':
+        return LocaleKeys.wednesday.tr();
+      case 'Thursday':
+        return LocaleKeys.thursday.tr();
+      case 'Friday':
+        return LocaleKeys.friday.tr();
+      default:
+        return day;
+    }
+  }
+
   TimeOfDay? _parseTime(String text) {
     if (text.isEmpty) return null;
     try {
-      final RegExp re = RegExp(r'(\d{1,2}):(\d{2})\s*(AM|PM)?', caseSensitive: false);
+      final RegExp re = RegExp(
+        r'(\d{1,2}):(\d{2})\s*(AM|PM)?',
+        caseSensitive: false,
+      );
       final match = re.firstMatch(text);
       if (match != null) {
         int hour = int.parse(match.group(1)!);
@@ -125,8 +179,7 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
         leading: ResponsiveLayout.isMobile(context)
             ? IconButton(
                 icon: const Icon(Icons.menu),
-                onPressed: () =>
-                    Scaffold.of(context).openDrawer(),
+                onPressed: () => Scaffold.of(context).openDrawer(),
               )
             : IconButton(
                 icon: const Icon(Icons.arrow_back),
@@ -166,7 +219,9 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
                   // ── Days Selection (Chips) ──
                   Text(
                     LocaleKeys.day_of_week.tr(),
-                    style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   SizedBox(height: 12.h),
                   Wrap(
@@ -175,16 +230,20 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
                     children: _days.map((day) {
                       final isSelected = _selectedDays.contains(day);
                       return FilterChip(
-                        label: Text(day),
+                        label: Text(_translateDay(day)),
                         selected: isSelected,
                         onSelected: (selected) {
                           setState(() {
                             if (selected) {
                               _selectedDays.add(day);
                               // Default time if not set
-                              _dayTimes[day] ??= const TimeOfDay(hour: 14, minute: 0);
+                              _dayTimes[day] ??= const TimeOfDay(
+                                hour: 14,
+                                minute: 0,
+                              );
                             } else {
                               _selectedDays.remove(day);
+                              _dayTimes.remove(day);
                             }
                           });
                         },
@@ -196,17 +255,22 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
                       padding: const EdgeInsets.only(top: 8.0, left: 12.0),
                       child: Text(
                         LocaleKeys.select_day.tr(),
-                        style: TextStyle(color: colorScheme.error, fontSize: 12),
+                        style: TextStyle(
+                          color: colorScheme.error,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
-                  
+
                   SizedBox(height: 24.h),
 
                   // ── Time Selection for Each Day ──
                   if (_selectedDays.isNotEmpty) ...[
                     Text(
                       LocaleKeys.time.tr(),
-                      style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     SizedBox(height: 12.h),
                     ..._selectedDays.map((day) {
@@ -215,23 +279,43 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
                         padding: EdgeInsets.only(bottom: 8.h),
                         child: Card(
                           elevation: 0,
-                          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                          color: colorScheme.surfaceContainerHighest.withValues(
+                            alpha: 0.3,
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                             side: BorderSide(color: colorScheme.outlineVariant),
                           ),
                           child: ListTile(
-                            leading: Icon(Icons.calendar_today, size: 20, color: colorScheme.primary),
-                            title: Text(day, style: const TextStyle(fontWeight: FontWeight.w600)),
+                            leading: Icon(
+                              Icons.calendar_today,
+                              size: 20,
+                              color: colorScheme.primary,
+                            ),
+                            title: Text(
+                              _translateDay(day),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                             trailing: TextButton.icon(
                               onPressed: () => _pickTime(day),
                               icon: const Icon(Icons.access_time, size: 18),
-                              label: Text(time != null ? _formatTime(time) : LocaleKeys.time.tr()),
+                              label: Text(
+                                time != null
+                                    ? _formatTime(time)
+                                    : LocaleKeys.time.tr(),
+                              ),
                               style: TextButton.styleFrom(
                                 backgroundColor: colorScheme.primaryContainer,
                                 foregroundColor: colorScheme.onPrimaryContainer,
-                                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 16.w,
+                                  vertical: 8.h,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
                               ),
                             ),
                           ),
@@ -239,7 +323,7 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
                       );
                     }),
                   ],
-                  
+
                   SizedBox(height: 32.h),
 
                   // ── Save Button ──
@@ -294,8 +378,9 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
                 Icon(Icons.people, color: colorScheme.primary, size: 28),
                 SizedBox(width: 8.w),
                 Text(
-                  LocaleKeys.linked_students
-                      .tr(args: [students.length.toString()]),
+                  LocaleKeys.linked_students.tr(
+                    args: [students.length.toString()],
+                  ),
                   style: textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -340,7 +425,7 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
                 spacing: 8,
                 runSpacing: 8,
                 children: students.map((s) {
-                  return Chip(
+                  return InputChip(
                     avatar: CircleAvatar(
                       backgroundColor: colorScheme.primary,
                       child: Text(
@@ -357,13 +442,16 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
                       style: textTheme.bodyLarge,
                     ),
                     deleteIcon: const Icon(Icons.close, size: 18),
-                    deleteButtonTooltipMessage:
-                        LocaleKeys.remove_from_group.tr(),
+                    deleteButtonTooltipMessage: LocaleKeys.remove_from_group
+                        .tr(),
                     onDeleted: () {
                       context.read<GroupCubit>().unlinkStudentFromGroup(
-                            s['id'] as int,
-                            widget.id!,
-                          );
+                        s['id'] as int,
+                        widget.id!,
+                      );
+                    },
+                    onPressed: () {
+                      context.router.push(StudentDetailRoute(id: s['id'] as int));
                     },
                   );
                 }).toList(),
@@ -400,10 +488,9 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
                         border: const OutlineInputBorder(),
                       ),
                       onChanged: (query) {
-                        this
-                            .context
-                            .read<GroupCubit>()
-                            .loadAvailableStudents(search: query);
+                        this.context.read<GroupCubit>().loadAvailableStudents(
+                          search: query,
+                        );
                       },
                     ),
                     SizedBox(height: 12.h),
@@ -424,7 +511,8 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
                           }
                           return ListView.separated(
                             itemCount: available.length,
-                            separatorBuilder: (_, _) => const Divider(height: 1),
+                            separatorBuilder: (_, _) =>
+                                const Divider(height: 1),
                             itemBuilder: (context, index) {
                               final s = available[index];
                               return ListTile(
@@ -454,8 +542,7 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
                                     color: colorScheme.primary,
                                   ),
                                   onPressed: () {
-                                    this
-                                        .context
+                                    this.context
                                         .read<GroupCubit>()
                                         .linkStudentToGroup(
                                           s['id'] as int,
@@ -485,9 +572,9 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
     );
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    
+
     // Custom validation for days
     if (_selectedDays.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -501,23 +588,23 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
 
     final List<Map<String, dynamic>> schedules = _selectedDays.map((day) {
       final time = _dayTimes[day] ?? const TimeOfDay(hour: 14, minute: 0);
-      return {
-        'day_of_week': day,
-        'time': _formatTime(time),
-      };
+      return {'day_of_week': day, 'time': _formatTime(time)};
     }).toList();
 
     final Map<String, Object?> data = {
       'name': _nameController.text.trim(),
       'schedules': schedules,
     };
-    
+
     final GroupCubit cubit = context.read<GroupCubit>();
     if (_isEditing) {
-      cubit.updateGroup(widget.id!, data);
+      await cubit.updateGroup(widget.id!, data);
     } else {
-      cubit.createGroup(data);
+      await cubit.createGroup(data);
     }
-    context.router.maybePop();
+    
+    if (mounted) {
+      context.router.maybePop();
+    }
   }
 }

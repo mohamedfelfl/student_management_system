@@ -137,16 +137,24 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
                     separatorBuilder: (context, index) => SizedBox(height: 16.h),
                     itemBuilder: (context, index) {
                       final record = state.records[index];
-                      final bool isSuccess = record['status'] == AttendanceStatus.attended.name;
+                      final String status = record['status']?.toString() ?? '';
+                      final bool isOwnGroup = status == AttendanceStatus.attended.name;
+                      final String notes = record['notes']?.toString() ?? '';
+                      
+                      final String displayStatus = notes.isNotEmpty
+                          ? notes
+                          : isOwnGroup
+                              ? LocaleKeys.attended.tr()
+                              : LocaleKeys.other_lesson.tr();
                       
                       return _buildRecentScanCard(
                         name: record['student_name'] as String? ?? 'Unknown',
                         time: record['date'] as String? ?? '',
-                        status: isSuccess ? LocaleKeys.attended.tr() : 'Another Group',
+                        status: displayStatus,
                         isDark: isDark,
                         colorScheme: colorScheme,
                         textTheme: textTheme,
-                        isSuccess: isSuccess,
+                        isSuccess: isOwnGroup,
                       );
                     },
                   );

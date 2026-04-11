@@ -30,6 +30,8 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
       TextEditingController();
   int? _selectedGroupId;
   String? _selectedGrade;
+  String _selectedStatus = 'normal';
+  String? _selectedAttendanceDay;
   bool _isEditing = false;
 
   @override
@@ -57,7 +59,25 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
       _previousTeacherController.text =
           student['previous_teacher']?.toString() ?? '';
       _selectedGroupId = student['group_id'] as int?;
-      _selectedGrade = student['grade']?.toString();
+      
+      final String? gradeValue = student['grade']?.toString();
+      // Ensure the grade exists in our predefined keys to avoid DropdownButton assertion failure
+      const List<String> validGrades = [
+        'primary_1', 'primary_2', 'primary_3', 'primary_4', 'primary_5', 'primary_6',
+        'prep_1', 'prep_2', 'prep_3',
+        'sec_1', 'sec_2', 'sec_3'
+      ];
+      _selectedGrade = validGrades.contains(gradeValue) ? gradeValue : null;
+
+      _selectedStatus = student['student_status']?.toString() ?? 'normal';
+      
+      final String? dayValue = student['attendance_day']?.toString();
+      // Ensure the day exists in our predefined keys to avoid DropdownButton assertion failure
+      const List<String> validDays = [
+        'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+      ];
+      _selectedAttendanceDay = validDays.contains(dayValue) ? dayValue : null;
+      
       setState(() {});
     }
   }
@@ -268,6 +288,27 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
                   ),
                   const SizedBox(height: 24),
 
+                  // Student Status Dropdown
+                  DropdownButtonFormField<String>(
+                    initialValue: _selectedStatus,
+                    decoration: InputDecoration(
+                      labelText: LocaleKeys.student_status.tr(),
+                      prefixIcon: const Icon(Icons.verified_user_outlined),
+                    ),
+                    items: [
+                      DropdownMenuItem<String>(
+                        value: 'normal',
+                        child: Text(LocaleKeys.normal.tr()),
+                      ),
+                      DropdownMenuItem<String>(
+                        value: 'free',
+                        child: Text(LocaleKeys.free.tr()),
+                      ),
+                    ],
+                    onChanged: (v) => setState(() => _selectedStatus = v!),
+                  ),
+                  const SizedBox(height: 24),
+
                   // Group Dropdown
                   BlocBuilder<GroupCubit, GroupState>(
                     builder: (BuildContext context, GroupState groupState) {
@@ -296,6 +337,51 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
                         onChanged: (v) => setState(() => _selectedGroupId = v),
                       );
                     },
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Attendance Day Dropdown
+                  DropdownButtonFormField<String?>(
+                    initialValue: _selectedAttendanceDay,
+                    decoration: InputDecoration(
+                      labelText: LocaleKeys.attendance_day.tr(),
+                      prefixIcon: const Icon(Icons.calendar_today_outlined),
+                    ),
+                    items: [
+                      DropdownMenuItem<String?>(
+                        value: null,
+                        child: Text(LocaleKeys.not_specified.tr()),
+                      ),
+                      DropdownMenuItem<String?>(
+                        value: 'Monday',
+                        child: Text(LocaleKeys.monday.tr()),
+                      ),
+                      DropdownMenuItem<String?>(
+                        value: 'Tuesday',
+                        child: Text(LocaleKeys.tuesday.tr()),
+                      ),
+                      DropdownMenuItem<String?>(
+                        value: 'Wednesday',
+                        child: Text(LocaleKeys.wednesday.tr()),
+                      ),
+                      DropdownMenuItem<String?>(
+                        value: 'Thursday',
+                        child: Text(LocaleKeys.thursday.tr()),
+                      ),
+                      DropdownMenuItem<String?>(
+                        value: 'Friday',
+                        child: Text(LocaleKeys.friday.tr()),
+                      ),
+                      DropdownMenuItem<String?>(
+                        value: 'Saturday',
+                        child: Text(LocaleKeys.saturday.tr()),
+                      ),
+                      DropdownMenuItem<String?>(
+                        value: 'Sunday',
+                        child: Text(LocaleKeys.sunday.tr()),
+                      ),
+                    ],
+                    onChanged: (v) => setState(() => _selectedAttendanceDay = v),
                   ),
                   const SizedBox(height: 32),
 
@@ -326,7 +412,7 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
     );
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final Map<String, Object?> data = {
@@ -340,15 +426,19 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
       'previous_teacher': _previousTeacherController.text.trim(),
       'group_id': _selectedGroupId,
       'grade': _selectedGrade,
+      'student_status': _selectedStatus,
+      'attendance_day': _selectedAttendanceDay,
     };
 
     final StudentCubit cubit = context.read<StudentCubit>();
     if (_isEditing) {
-      cubit.updateStudent(widget.id!, data);
+      await cubit.updateStudent(widget.id!, data);
     } else {
-      cubit.createStudent(data);
+      await cubit.createStudent(data);
     }
 
-    context.router.maybePop();
+    if (mounted) {
+      context.router.maybePop();
+    }
   }
 }

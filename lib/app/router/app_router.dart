@@ -21,6 +21,8 @@ class AppRouter extends RootStackRouter {
             AutoRoute(page: QrScannerRoute.page),
             AutoRoute(page: ExamListRoute.page),
             AutoRoute(page: ReportRoute.page),
+            AutoRoute(page: AssistantListRoute.page),
+            AutoRoute(page: NotesRoute.page),
           ],
         ),
         AutoRoute(page: UserFormRoute.page),
@@ -33,6 +35,8 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: ExamFormRoute.page),
         AutoRoute(page: ExamDetailRoute.page),
         AutoRoute(page: MarkEntryRoute.page),
+        AutoRoute(page: AssistantFormRoute.page),
+        AutoRoute(page: AssistantDetailRoute.page),
       ];
 
   @override

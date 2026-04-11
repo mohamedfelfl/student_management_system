@@ -168,13 +168,13 @@ class _UserFormScreenState extends State<UserFormScreen> {
     );
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final AdminCubit adminCubit = context.read<AdminCubit>();
 
     if (_isEditing) {
-      adminCubit.updateUser(
+      await adminCubit.updateUser(
         id: widget.id!,
         username: _usernameController.text.trim(),
         password: _passwordController.text.isNotEmpty
@@ -184,7 +184,7 @@ class _UserFormScreenState extends State<UserFormScreen> {
         permissions: _selectedPermissions.toList(),
       );
     } else {
-      adminCubit.createUser(
+      await adminCubit.createUser(
         username: _usernameController.text.trim(),
         password: _passwordController.text,
         role: _selectedRole,
@@ -194,6 +194,8 @@ class _UserFormScreenState extends State<UserFormScreen> {
       );
     }
 
-    context.router.maybePop();
+    if (mounted) {
+      context.router.maybePop();
+    }
   }
 }

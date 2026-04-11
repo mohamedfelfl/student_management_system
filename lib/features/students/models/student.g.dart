@@ -16,8 +16,11 @@ _Student _$StudentFromJson(Map<String, dynamic> json) => _Student(
   fatherJob: json['fatherJob'] as String? ?? '',
   school: json['school'] as String? ?? '',
   previousTeacher: json['previousTeacher'] as String? ?? '',
+  grade: json['grade'] as String?,
   groupId: (json['groupId'] as num?)?.toInt(),
   groupName: json['groupName'] as String?,
+  studentStatus: json['studentStatus'] as String? ?? 'normal',
+  attendanceDay: json['attendanceDay'] as String?,
   createdAt: json['createdAt'] == null
       ? null
       : DateTime.parse(json['createdAt'] as String),
@@ -33,7 +36,10 @@ Map<String, dynamic> _$StudentToJson(_Student instance) => <String, dynamic>{
   'fatherJob': instance.fatherJob,
   'school': instance.school,
   'previousTeacher': instance.previousTeacher,
+  'grade': instance.grade,
   'groupId': instance.groupId,
   'groupName': instance.groupName,
+  'studentStatus': instance.studentStatus,
+  'attendanceDay': instance.attendanceDay,
   'createdAt': instance.createdAt?.toIso8601String(),
 };

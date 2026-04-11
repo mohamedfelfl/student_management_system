@@ -35,6 +35,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final TextTheme textTheme = Theme.of(context).textTheme;
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
+    final User? user = context.read<AuthCubit>().state.maybeWhen(
+      authenticated: (u) => u,
+      orElse: () => null,
+    );
+
     return BlocBuilder<DashboardCubit, DashboardState>(
       builder: (BuildContext context, DashboardState state) {
         if (state.isLoading) {
@@ -98,7 +103,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          LocaleKeys.welcome_admin.tr(),
+                          LocaleKeys.welcome_admin.tr()
+                              .replaceAll('المسؤول', user?.username ?? 'Admin')
+                              .replaceAll('Admin', user?.username ?? 'Admin'),
                           style: textTheme.titleMedium?.copyWith(
                             color: isDark
                                 ? colorScheme.onSurfaceVariant
@@ -140,23 +147,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               value: '${state.totalGroups}',
                               isDark: isDark,
                             ),
-                            Container(
-                              width: 1.w,
-                              height: 40.h,
-                              color: isDark
-                                  ? colorScheme.outlineVariant.withValues(
-                                      alpha: 0.3,
-                                    )
-                                  : colorScheme.onPrimary.withValues(
-                                      alpha: 0.2,
-                                    ),
-                            ),
-                            BannerStat(
-                              label: LocaleKeys.attendance_rate.tr(),
-                              value:
-                                  '${state.attendanceRate.toStringAsFixed(0)}%',
-                              isDark: isDark,
-                            ),
                           ],
                         ),
                       ],
@@ -173,10 +163,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           final int crossAxisCount = constraints.maxWidth > 800
                               ? 6
                               : 3;
-                          final User? user = context.read<AuthCubit>().state.maybeWhen(
-                            authenticated: (u) => u,
-                            orElse: () => null,
-                          );
 
                           final actions = [
                             if (user?.can(UserPermission.manageStudents) ?? false)
@@ -220,6 +206,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 label: LocaleKeys.groups.tr(),
                                 onTap: () => context.router.push(GroupListRoute()),
                                 color: const Color(0xFF9C27B0),
+                              ),
+                            if (user?.can(UserPermission.manageNotes) ?? false)
+                              ActionCard(
+                                icon: Icons.menu_book_rounded,
+                                label: LocaleKeys.notes.tr(),
+                                onTap: () => context.router.push(NotesRoute()),
+                                color: const Color(0xFF00897B),
                               ),
                           ];
 
