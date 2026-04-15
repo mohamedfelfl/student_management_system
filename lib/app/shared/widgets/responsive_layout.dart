@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// Responsive layout wrapper that adapts between mobile and desktop.
 ///
@@ -14,6 +15,8 @@ class ResponsiveLayout extends StatelessWidget {
 
   static const double breakpoint = 900;
 
+  final bool isCollapsed;
+
   const ResponsiveLayout({
     super.key,
     required this.mobileBody,
@@ -21,6 +24,7 @@ class ResponsiveLayout extends StatelessWidget {
     required this.selectedIndex,
     required this.onDestinationSelected,
     required this.destinations,
+    this.isCollapsed = false,
     this.leading,
     this.trailing,
   });
@@ -40,27 +44,45 @@ class ResponsiveLayout extends StatelessWidget {
     if (width >= breakpoint) {
       return Row(
         children: [
-          NavigationRail(
-            selectedIndex: selectedIndex,
-            onDestinationSelected: onDestinationSelected,
-            destinations: destinations,
-            labelType: width >= 1200
-                ? NavigationRailLabelType.none
-                : NavigationRailLabelType.all,
-            selectedLabelTextStyle: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.primary,
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 20,
+                  offset: const Offset(5, 0),
+                ),
+              ],
             ),
-            unselectedLabelTextStyle: TextStyle(
-              fontSize: 14,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            child: NavigationRail(
+              selectedIndex: selectedIndex,
+              onDestinationSelected: onDestinationSelected,
+              destinations: destinations,
+              labelType: isCollapsed
+                  ? NavigationRailLabelType.none
+                  : (width >= 1200
+                        ? NavigationRailLabelType.none
+                        : NavigationRailLabelType.all),
+              selectedLabelTextStyle: GoogleFonts.cairo(
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
+                letterSpacing: 0.5,
+              ),
+              unselectedLabelTextStyle: GoogleFonts.cairo(
+                fontSize: 15,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                letterSpacing: 0.2,
+              ),
+              indicatorShape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              leading: leading,
+              trailing: trailing,
+              extended: !isCollapsed && width >= 1200,
             ),
-            leading: leading,
-            trailing: trailing,
-            extended: width >= 1200,
           ),
-          const VerticalDivider(thickness: 1, width: 1),
           Expanded(child: desktopBody ?? mobileBody),
         ],
       );

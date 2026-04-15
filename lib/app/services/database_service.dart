@@ -535,13 +535,17 @@ class DatabaseService {
 
         // 6. Re-create indexes
         await txn.execute('CREATE INDEX idx_marks_exam ON marks(exam_id)');
-        await txn.execute('CREATE INDEX idx_marks_student ON marks(student_id)');
+        await txn.execute(
+          'CREATE INDEX idx_marks_student ON marks(student_id)',
+        );
       });
     }
 
     if (oldVersion < 13) {
       if (kDebugMode) {
-        print('Database Version < 13: Adding notes and student_notes tables...');
+        print(
+          'Database Version < 13: Adding notes and student_notes tables...',
+        );
       }
       final Batch batch = db.batch();
       batch.execute('''
@@ -568,7 +572,9 @@ class DatabaseService {
 
     if (oldVersion < 14) {
       if (kDebugMode) {
-        print('Database Version < 14: Adding settings, audit, device binding tables...');
+        print(
+          'Database Version < 14: Adding settings, audit, device binding tables...',
+        );
       }
       final Batch batch = db.batch();
 
@@ -635,9 +641,7 @@ class DatabaseService {
       }
 
       // Create indexes for performance
-      await db.execute(
-        'CREATE INDEX idx_audit_log_user ON audit_log(user_id)',
-      );
+      await db.execute('CREATE INDEX idx_audit_log_user ON audit_log(user_id)');
       await db.execute(
         'CREATE INDEX idx_audit_log_created ON audit_log(created_at)',
       );

@@ -152,15 +152,17 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
                                 width: 40.r,
                                 height: 40.r,
                                 decoration: BoxDecoration(
-                                  color: _statusColor(status).withValues(alpha: 0.15),
+                                  color: _statusColor(
+                                    status,
+                                  ).withValues(alpha: 0.15),
                                   shape: BoxShape.circle,
                                 ),
                                 child: Icon(
                                   status == 'attended'
                                       ? Icons.check_circle_outline
                                       : status == 'missed'
-                                          ? Icons.cancel_outlined
-                                          : Icons.swap_horiz_rounded,
+                                      ? Icons.cancel_outlined
+                                      : Icons.swap_horiz_rounded,
                                   color: _statusColor(status),
                                   size: 22.r,
                                 ),
@@ -195,13 +197,23 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
                                         ),
                                         decoration: BoxDecoration(
                                           color: status == 'attended'
-                                              ? Colors.green.withValues(alpha: 0.1)
-                                              : Colors.orange.withValues(alpha: 0.1),
-                                          borderRadius: BorderRadius.circular(8.r),
+                                              ? Colors.green.withValues(
+                                                  alpha: 0.1,
+                                                )
+                                              : Colors.orange.withValues(
+                                                  alpha: 0.1,
+                                                ),
+                                          borderRadius: BorderRadius.circular(
+                                            8.r,
+                                          ),
                                           border: Border.all(
                                             color: status == 'attended'
-                                                ? Colors.green.withValues(alpha: 0.3)
-                                                : Colors.orange.withValues(alpha: 0.3),
+                                                ? Colors.green.withValues(
+                                                    alpha: 0.3,
+                                                  )
+                                                : Colors.orange.withValues(
+                                                    alpha: 0.3,
+                                                  ),
                                           ),
                                         ),
                                         child: Row(
@@ -220,13 +232,20 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
                                             Flexible(
                                               child: Text(
                                                 notes,
-                                                style: textTheme.labelSmall?.copyWith(
-                                                  color: status == 'attended'
-                                                      ? Colors.green.shade700
-                                                      : Colors.orange.shade700,
-                                                  fontWeight: FontWeight.w600,
-                                                  fontSize: 8.sp,
-                                                ),
+                                                style: textTheme.labelSmall
+                                                    ?.copyWith(
+                                                      color:
+                                                          status == 'attended'
+                                                          ? Colors
+                                                                .green
+                                                                .shade700
+                                                          : Colors
+                                                                .orange
+                                                                .shade700,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      fontSize: 8.sp,
+                                                    ),
                                                 overflow: TextOverflow.ellipsis,
                                               ),
                                             ),
@@ -299,7 +318,6 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
       studentId: widget.studentId,
     );
   }
-
 
   Color _statusColor(String status) {
     switch (status) {

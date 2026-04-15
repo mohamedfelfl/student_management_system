@@ -15,7 +15,8 @@ class AttendanceTab extends StatelessWidget {
 
     return BlocBuilder<AttendanceCubit, AttendanceState>(
       builder: (context, state) {
-        if (state.isLoading) return const Center(child: CircularProgressIndicator());
+        if (state.isLoading)
+          return const Center(child: CircularProgressIndicator());
         if (state.records.isEmpty) {
           return Center(child: Text(LocaleKeys.no_attendance_records.tr()));
         }
@@ -43,13 +44,13 @@ class AttendanceTab extends StatelessWidget {
                 statusIcon = Icons.swap_horiz_rounded;
             }
 
-            final String statusLabel = status == 'attended' 
-                ? LocaleKeys.attended.tr() 
-                : status == 'missed' 
-                    ? LocaleKeys.missed.tr() 
-                    : status == 'otherLesson'
-                        ? LocaleKeys.other_lesson.tr()
-                        : status;
+            final String statusLabel = status == 'attended'
+                ? LocaleKeys.attended.tr()
+                : status == 'missed'
+                ? LocaleKeys.missed.tr()
+                : status == 'otherLesson'
+                ? LocaleKeys.other_lesson.tr()
+                : status;
 
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 6),

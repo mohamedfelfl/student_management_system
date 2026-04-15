@@ -451,7 +451,9 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
                       );
                     },
                     onPressed: () {
-                      context.router.push(StudentDetailRoute(id: s['id'] as int));
+                      context.router.push(
+                        StudentDetailRoute(id: s['id'] as int),
+                      );
                     },
                   );
                 }).toList(),
@@ -602,7 +604,7 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
     } else {
       await cubit.createGroup(data);
     }
-    
+
     if (mounted) {
       context.router.maybePop();
     }

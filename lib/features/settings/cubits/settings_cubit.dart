@@ -19,14 +19,14 @@ abstract class SettingsState with _$SettingsState {
 
     // Security
 
-
     // Backup
     @Default(false) bool autoBackupEnabled,
     @Default('weekly') String autoBackupSchedule,
     @Default(5) int maxBackups,
 
     // Device Binding
-    @Default(DeviceBindingStatus.unbound) DeviceBindingStatus deviceBindingStatus,
+    @Default(DeviceBindingStatus.unbound)
+    DeviceBindingStatus deviceBindingStatus,
     @Default('') String deviceName,
     @Default('') String deviceFingerprint,
     @Default('') String osInfo,
@@ -56,28 +56,35 @@ class SettingsCubit extends Cubit<SettingsState> {
     required SettingsService settingsService,
     required BackupService backupService,
     required DeviceBindingService deviceBindingService,
-  })  : _settingsService = settingsService,
-        _backupService = backupService,
-        _deviceBindingService = deviceBindingService,
-        super(const SettingsState());
+  }) : _settingsService = settingsService,
+       _backupService = backupService,
+       _deviceBindingService = deviceBindingService,
+       super(const SettingsState());
 
   /// Load all settings from the database.
   Future<void> loadSettings() async {
     emit(state.copyWith(isLoading: true, errorMessage: null));
     try {
       final themeMode = await _settingsService.getOrDefault(
-          SettingsKeys.themeMode, 'system');
-      final language =
-          await _settingsService.getOrDefault(SettingsKeys.language, 'ar');
+        SettingsKeys.themeMode,
+        'system',
+      );
+      final language = await _settingsService.getOrDefault(
+        SettingsKeys.language,
+        'ar',
+      );
 
-
-
-      final autoBackupEnabled =
-          await _settingsService.getBool(SettingsKeys.autoBackupEnabled);
+      final autoBackupEnabled = await _settingsService.getBool(
+        SettingsKeys.autoBackupEnabled,
+      );
       final autoBackupSchedule = await _settingsService.getOrDefault(
-          SettingsKeys.autoBackupSchedule, 'weekly');
-      final maxBackups = await _settingsService.getInt(SettingsKeys.maxBackups,
-          defaultValue: 5);
+        SettingsKeys.autoBackupSchedule,
+        'weekly',
+      );
+      final maxBackups = await _settingsService.getInt(
+        SettingsKeys.maxBackups,
+        defaultValue: 5,
+      );
 
       // Device info
       final deviceBindingStatus = await _deviceBindingService.verifyBinding();
@@ -92,27 +99,26 @@ class SettingsCubit extends Cubit<SettingsState> {
       // Backups
       final backups = await _backupService.listBackups();
 
-      emit(state.copyWith(
-        isLoading: false,
-        themeMode: themeMode,
-        language: language,
+      emit(
+        state.copyWith(
+          isLoading: false,
+          themeMode: themeMode,
+          language: language,
 
-        autoBackupEnabled: autoBackupEnabled,
-        autoBackupSchedule: autoBackupSchedule,
-        maxBackups: maxBackups,
-        deviceBindingStatus: deviceBindingStatus,
-        deviceName: deviceName,
-        deviceFingerprint: fingerprint,
-        osInfo: osInfo,
-        databaseSize: dbSize,
-        recordCounts: recordCounts,
-        backups: backups,
-      ));
+          autoBackupEnabled: autoBackupEnabled,
+          autoBackupSchedule: autoBackupSchedule,
+          maxBackups: maxBackups,
+          deviceBindingStatus: deviceBindingStatus,
+          deviceName: deviceName,
+          deviceFingerprint: fingerprint,
+          osInfo: osInfo,
+          databaseSize: dbSize,
+          recordCounts: recordCounts,
+          backups: backups,
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        isLoading: false,
-        errorMessage: e.toString(),
-      ));
+      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
     }
   }
 
@@ -130,8 +136,6 @@ class SettingsCubit extends Cubit<SettingsState> {
 
   // ─── SECURITY SETTINGS ───
 
-
-
   // ─── BACKUP SETTINGS ───
 
   Future<void> setAutoBackup(bool enabled) async {
@@ -139,10 +143,12 @@ class SettingsCubit extends Cubit<SettingsState> {
     if (enabled) {
       await _settingsService.set(SettingsKeys.autoBackupSchedule, 'on_close');
     }
-    emit(state.copyWith(
-      autoBackupEnabled: enabled,
-      autoBackupSchedule: enabled ? 'on_close' : state.autoBackupSchedule,
-    ));
+    emit(
+      state.copyWith(
+        autoBackupEnabled: enabled,
+        autoBackupSchedule: enabled ? 'on_close' : state.autoBackupSchedule,
+      ),
+    );
   }
 
   Future<void> setMaxBackups(int max) async {
@@ -150,12 +156,12 @@ class SettingsCubit extends Cubit<SettingsState> {
     emit(state.copyWith(maxBackups: max));
   }
 
-
-
   // ─── BACKUP ACTIONS ───
 
   Future<void> createBackup() async {
-    emit(state.copyWith(isSaving: true, errorMessage: null, successMessage: null));
+    emit(
+      state.copyWith(isSaving: true, errorMessage: null, successMessage: null),
+    );
     try {
       final path = await _backupService.createBackup();
 
@@ -166,39 +172,51 @@ class SettingsCubit extends Cubit<SettingsState> {
       final backups = await _backupService.listBackups();
       final dbSize = await _backupService.getDatabaseSize();
 
-      emit(state.copyWith(
-        isSaving: false,
-        backups: backups,
-        databaseSize: dbSize,
-        successMessage: LocaleKeys.backup_created.tr(args: [path]),
-      ));
+      emit(
+        state.copyWith(
+          isSaving: false,
+          backups: backups,
+          databaseSize: dbSize,
+          successMessage: LocaleKeys.backup_created.tr(args: [path]),
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        isSaving: false,
-        errorMessage: LocaleKeys.backup_failed.tr(args: [e.toString()]),
-      ));
+      emit(
+        state.copyWith(
+          isSaving: false,
+          errorMessage: LocaleKeys.backup_failed.tr(args: [e.toString()]),
+        ),
+      );
     }
   }
 
   Future<void> restoreBackup(String path) async {
-    emit(state.copyWith(isSaving: true, errorMessage: null, successMessage: null));
+    emit(
+      state.copyWith(isSaving: true, errorMessage: null, successMessage: null),
+    );
     try {
       await _backupService.restoreFromBackup(path);
 
-      emit(state.copyWith(
-        isSaving: false,
-        successMessage: LocaleKeys.restore_success.tr(),
-      ));
+      emit(
+        state.copyWith(
+          isSaving: false,
+          successMessage: LocaleKeys.restore_success.tr(),
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        isSaving: false,
-        errorMessage: LocaleKeys.restore_failed.tr(args: [e.toString()]),
-      ));
+      emit(
+        state.copyWith(
+          isSaving: false,
+          errorMessage: LocaleKeys.restore_failed.tr(args: [e.toString()]),
+        ),
+      );
     }
   }
 
   Future<void> importBackupFromFile() async {
-    emit(state.copyWith(isSaving: true, errorMessage: null, successMessage: null));
+    emit(
+      state.copyWith(isSaving: true, errorMessage: null, successMessage: null),
+    );
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -209,18 +227,22 @@ class SettingsCubit extends Cubit<SettingsState> {
         final path = result.files.single.path!;
         await _backupService.restoreFromBackup(path);
 
-        emit(state.copyWith(
-          isSaving: false,
-          successMessage: LocaleKeys.restore_success.tr(),
-        ));
+        emit(
+          state.copyWith(
+            isSaving: false,
+            successMessage: LocaleKeys.restore_success.tr(),
+          ),
+        );
       } else {
         emit(state.copyWith(isSaving: false));
       }
     } catch (e) {
-      emit(state.copyWith(
-        isSaving: false,
-        errorMessage: LocaleKeys.restore_failed.tr(args: [e.toString()]),
-      ));
+      emit(
+        state.copyWith(
+          isSaving: false,
+          errorMessage: LocaleKeys.restore_failed.tr(args: [e.toString()]),
+        ),
+      );
     }
   }
 
@@ -233,42 +255,58 @@ class SettingsCubit extends Cubit<SettingsState> {
   // ─── DATABASE ACTIONS ───
 
   Future<void> optimizeDatabase() async {
-    emit(state.copyWith(isSaving: true, errorMessage: null, successMessage: null));
+    emit(
+      state.copyWith(isSaving: true, errorMessage: null, successMessage: null),
+    );
     try {
       await _backupService.optimizeDatabase();
       final dbSize = await _backupService.getDatabaseSize();
-      emit(state.copyWith(
-        isSaving: false,
-        databaseSize: dbSize,
-        successMessage: LocaleKeys.optimize_success.tr(),
-      ));
+      emit(
+        state.copyWith(
+          isSaving: false,
+          databaseSize: dbSize,
+          successMessage: LocaleKeys.optimize_success.tr(),
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        isSaving: false,
-        errorMessage: LocaleKeys.optimize_failed.tr(args: [e.toString()]),
-      ));
+      emit(
+        state.copyWith(
+          isSaving: false,
+          errorMessage: LocaleKeys.optimize_failed.tr(args: [e.toString()]),
+        ),
+      );
     }
   }
 
   Future<void> checkIntegrity() async {
-    emit(state.copyWith(isSaving: true, errorMessage: null, successMessage: null));
+    emit(
+      state.copyWith(isSaving: true, errorMessage: null, successMessage: null),
+    );
     try {
       final result = await _backupService.checkIntegrity();
-      emit(state.copyWith(
-        isSaving: false,
-        integrityStatus: result,
-        successMessage: LocaleKeys.integrity_check_result.tr(args: [result]),
-      ));
+      emit(
+        state.copyWith(
+          isSaving: false,
+          integrityStatus: result,
+          successMessage: LocaleKeys.integrity_check_result.tr(args: [result]),
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        isSaving: false,
-        errorMessage: LocaleKeys.integrity_check_failed.tr(args: [e.toString()]),
-      ));
+      emit(
+        state.copyWith(
+          isSaving: false,
+          errorMessage: LocaleKeys.integrity_check_failed.tr(
+            args: [e.toString()],
+          ),
+        ),
+      );
     }
   }
 
   Future<void> exportCsv(String type) async {
-    emit(state.copyWith(isSaving: true, errorMessage: null, successMessage: null));
+    emit(
+      state.copyWith(isSaving: true, errorMessage: null, successMessage: null),
+    );
     try {
       String csv;
       switch (type) {
@@ -289,66 +327,80 @@ class SettingsCubit extends Cubit<SettingsState> {
       }
 
       final path = await _backupService.saveCsvFile(csv, type);
-      emit(state.copyWith(
-        isSaving: false,
-        successMessage: LocaleKeys.exported_to.tr(args: [path]),
-      ));
+      emit(
+        state.copyWith(
+          isSaving: false,
+          successMessage: LocaleKeys.exported_to.tr(args: [path]),
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        isSaving: false,
-        errorMessage: LocaleKeys.export_failed.tr(args: [e.toString()]),
-      ));
+      emit(
+        state.copyWith(
+          isSaving: false,
+          errorMessage: LocaleKeys.export_failed.tr(args: [e.toString()]),
+        ),
+      );
     }
   }
 
-
-
   Future<void> purgeOldData(int years) async {
-    emit(state.copyWith(isSaving: true, errorMessage: null, successMessage: null));
+    emit(
+      state.copyWith(isSaving: true, errorMessage: null, successMessage: null),
+    );
     try {
       final counts = await _backupService.purgeOldData(years);
       final recordCounts = await _backupService.getRecordCounts();
       final dbSize = await _backupService.getDatabaseSize();
 
-      emit(state.copyWith(
-        isSaving: false,
-        recordCounts: recordCounts,
-        databaseSize: dbSize,
-        successMessage: LocaleKeys.purge_success.tr(args: [
-          (counts['attendance'] ?? 0).toString(),
-          (counts['payments'] ?? 0).toString()
-        ]),
-      ));
+      emit(
+        state.copyWith(
+          isSaving: false,
+          recordCounts: recordCounts,
+          databaseSize: dbSize,
+          successMessage: LocaleKeys.purge_success.tr(
+            args: [
+              (counts['attendance'] ?? 0).toString(),
+              (counts['payments'] ?? 0).toString(),
+            ],
+          ),
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        isSaving: false,
-        errorMessage: LocaleKeys.purge_failed.tr(args: [e.toString()]),
-      ));
+      emit(
+        state.copyWith(
+          isSaving: false,
+          errorMessage: LocaleKeys.purge_failed.tr(args: [e.toString()]),
+        ),
+      );
     }
   }
 
   Future<void> resetAllData() async {
-    emit(state.copyWith(isSaving: true, errorMessage: null, successMessage: null));
+    emit(
+      state.copyWith(isSaving: true, errorMessage: null, successMessage: null),
+    );
     try {
       await _backupService.resetAllData();
       final recordCounts = await _backupService.getRecordCounts();
       final dbSize = await _backupService.getDatabaseSize();
 
-      emit(state.copyWith(
-        isSaving: false,
-        recordCounts: recordCounts,
-        databaseSize: dbSize,
-        successMessage: LocaleKeys.reset_success.tr(),
-      ));
+      emit(
+        state.copyWith(
+          isSaving: false,
+          recordCounts: recordCounts,
+          databaseSize: dbSize,
+          successMessage: LocaleKeys.reset_success.tr(),
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        isSaving: false,
-        errorMessage: LocaleKeys.reset_failed.tr(args: [e.toString()]),
-      ));
+      emit(
+        state.copyWith(
+          isSaving: false,
+          errorMessage: LocaleKeys.reset_failed.tr(args: [e.toString()]),
+        ),
+      );
     }
   }
-
-
 
   /// Clear the success/error message.
   void clearMessage() {
@@ -360,10 +412,12 @@ class SettingsCubit extends Cubit<SettingsState> {
     final dbSize = await _backupService.getDatabaseSize();
     final recordCounts = await _backupService.getRecordCounts();
     final backups = await _backupService.listBackups();
-    emit(state.copyWith(
-      databaseSize: dbSize,
-      recordCounts: recordCounts,
-      backups: backups,
-    ));
+    emit(
+      state.copyWith(
+        databaseSize: dbSize,
+        recordCounts: recordCounts,
+        backups: backups,
+      ),
+    );
   }
 }

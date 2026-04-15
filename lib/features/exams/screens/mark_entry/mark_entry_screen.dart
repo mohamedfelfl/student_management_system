@@ -54,10 +54,10 @@ class _MarkEntryScreenState extends State<MarkEntryScreen> {
       canPop: _canPop,
       onPopInvokedWithResult: (bool didPop, Object? result) async {
         if (didPop || _isSaving) return;
-        
+
         setState(() => _isSaving = true);
         await _saveAll(showSnackbar: false);
-        
+
         if (context.mounted) {
           setState(() {
             _canPop = true;
@@ -94,9 +94,13 @@ class _MarkEntryScreenState extends State<MarkEntryScreen> {
                   ),
                   ElevatedButton.icon(
                     onPressed: _isSaving ? null : _saveAll,
-                    icon: _isSaving 
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Icon(Icons.save),
+                    icon: _isSaving
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.save),
                     label: Text(LocaleKeys.save_all.tr()),
                   ),
                 ],
@@ -118,10 +122,14 @@ class _MarkEntryScreenState extends State<MarkEntryScreen> {
                         for (final Map<String, Object?> mark
                             in examState.marks) {
                           final int sId = mark['student_id'] as int;
-                          final scoreStr = (mark['score'] as num?)?.toString() ?? '';
+                          final scoreStr =
+                              (mark['score'] as num?)?.toString() ?? '';
                           if (!_scoreControllers.containsKey(sId)) {
-                            _scoreControllers[sId] = TextEditingController(text: scoreStr);
-                          } else if (_scoreControllers[sId]!.text.isEmpty && scoreStr.isNotEmpty) {
+                            _scoreControllers[sId] = TextEditingController(
+                              text: scoreStr,
+                            );
+                          } else if (_scoreControllers[sId]!.text.isEmpty &&
+                              scoreStr.isNotEmpty) {
                             _scoreControllers[sId]!.text = scoreStr;
                           }
                         }
@@ -355,7 +363,8 @@ class _MarkEntryScreenState extends State<MarkEntryScreen> {
                                                                     widget.id,
                                                               )
                                                               .firstOrNull;
-                                                          if (exam == null) return;
+                                                          if (exam == null)
+                                                            return;
                                                           final fullMark =
                                                               (exam['full_mark']
                                                                       as num)
@@ -428,7 +437,7 @@ class _MarkEntryScreenState extends State<MarkEntryScreen> {
         await context.read<ExamCubit>().saveMarksQuietly(widget.id!, scores);
         // Added a tiny delay to ensure DB write is finalized in SQLite
         await Future.delayed(const Duration(milliseconds: 50));
-        
+
         if (showSnackbar && mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(LocaleKeys.marks_saved_success.tr())),

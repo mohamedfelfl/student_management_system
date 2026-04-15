@@ -22,36 +22,42 @@ class AssistantCubit extends Cubit<AssistantState> {
   final DatabaseService _databaseService;
 
   AssistantCubit({required DatabaseService databaseService})
-      : _databaseService = databaseService,
-        super(const AssistantState());
+    : _databaseService = databaseService,
+      super(const AssistantState());
 
   Future<void> loadAssistants() async {
     emit(state.copyWith(isLoading: true, error: null));
     try {
       final Database db = await _databaseService.database;
 
-      final List<Map<String, Object?>> countResult =
-          await db.rawQuery('SELECT COUNT(*) as cnt FROM assistants');
+      final List<Map<String, Object?>> countResult = await db.rawQuery(
+        'SELECT COUNT(*) as cnt FROM assistants',
+      );
       final int total = (countResult.first['cnt'] as int?) ?? 0;
 
-      final String query = '''
+      final String query =
+          '''
         SELECT *
         FROM assistants
         ${_buildWhereClause()}
         ORDER BY name ASC
       ''';
-      final List<Map<String, Object?>> results =
-          await db.rawQuery(query, _buildWhereArgs());
+      final List<Map<String, Object?>> results = await db.rawQuery(
+        query,
+        _buildWhereArgs(),
+      );
 
       final resultIds = results.map((s) => s['id'] as int).toSet();
       final pruned = state.selectedIds.intersection(resultIds);
 
-      emit(state.copyWith(
-        assistants: results,
-        totalCount: total,
-        selectedIds: pruned,
-        isLoading: false,
-      ));
+      emit(
+        state.copyWith(
+          assistants: results,
+          totalCount: total,
+          selectedIds: pruned,
+          isLoading: false,
+        ),
+      );
     } catch (e) {
       emit(state.copyWith(error: e.toString(), isLoading: false));
     }
@@ -98,7 +104,12 @@ class AssistantCubit extends Cubit<AssistantState> {
   Future<void> updateAssistant(int id, Map<String, dynamic> data) async {
     try {
       final Database db = await _databaseService.database;
-      await db.update('assistants', data, where: 'id = ?', whereArgs: <Object?>[id]);
+      await db.update(
+        'assistants',
+        data,
+        where: 'id = ?',
+        whereArgs: <Object?>[id],
+      );
       await loadAssistants();
     } catch (e) {
       emit(state.copyWith(error: e.toString()));

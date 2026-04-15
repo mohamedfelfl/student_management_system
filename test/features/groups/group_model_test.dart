@@ -5,11 +5,8 @@ import 'package:student_management_system/features/groups/models/group_schedule.
 void main() {
   group('Group Model Tests', () {
     test('Group and GroupSchedule JSON serialization', () {
-      final schedule = GroupSchedule(
-        dayOfWeek: 'Saturday',
-        time: '10:00 AM',
-      );
-      
+      final schedule = GroupSchedule(dayOfWeek: 'Saturday', time: '10:00 AM');
+
       final group = Group(
         id: 1,
         name: 'Physics Group A',
@@ -19,7 +16,7 @@ void main() {
       final json = group.toJson();
       expect(json['name'], 'Physics Group A');
       expect(json['schedules'], isA<List>());
-      
+
       final firstSchedule = json['schedules'][0];
       Map<String, dynamic> scheduleMap;
       if (firstSchedule is Map) {
@@ -31,7 +28,9 @@ void main() {
 
       // Ensure the JSON is in a format fromJson expects (all Maps)
       final jsonForDeserialization = Map<String, dynamic>.from(json);
-      jsonForDeserialization['schedules'] = (json['schedules'] as List).map((s) => s is Map ? s : s.toJson()).toList();
+      jsonForDeserialization['schedules'] = (json['schedules'] as List)
+          .map((s) => s is Map ? s : s.toJson())
+          .toList();
 
       final fromJson = Group.fromJson(jsonForDeserialization);
       expect(fromJson.name, group.name);

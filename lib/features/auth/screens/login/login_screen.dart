@@ -51,13 +51,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-        body: BlocListener<AuthCubit, AuthState>(
+      body: BlocListener<AuthCubit, AuthState>(
         listener: (context, state) {
           state.whenOrNull(
             error: (message) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(message)),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(message)));
             },
           );
         },
@@ -120,12 +120,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-            
+
             // Main Content
             SafeArea(
               child: Center(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 32,
+                  ),
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 440),
                     child: Column(
@@ -140,7 +143,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
-                                color: colorScheme.primary.withValues(alpha: 0.1),
+                                color: colorScheme.primary.withValues(
+                                  alpha: 0.1,
+                                ),
                                 blurRadius: 16,
                                 offset: const Offset(0, 8),
                               ),
@@ -182,10 +187,15 @@ class _LoginScreenState extends State<LoginScreen> {
                           decoration: BoxDecoration(
                             // Fallback to surfaceContainerHighest logic or simple grey variation
                             color: ElevationOverlay.applySurfaceTint(
-                                colorScheme.surface, colorScheme.surfaceTint, 1),
+                              colorScheme.surface,
+                              colorScheme.surfaceTint,
+                              1,
+                            ),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                              color: colorScheme.outlineVariant.withValues(alpha: 0.2),
+                              color: colorScheme.outlineVariant.withValues(
+                                alpha: 0.2,
+                              ),
                             ),
                             boxShadow: [
                               BoxShadow(
@@ -200,7 +210,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _buildInputLabel(LocaleKeys.username.tr(), colorScheme),
+                                _buildInputLabel(
+                                  LocaleKeys.username.tr(),
+                                  colorScheme,
+                                ),
                                 const SizedBox(height: 8),
                                 TextFormField(
                                   controller: _usernameController,
@@ -210,28 +223,41 @@ class _LoginScreenState extends State<LoginScreen> {
                                     icon: Icons.badge_outlined,
                                     colorScheme: colorScheme,
                                   ),
-                                  validator: (v) => v == null || v.isEmpty ? LocaleKeys.required_field.tr() : null,
+                                  validator: (v) => v == null || v.isEmpty
+                                      ? LocaleKeys.required_field.tr()
+                                      : null,
                                 ),
                                 const SizedBox(height: 24),
-                                _buildInputLabel(LocaleKeys.password.tr(), colorScheme),
+                                _buildInputLabel(
+                                  LocaleKeys.password.tr(),
+                                  colorScheme,
+                                ),
                                 const SizedBox(height: 8),
                                 TextFormField(
                                   controller: _passwordController,
                                   obscureText: _obscurePassword,
-                                  decoration: _buildInputDecoration(
-                                    hintText: LocaleKeys.password_hint.tr(),
-                                    icon: Icons.lock_outline,
-                                    colorScheme: colorScheme,
-                                  ).copyWith(
-                                    suffixIcon: IconButton(
-                                      icon: Icon(
-                                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                                        color: colorScheme.onSurfaceVariant,
+                                  decoration:
+                                      _buildInputDecoration(
+                                        hintText: LocaleKeys.password_hint.tr(),
+                                        icon: Icons.lock_outline,
+                                        colorScheme: colorScheme,
+                                      ).copyWith(
+                                        suffixIcon: IconButton(
+                                          icon: Icon(
+                                            _obscurePassword
+                                                ? Icons.visibility_off
+                                                : Icons.visibility,
+                                            color: colorScheme.onSurfaceVariant,
+                                          ),
+                                          onPressed: () => setState(
+                                            () => _obscurePassword =
+                                                !_obscurePassword,
+                                          ),
+                                        ),
                                       ),
-                                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                                    ),
-                                  ),
-                                  validator: (v) => v == null || v.isEmpty ? LocaleKeys.required_field.tr() : null,
+                                  validator: (v) => v == null || v.isEmpty
+                                      ? LocaleKeys.required_field.tr()
+                                      : null,
                                 ),
                                 const SizedBox(height: 32),
                                 BlocBuilder<AuthCubit, AuthState>(
@@ -247,30 +273,38 @@ class _LoginScreenState extends State<LoginScreen> {
                                         onPressed: isLoading ? null : _submit,
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: colorScheme.primary,
-                                          foregroundColor: colorScheme.onPrimary,
+                                          foregroundColor:
+                                              colorScheme.onPrimary,
                                           shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(16),
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
                                           ),
                                           elevation: 4,
-                                          shadowColor: colorScheme.primary.withValues(alpha: 0.4),
+                                          shadowColor: colorScheme.primary
+                                              .withValues(alpha: 0.4),
                                         ),
                                         child: isLoading
                                             ? SizedBox(
                                                 width: 24,
                                                 height: 24,
-                                                child: CircularProgressIndicator(
-                                                  strokeWidth: 2,
-                                                  color: colorScheme.onPrimary,
-                                                ),
+                                                child:
+                                                    CircularProgressIndicator(
+                                                      strokeWidth: 2,
+                                                      color:
+                                                          colorScheme.onPrimary,
+                                                    ),
                                               )
                                             : Row(
-                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
                                                 children: [
                                                   Text(
                                                     LocaleKeys.sign_in.tr(),
                                                     style: const TextStyle(
                                                       fontSize: 16,
-                                                      fontWeight: FontWeight.bold,
+                                                      fontWeight:
+                                                          FontWeight.bold,
                                                     ),
                                                   ),
                                                   const SizedBox(width: 8),
@@ -287,7 +321,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
 
                         const SizedBox(height: 64),
-                        
+
                         // Footer
                         Container(
                           width: double.infinity,
@@ -295,7 +329,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: Column(
                             children: [
                               Divider(
-                                color: colorScheme.outlineVariant.withValues(alpha: 0.2),
+                                color: colorScheme.outlineVariant.withValues(
+                                  alpha: 0.2,
+                                ),
                                 thickness: 1,
                               ),
                               const SizedBox(height: 24),
@@ -355,7 +391,10 @@ class _LoginScreenState extends State<LoginScreen> {
       prefixIcon: Icon(icon, color: colorScheme.onSurfaceVariant),
       filled: true,
       fillColor: ElevationOverlay.applySurfaceTint(
-          colorScheme.surface, colorScheme.surfaceTint, 2),
+        colorScheme.surface,
+        colorScheme.surfaceTint,
+        2,
+      ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,
@@ -375,9 +414,9 @@ class _LoginScreenState extends State<LoginScreen> {
   void _submit() {
     if (_formKey.currentState?.validate() ?? false) {
       context.read<AuthCubit>().login(
-            _usernameController.text.trim(),
-            _passwordController.text,
-          );
+        _usernameController.text.trim(),
+        _passwordController.text,
+      );
     }
   }
 }

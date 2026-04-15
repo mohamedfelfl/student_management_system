@@ -52,8 +52,7 @@ class _StudentListScreenState extends State<StudentListScreen> {
         leading: ResponsiveLayout.isMobile(context)
             ? IconButton(
                 icon: const Icon(Icons.menu),
-                onPressed: () =>
-                    Scaffold.of(context).openDrawer(),
+                onPressed: () => Scaffold.of(context).openDrawer(),
               )
             : null,
       ),
@@ -104,18 +103,17 @@ class _StudentListScreenState extends State<StudentListScreen> {
                   child: state.isLoading
                       ? const Center(child: CircularProgressIndicator())
                       : state.students.isEmpty
-                          ? const EmptyStudentState()
-                          : StudentDataTable(
-                              students: state.students,
-                              selectedIds: state.selectedIds,
-                              rowsPerPage: _rowsPerPage,
-                              onToggleAll: () =>
-                                  context.read<StudentCubit>().toggleAll(),
-                              onToggleSelection: (id) => context
-                                  .read<StudentCubit>()
-                                  .toggleSelection(id),
-                              onDeleteStudent: (s) => _confirmDelete(s),
-                            ),
+                      ? const EmptyStudentState()
+                      : StudentDataTable(
+                          students: state.students,
+                          selectedIds: state.selectedIds,
+                          rowsPerPage: _rowsPerPage,
+                          onToggleAll: () =>
+                              context.read<StudentCubit>().toggleAll(),
+                          onToggleSelection: (id) =>
+                              context.read<StudentCubit>().toggleSelection(id),
+                          onDeleteStudent: (s) => _confirmDelete(s),
+                        ),
                 ),
               ],
             ),
@@ -124,8 +122,6 @@ class _StudentListScreenState extends State<StudentListScreen> {
       ),
     );
   }
-
-
 
   void _confirmDelete(Map<String, Object?> student) {
     showDialog(

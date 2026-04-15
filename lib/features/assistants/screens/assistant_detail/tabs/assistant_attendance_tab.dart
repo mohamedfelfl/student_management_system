@@ -27,7 +27,9 @@ class _AssistantAttendanceTabState extends State<AssistantAttendanceTab> {
     return BlocConsumer<AssistantAttendanceCubit, AssistantAttendanceState>(
       listener: (context, state) {
         if (state.error != null) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.error!)));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.error!)));
         }
       },
       builder: (context, state) {
@@ -46,15 +48,25 @@ class _AssistantAttendanceTabState extends State<AssistantAttendanceTab> {
                   Row(
                     children: [
                       ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
-                        onPressed: () => context.read<AssistantAttendanceCubit>().recordAttendance(widget.assistantId, 'in'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: () => context
+                            .read<AssistantAttendanceCubit>()
+                            .recordAttendance(widget.assistantId, 'in'),
                         icon: const Icon(Icons.login),
                         label: Text(LocaleKeys.record_in.tr()),
                       ),
                       SizedBox(width: 12.w),
                       ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, foregroundColor: Colors.white),
-                        onPressed: () => context.read<AssistantAttendanceCubit>().recordAttendance(widget.assistantId, 'out'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange,
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: () => context
+                            .read<AssistantAttendanceCubit>()
+                            .recordAttendance(widget.assistantId, 'out'),
                         icon: const Icon(Icons.logout),
                         label: Text(LocaleKeys.record_out.tr()),
                       ),
@@ -67,33 +79,42 @@ class _AssistantAttendanceTabState extends State<AssistantAttendanceTab> {
                 child: state.isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : state.records.isEmpty
-                        ? Center(child: Text(LocaleKeys.no_attendance_records.tr()))
-                        : ListView.builder(
-                            itemCount: state.records.length,
-                            itemBuilder: (context, index) {
-                              final record = state.records[index];
-                              final isOut = record['type'] == 'out';
-                              return Card(
-                                margin: EdgeInsets.only(bottom: 8.h),
-                                child: ListTile(
-                                  leading: CircleAvatar(
-                                    backgroundColor: isOut ? Colors.orange.withValues(alpha: 0.1) : Colors.green.withValues(alpha: 0.1),
-                                    child: Icon(
-                                      isOut ? Icons.logout : Icons.login,
-                                      color: isOut ? Colors.orange : Colors.green,
-                                    ),
-                                  ),
-                                  title: Text(record['date']),
-                                  subtitle: Text(isOut ? LocaleKeys.out_type.tr() : LocaleKeys.in_type.tr()),
-                                  trailing: IconButton(
-                                    icon: const Icon(Icons.delete, color: Colors.red),
-                                    onPressed: () => _confirmDelete(record),
-                                  ),
+                    ? Center(child: Text(LocaleKeys.no_attendance_records.tr()))
+                    : ListView.builder(
+                        itemCount: state.records.length,
+                        itemBuilder: (context, index) {
+                          final record = state.records[index];
+                          final isOut = record['type'] == 'out';
+                          return Card(
+                            margin: EdgeInsets.only(bottom: 8.h),
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                backgroundColor: isOut
+                                    ? Colors.orange.withValues(alpha: 0.1)
+                                    : Colors.green.withValues(alpha: 0.1),
+                                child: Icon(
+                                  isOut ? Icons.logout : Icons.login,
+                                  color: isOut ? Colors.orange : Colors.green,
                                 ),
-                              );
-                            },
-                          ),
-              )
+                              ),
+                              title: Text(record['date']),
+                              subtitle: Text(
+                                isOut
+                                    ? LocaleKeys.out_type.tr()
+                                    : LocaleKeys.in_type.tr(),
+                              ),
+                              trailing: IconButton(
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: Colors.red,
+                                ),
+                                onPressed: () => _confirmDelete(record),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+              ),
             ],
           ),
         );
@@ -114,11 +135,19 @@ class _AssistantAttendanceTabState extends State<AssistantAttendanceTab> {
           ),
           ElevatedButton(
             onPressed: () {
-              context.read<AssistantAttendanceCubit>().deleteAttendance(record['id'] as int, widget.assistantId);
+              context.read<AssistantAttendanceCubit>().deleteAttendance(
+                record['id'] as int,
+                widget.assistantId,
+              );
               Navigator.pop(ctx);
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
-            child: Text(LocaleKeys.delete.tr(), style: TextStyle(color: Theme.of(context).colorScheme.onError)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: Text(
+              LocaleKeys.delete.tr(),
+              style: TextStyle(color: Theme.of(context).colorScheme.onError),
+            ),
           ),
         ],
       ),

@@ -401,5 +401,11 @@ abstract class  LocaleKeys {
   static const import_backup = 'import_backup';
   static const select_backup_file = 'select_backup_file';
   static const confirm_restore_from_file = 'confirm_restore_from_file';
+  static const copy = 'copy';
+  static const copied_to_clipboard = 'copied_to_clipboard';
+  static const total_assistants = 'total_assistants';
+  static const total_exams = 'total_exams';
+  static const exam = 'exam';
+  static const limit = 'limit';
 
 }

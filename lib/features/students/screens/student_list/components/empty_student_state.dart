@@ -27,10 +27,7 @@ class EmptyStudentState extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          Text(
-            LocaleKeys.no_students_found.tr(),
-            style: textTheme.titleLarge,
-          ),
+          Text(LocaleKeys.no_students_found.tr(), style: textTheme.titleLarge),
           const SizedBox(height: 8),
           Text(
             LocaleKeys.adjust_filters_hint.tr(),

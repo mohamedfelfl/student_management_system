@@ -16,8 +16,10 @@ abstract class Student with _$Student {
     @Default('') String school,
     @Default('') String previousTeacher,
     String? grade,
+
     /// Foreign key to the Group table
     int? groupId,
+
     /// Populated as a join field — not stored in student table
     String? groupName,
     @Default('normal') String studentStatus,
@@ -25,5 +27,6 @@ abstract class Student with _$Student {
     DateTime? createdAt,
   }) = _Student;
 
-  factory Student.fromJson(Map<String, dynamic> json) => _$StudentFromJson(json);
+  factory Student.fromJson(Map<String, dynamic> json) =>
+      _$StudentFromJson(json);
 }

@@ -4,7 +4,9 @@ import 'package:auto_route/auto_route.dart';
 import 'package:crypto/crypto.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../app/cubits/locale_cubit.dart';
 import '../../../app/di/injection.dart';
 import '../../../app/services/database_service.dart';
@@ -310,10 +312,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       title: Text(
         title,
-        style: TextStyle(
-          fontWeight: FontWeight.w600,
-          color: iconColor,
-        ),
+        style: TextStyle(fontWeight: FontWeight.w600, color: iconColor),
       ),
       subtitle: Text(subtitle),
       trailing: Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
@@ -324,6 +323,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // ─── THEME MODE TILE ───
   Widget _buildThemeModeTile(BuildContext context, SettingsState state) {
     final colorScheme = Theme.of(context).colorScheme;
+    final localeMode = context.watch<LocaleCubit>().state.themeMode.name;
 
     return ListTile(
       leading: Container(
@@ -334,19 +334,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         child: Icon(Icons.dark_mode, color: colorScheme.primary, size: 20),
       ),
-      title: Text(LocaleKeys.theme.tr(), style: TextStyle(fontWeight: FontWeight.w600)),
-      subtitle: Text(state.themeMode == 'dark'
-          ? LocaleKeys.dark.tr()
-          : state.themeMode == 'light'
-              ? LocaleKeys.light.tr()
-              : LocaleKeys.system.tr()),
+      title: Text(
+        LocaleKeys.theme.tr(),
+        style: TextStyle(fontWeight: FontWeight.w600),
+      ),
+      subtitle: Text(
+        localeMode == 'dark'
+            ? LocaleKeys.dark.tr()
+            : localeMode == 'light'
+            ? LocaleKeys.light.tr()
+            : LocaleKeys.system.tr(),
+      ),
       trailing: SegmentedButton<String>(
         segments: const [
           ButtonSegment(value: 'light', icon: Icon(Icons.light_mode, size: 18)),
-          ButtonSegment(value: 'system', icon: Icon(Icons.settings_suggest, size: 18)),
+          ButtonSegment(
+            value: 'system',
+            icon: Icon(Icons.settings_suggest, size: 18),
+          ),
           ButtonSegment(value: 'dark', icon: Icon(Icons.dark_mode, size: 18)),
         ],
-        selected: {state.themeMode},
+        selected: {localeMode},
         onSelectionChanged: (set) {
           final mode = set.first;
           context.read<SettingsCubit>().setThemeMode(mode);
@@ -381,8 +389,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         child: Icon(Icons.language, color: colorScheme.primary, size: 20),
       ),
-      title:
-          Text(LocaleKeys.language.tr(), style: TextStyle(fontWeight: FontWeight.w600)),
+      title: Text(
+        LocaleKeys.language.tr(),
+        style: TextStyle(fontWeight: FontWeight.w600),
+      ),
       subtitle: Text(state.language == 'ar' ? 'العربية' : 'English'),
       trailing: SegmentedButton<String>(
         segments: const [
@@ -405,8 +415,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-
-
   Widget _buildChangePasswordTile(BuildContext context, User? currentUser) {
     return _buildActionTile(
       context,
@@ -417,24 +425,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-
-
-
-
   Widget _buildDeviceBindingCard(BuildContext context, SettingsState state) {
     final colorScheme = Theme.of(context).colorScheme;
 
     final statusColor = state.deviceBindingStatus == DeviceBindingStatus.bound
         ? Colors.green
         : state.deviceBindingStatus == DeviceBindingStatus.mismatch
-            ? colorScheme.error
-            : Colors.orange;
+        ? colorScheme.error
+        : Colors.orange;
 
     final statusText = state.deviceBindingStatus == DeviceBindingStatus.bound
         ? '✅ ${LocaleKeys.device_bound.tr()}'
         : state.deviceBindingStatus == DeviceBindingStatus.mismatch
-            ? '❌ ${LocaleKeys.device_mismatch.tr()}'
-            : '⚠️ ${LocaleKeys.device_not_bound.tr()}';
+        ? '❌ ${LocaleKeys.device_mismatch.tr()}'
+        : '⚠️ ${LocaleKeys.device_not_bound.tr()}';
 
     return _buildSettingsCard(context, [
       Padding(
@@ -445,13 +449,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Row(
               children: [
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: statusColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                        color: statusColor.withValues(alpha: 0.3)),
+                      color: statusColor.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: Text(
                     statusText,
@@ -473,6 +480,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               state.deviceFingerprint.length > 16
                   ? '${state.deviceFingerprint.substring(0, 16)}...'
                   : state.deviceFingerprint,
+              copyText: state.deviceFingerprint,
             ),
             const SizedBox(height: 16),
             if (state.deviceBindingStatus == DeviceBindingStatus.unbound)
@@ -503,7 +511,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     ]);
   }
 
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(String label, String value, {String? copyText}) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Row(
@@ -529,6 +537,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
         ),
+        if (copyText != null) ...[
+          const SizedBox(width: 8),
+          IconButton(
+            onPressed: () async {
+              await Clipboard.setData(ClipboardData(text: copyText));
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(LocaleKeys.copied_to_clipboard.tr()),
+                    behavior: SnackBarBehavior.floating,
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              }
+            },
+            icon: const Icon(Icons.copy, size: 16),
+            tooltip: LocaleKeys.copy.tr(),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            color: colorScheme.primary,
+          ),
+        ],
       ],
     );
   }
@@ -547,8 +577,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             Row(
               children: [
-                Icon(Icons.info_outline,
-                    color: colorScheme.primary, size: 18),
+                Icon(Icons.info_outline, color: colorScheme.primary, size: 18),
                 const SizedBox(width: 8),
                 Text(
                   LocaleKeys.database_status.tr(),
@@ -560,7 +589,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const Spacer(),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 4),
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.green.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
@@ -581,7 +612,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               spacing: 24,
               runSpacing: 12,
               children: [
-                _buildStatChip(context, LocaleKeys.size.tr(), sizeStr, Icons.sd_storage),
+                _buildStatChip(
+                  context,
+                  LocaleKeys.size.tr(),
+                  sizeStr,
+                  Icons.sd_storage,
+                ),
                 _buildStatChip(
                   context,
                   LocaleKeys.students_stat.tr(),
@@ -685,17 +721,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(width: 6),
           Text(
             '$label: ',
-            style: TextStyle(
-              fontSize: 12,
-              color: colorScheme.onSurfaceVariant,
-            ),
+            style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
           ),
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -725,9 +755,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           child: Icon(Icons.inventory, color: colorScheme.primary, size: 20),
         ),
-        title: Text(LocaleKeys.max_backups.tr(),
-            style: TextStyle(fontWeight: FontWeight.w600)),
-        subtitle: Text(LocaleKeys.max_backups_desc.tr(args: [state.maxBackups.toString()])),
+        title: Text(
+          LocaleKeys.max_backups.tr(),
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          LocaleKeys.max_backups_desc.tr(args: [state.maxBackups.toString()]),
+        ),
         trailing: DropdownButton<int>(
           value: state.maxBackups,
           underline: const SizedBox.shrink(),
@@ -775,13 +809,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onPressed: state.isSaving
                         ? null
                         : () => _confirmAction(
-                              context,
-                              title: LocaleKeys.import_backup.tr(),
-                              message: LocaleKeys.confirm_restore_from_file.tr(),
-                              onConfirm: () => context
-                                  .read<SettingsCubit>()
-                                  .importBackupFromFile(),
-                            ),
+                            context,
+                            title: LocaleKeys.import_backup.tr(),
+                            message: LocaleKeys.confirm_restore_from_file.tr(),
+                            onConfirm: () => context
+                                .read<SettingsCubit>()
+                                .importBackupFromFile(),
+                          ),
                     icon: const Icon(Icons.file_upload, size: 18),
                     label: Text(LocaleKeys.import_backup.tr()),
                   ),
@@ -795,13 +829,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
-              ...state.backups.take(5).map(
+              ...state.backups
+                  .take(5)
+                  .map(
                     (backup) => Padding(
                       padding: const EdgeInsets.only(bottom: 4),
                       child: Row(
                         children: [
-                          Icon(Icons.file_present,
-                              size: 16, color: colorScheme.onSurfaceVariant),
+                          Icon(
+                            Icons.file_present,
+                            size: 16,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
@@ -822,26 +861,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             onTap: () => _confirmAction(
                               context,
                               title: LocaleKeys.restore_backup.tr(),
-                              message: LocaleKeys.restore_backup_msg.tr(args: [backup.name]),
+                              message: LocaleKeys.restore_backup_msg.tr(
+                                args: [backup.name],
+                              ),
                               onConfirm: () => context
                                   .read<SettingsCubit>()
                                   .restoreBackup(backup.path),
                             ),
-                            child: Icon(Icons.restore,
-                                size: 18, color: colorScheme.primary),
+                            child: Icon(
+                              Icons.restore,
+                              size: 18,
+                              color: colorScheme.primary,
+                            ),
                           ),
                           const SizedBox(width: 4),
                           InkWell(
                             onTap: () => _confirmAction(
                               context,
                               title: LocaleKeys.delete_backup.tr(),
-                              message: LocaleKeys.delete_backup_confirm.tr(args: [backup.name]),
+                              message: LocaleKeys.delete_backup_confirm.tr(
+                                args: [backup.name],
+                              ),
                               onConfirm: () => context
                                   .read<SettingsCubit>()
                                   .deleteBackup(backup.path),
                             ),
-                            child: Icon(Icons.delete_outline,
-                                size: 18, color: colorScheme.error),
+                            child: Icon(
+                              Icons.delete_outline,
+                              size: 18,
+                              color: colorScheme.error,
+                            ),
                           ),
                         ],
                       ),
@@ -959,8 +1008,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           child: Icon(Icons.apps, color: colorScheme.primary, size: 20),
         ),
-        title: Text(LocaleKeys.app_version.tr(),
-            style: TextStyle(fontWeight: FontWeight.w600)),
+        title: Text(
+          LocaleKeys.app_version.tr(),
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
         trailing: Text(
           '1.0.0',
           style: TextStyle(color: colorScheme.onSurfaceVariant),
@@ -976,8 +1027,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           child: Icon(Icons.storage, color: colorScheme.primary, size: 20),
         ),
-        title: Text(LocaleKeys.database_version.tr(),
-            style: TextStyle(fontWeight: FontWeight.w600)),
+        title: Text(
+          LocaleKeys.database_version.tr(),
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
         trailing: Text(
           'v14',
           style: TextStyle(color: colorScheme.onSurfaceVariant),
@@ -993,8 +1046,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           child: Icon(Icons.person, color: colorScheme.primary, size: 20),
         ),
-        title: Text(LocaleKeys.developer.tr(),
-            style: TextStyle(fontWeight: FontWeight.w600)),
+        title: Text(
+          LocaleKeys.developer.tr(),
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
         trailing: Text(
           LocaleKeys.developer_name.tr(),
           style: TextStyle(color: colorScheme.onSurfaceVariant),
@@ -1017,10 +1072,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   // ─── DIALOGS ───
 
-
-
   Future<void> _showChangePasswordDialog(
-      BuildContext context, User? currentUser) async {
+    BuildContext context,
+    User? currentUser,
+  ) async {
     if (currentUser == null) return;
 
     final oldPasswordController = TextEditingController();
@@ -1040,27 +1095,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
               TextFormField(
                 controller: oldPasswordController,
                 obscureText: true,
-                decoration:
-                    InputDecoration(labelText: LocaleKeys.current_password.tr()),
-                validator: (v) =>
-                    v == null || v.isEmpty ? LocaleKeys.required_field.tr() : null,
+                decoration: InputDecoration(
+                  labelText: LocaleKeys.current_password.tr(),
+                ),
+                validator: (v) => v == null || v.isEmpty
+                    ? LocaleKeys.required_field.tr()
+                    : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: newPasswordController,
                 obscureText: true,
-                decoration: InputDecoration(labelText: LocaleKeys.new_password.tr()),
-                validator: (v) =>
-                    v == null || v.isEmpty ? LocaleKeys.required_field.tr() : null,
+                decoration: InputDecoration(
+                  labelText: LocaleKeys.new_password.tr(),
+                ),
+                validator: (v) => v == null || v.isEmpty
+                    ? LocaleKeys.required_field.tr()
+                    : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: confirmPasswordController,
                 obscureText: true,
-                decoration:
-                    InputDecoration(labelText: LocaleKeys.confirm_new_password.tr()),
+                decoration: InputDecoration(
+                  labelText: LocaleKeys.confirm_new_password.tr(),
+                ),
                 validator: (v) {
-                  if (v == null || v.isEmpty) return LocaleKeys.required_field.tr();
+                  if (v == null || v.isEmpty) {
+                    return LocaleKeys.required_field.tr();
+                  }
                   if (v != newPasswordController.text) {
                     return LocaleKeys.passwords_do_not_match.tr();
                   }
@@ -1080,18 +1143,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
               if (formKey.currentState?.validate() ?? false) {
                 // Verify old password using salt
                 final db = await getIt<DatabaseService>().database;
-                final userRow = await db.query('users',
-                    columns: ['salt'],
-                    where: 'id = ?',
-                    whereArgs: [currentUser.id]);
+                final userRow = await db.query(
+                  'users',
+                  columns: ['salt'],
+                  where: 'id = ?',
+                  whereArgs: [currentUser.id],
+                );
                 final salt = userRow.isNotEmpty
                     ? userRow.first['salt'] as String?
                     : null;
                 final oldToHash = salt != null
                     ? '$salt${oldPasswordController.text}'
                     : oldPasswordController.text;
-                final oldHash =
-                    sha256.convert(utf8.encode(oldToHash)).toString();
+                final oldHash = sha256
+                    .convert(utf8.encode(oldToHash))
+                    .toString();
                 if (oldHash != currentUser.passwordHash) {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -1106,7 +1172,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                 // Update password with new salt
                 final (newHash, newSalt) = AuthCubit.hashPasswordWithSalt(
-                    newPasswordController.text);
+                  newPasswordController.text,
+                );
                 await db.update(
                   'users',
                   {'password_hash': newHash, 'salt': newSalt},
@@ -1175,10 +1242,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
               DropdownButton<int>(
                 value: years,
                 items: [
-                  DropdownMenuItem(value: 1, child: Text('1 ${LocaleKeys.year.tr()}')),
-                  DropdownMenuItem(value: 2, child: Text('2 ${LocaleKeys.years.tr()}')),
-                  DropdownMenuItem(value: 3, child: Text('3 ${LocaleKeys.years.tr()}')),
-                  DropdownMenuItem(value: 5, child: Text('5 ${LocaleKeys.years.tr()}')),
+                  DropdownMenuItem(
+                    value: 1,
+                    child: Text('1 ${LocaleKeys.year.tr()}'),
+                  ),
+                  DropdownMenuItem(
+                    value: 2,
+                    child: Text('2 ${LocaleKeys.years.tr()}'),
+                  ),
+                  DropdownMenuItem(
+                    value: 3,
+                    child: Text('3 ${LocaleKeys.years.tr()}'),
+                  ),
+                  DropdownMenuItem(
+                    value: 5,
+                    child: Text('5 ${LocaleKeys.years.tr()}'),
+                  ),
                 ],
                 onChanged: (v) {
                   if (v != null) setState(() => years = v);
@@ -1202,8 +1281,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   _confirmWithPassword(
                     context,
                     title: LocaleKeys.confirm_purge.tr(),
-                    message: LocaleKeys.confirm_purge_msg
-                        .tr(args: [years.toString()]),
+                    message: LocaleKeys.confirm_purge_msg.tr(
+                      args: [years.toString()],
+                    ),
                     onConfirm: () =>
                         context.read<SettingsCubit>().purgeOldData(years),
                   );
@@ -1221,8 +1301,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _confirmWithPassword(
       context,
       title: LocaleKeys.reset_all_data.tr(),
-      message:
-          LocaleKeys.reset_all_data_warning.tr(),
+      message: LocaleKeys.reset_all_data_warning.tr(),
       onConfirm: () => context.read<SettingsCubit>().resetAllData(),
     );
   }
@@ -1258,8 +1337,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             TextField(
               controller: passwordController,
               obscureText: true,
-              decoration:
-                  InputDecoration(labelText: LocaleKeys.enter_password.tr()),
+              decoration: InputDecoration(
+                labelText: LocaleKeys.enter_password.tr(),
+              ),
               autofocus: true,
             ),
           ],
@@ -1276,10 +1356,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             onPressed: () async {
               final db = await getIt<DatabaseService>().database;
-              final userRow = await db.query('users',
-                  columns: ['salt'],
-                  where: 'id = ?',
-                  whereArgs: [currentUser.id]);
+              final userRow = await db.query(
+                'users',
+                columns: ['salt'],
+                where: 'id = ?',
+                whereArgs: [currentUser.id],
+              );
               final salt = userRow.isNotEmpty
                   ? userRow.first['salt'] as String?
                   : null;
@@ -1329,7 +1411,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _showTransferDialog(
-      BuildContext context, SettingsState state) async {
+    BuildContext context,
+    SettingsState state,
+  ) async {
     final codeController = TextEditingController();
 
     await showDialog(
@@ -1339,9 +1423,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              LocaleKeys.transfer_desc.tr(),
-            ),
+            Text(LocaleKeys.transfer_desc.tr()),
             const SizedBox(height: 16),
             TextField(
               controller: codeController,
@@ -1362,6 +1444,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ElevatedButton(
             onPressed: () async {
               final deviceBindingService = getIt<DeviceBindingService>();
+              debugPrint('Device Fingerprint: ${state.deviceFingerprint}');
               final isValid = deviceBindingService.validateTransferCode(
                 codeController.text,
                 state.deviceFingerprint,
@@ -1405,4 +1488,3 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
   }
 }
-

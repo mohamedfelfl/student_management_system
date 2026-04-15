@@ -13,7 +13,7 @@ class AuditService {
   final DatabaseService _databaseService;
 
   AuditService({required DatabaseService databaseService})
-      : _databaseService = databaseService;
+    : _databaseService = databaseService;
 
   /// Log an audit event.
   Future<void> log({

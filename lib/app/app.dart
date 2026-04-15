@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../features/settings/services/settings_service.dart';
 import 'cubits/locale_cubit.dart';
+import 'cubits/shell_navigation_cubit.dart';
 import 'di/injection.dart';
 import 'router/app_router.dart';
 import 'router/app_router.gr.dart';
@@ -35,7 +36,8 @@ class StudentsManagementApp extends StatefulWidget {
   State<StudentsManagementApp> createState() => _StudentsManagementAppState();
 }
 
-class _StudentsManagementAppState extends State<StudentsManagementApp> with WidgetsBindingObserver {
+class _StudentsManagementAppState extends State<StudentsManagementApp>
+    with WidgetsBindingObserver {
   final _appRouter = AppRouter();
 
   @override
@@ -66,13 +68,16 @@ class _StudentsManagementAppState extends State<StudentsManagementApp> with Widg
   Future<void> _handleAutoBackupOnClose() async {
     try {
       final settingsService = getIt<SettingsService>();
-      final isAutoBackupEnabled =
-          await settingsService.getBool(SettingsKeys.autoBackupEnabled);
+      final isAutoBackupEnabled = await settingsService.getBool(
+        SettingsKeys.autoBackupEnabled,
+      );
 
       if (isAutoBackupEnabled) {
         final backupService = getIt<BackupService>();
-        final maxBackups =
-            await settingsService.getInt(SettingsKeys.maxBackups, defaultValue: 5);
+        final maxBackups = await settingsService.getInt(
+          SettingsKeys.maxBackups,
+          defaultValue: 5,
+        );
 
         // This is a fire-and-forget but since it's "detached",
         // we hope it completes or we might need to use a more robust way
@@ -91,29 +96,40 @@ class _StudentsManagementAppState extends State<StudentsManagementApp> with Widg
 
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => LocaleCubit(
-          settingsService: getIt<SettingsService>(),
-        )..loadInitialSettings()),
-        BlocProvider(create: (_) => AuthCubit(
-          databaseService: dbService,
-          auditService: getIt<AuditService>(),
-        )),
+        BlocProvider(
+          create: (_) =>
+              LocaleCubit(settingsService: getIt<SettingsService>())
+                ..loadInitialSettings(),
+        ),
+        BlocProvider(
+          create: (_) => AuthCubit(
+            databaseService: dbService,
+            auditService: getIt<AuditService>(),
+          ),
+        ),
         BlocProvider(create: (_) => AdminCubit(databaseService: dbService)),
         BlocProvider(create: (_) => DashboardCubit(databaseService: dbService)),
         BlocProvider(create: (_) => StudentCubit(databaseService: dbService)),
         BlocProvider(create: (_) => GroupCubit(databaseService: dbService)),
         BlocProvider(create: (_) => PaymentCubit(databaseService: dbService)),
-        BlocProvider(create: (_) => AttendanceCubit(databaseService: dbService)),
+        BlocProvider(
+          create: (_) => AttendanceCubit(databaseService: dbService),
+        ),
         BlocProvider(create: (_) => ExamCubit(databaseService: dbService)),
         BlocProvider(create: (_) => ReportCubit(databaseService: dbService)),
         BlocProvider(create: (_) => AssistantCubit(databaseService: dbService)),
-        BlocProvider(create: (_) => AssistantAttendanceCubit(databaseService: dbService)),
+        BlocProvider(
+          create: (_) => AssistantAttendanceCubit(databaseService: dbService),
+        ),
         BlocProvider(create: (_) => NotesCubit(databaseService: dbService)),
-        BlocProvider(create: (_) => SettingsCubit(
-          settingsService: getIt<SettingsService>(),
-          backupService: getIt<BackupService>(),
-          deviceBindingService: getIt<DeviceBindingService>(),
-        )),
+        BlocProvider(create: (_) => ShellNavigationCubit()),
+        BlocProvider(
+          create: (_) => SettingsCubit(
+            settingsService: getIt<SettingsService>(),
+            backupService: getIt<BackupService>(),
+            deviceBindingService: getIt<DeviceBindingService>(),
+          ),
+        ),
       ],
       child: BlocBuilder<LocaleCubit, LocaleState>(
         builder: (context, localeState) {
@@ -125,7 +141,8 @@ class _StudentsManagementAppState extends State<StudentsManagementApp> with Widg
               return BlocListener<AuthCubit, AuthState>(
                 listener: (context, state) {
                   state.maybeWhen(
-                    authenticated: (_) => _appRouter.replaceAll([const ShellRoute()]),
+                    authenticated: (_) =>
+                        _appRouter.replaceAll([const ShellRoute()]),
                     initial: () => _appRouter.replaceAll([const LoginRoute()]),
                     orElse: () {},
                   );

@@ -11,7 +11,7 @@ import 'components/action_card.dart';
 class ExamDetailScreen extends StatelessWidget {
   final int examId;
 
-/*
+  /*
 ### 5. Code Polish & Environment
 - **Lint Resolution**: Fixed string interpolation and deprecated member warnings (`surfaceVariant`, `withOpacity`).
 - **Gradle Update**: Upgraded the Gradle wrapper from `7.3.1` to `8.0`. This was done to address the "Unsupported class file major version 69" error, ensuring better compatibility with modern Java runtimes (Java 17+).
@@ -30,10 +30,7 @@ class ExamDetailScreen extends StatelessWidget {
 - **`scripts/` note**: `avoid_print` warnings in `seed_students.dart` are acknowledged as acceptable for standalone CLI scripts.
 */
 
-  const ExamDetailScreen({
-    super.key,
-    required this.examId,
-  });
+  const ExamDetailScreen({super.key, required this.examId});
 
   @override
   Widget build(BuildContext context) {
@@ -103,18 +100,34 @@ class ExamDetailScreen extends StatelessWidget {
                       SizedBox(height: 8.h),
                       Row(
                         children: [
-                          Icon(Icons.calendar_today, size: 16.r, color: colorScheme.onPrimary.withValues(alpha: 0.8)),
+                          Icon(
+                            Icons.calendar_today,
+                            size: 16.r,
+                            color: colorScheme.onPrimary.withValues(alpha: 0.8),
+                          ),
                           SizedBox(width: 8.w),
                           Text(
                             date,
-                            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onPrimary.withValues(alpha: 0.8)),
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onPrimary.withValues(
+                                alpha: 0.8,
+                              ),
+                            ),
                           ),
                           SizedBox(width: 24.w),
-                          Icon(Icons.assignment_turned_in, size: 16.r, color: colorScheme.onPrimary.withValues(alpha: 0.8)),
+                          Icon(
+                            Icons.assignment_turned_in,
+                            size: 16.r,
+                            color: colorScheme.onPrimary.withValues(alpha: 0.8),
+                          ),
                           SizedBox(width: 8.w),
                           Text(
                             "${'full_mark'.tr()}: $fullMark",
-                            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onPrimary.withValues(alpha: 0.8)),
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onPrimary.withValues(
+                                alpha: 0.8,
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -122,10 +135,12 @@ class ExamDetailScreen extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 32.h),
-                
+
                 Text(
                   'quick_actions'.tr(),
-                  style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 SizedBox(height: 16.h),
 
@@ -135,7 +150,8 @@ class ExamDetailScreen extends StatelessWidget {
                   subtitle: 'modify_exam_desc'.tr(),
                   icon: Icons.edit_note_rounded,
                   color: const Color(0xFF4F378A),
-                  onTap: () => context.router.push(ExamFormRoute(examId: examId)),
+                  onTap: () =>
+                      context.router.push(ExamFormRoute(examId: examId)),
                 ),
                 SizedBox(height: 16.h),
                 ActionCard(
@@ -161,4 +177,3 @@ class ExamDetailScreen extends StatelessWidget {
     );
   }
 }
-

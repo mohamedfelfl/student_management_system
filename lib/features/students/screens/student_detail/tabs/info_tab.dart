@@ -19,7 +19,13 @@ class InfoTab extends StatelessWidget {
           padding: const EdgeInsets.all(24),
           child: Column(
             children: [
-              _infoRow(LocaleKeys.grade.tr(), _getGradeLabel(student['grade']?.toString()), Icons.school, textTheme, colorScheme),
+              _infoRow(
+                LocaleKeys.grade.tr(),
+                _getGradeLabel(student['grade']?.toString()),
+                Icons.school,
+                textTheme,
+                colorScheme,
+              ),
               _divider(),
               _infoRow(
                 LocaleKeys.student_status.tr(),
@@ -39,17 +45,53 @@ class InfoTab extends StatelessWidget {
                 colorScheme,
               ),
               _divider(),
-              _infoRow(LocaleKeys.address.tr(), student['address']?.toString() ?? '-', Icons.location_on_outlined, textTheme, colorScheme),
+              _infoRow(
+                LocaleKeys.address.tr(),
+                student['address']?.toString() ?? '-',
+                Icons.location_on_outlined,
+                textTheme,
+                colorScheme,
+              ),
               _divider(),
-              _infoRow(LocaleKeys.phone1.tr(), student['phone1']?.toString() ?? '-', Icons.phone, textTheme, colorScheme),
+              _infoRow(
+                LocaleKeys.phone1.tr(),
+                student['phone1']?.toString() ?? '-',
+                Icons.phone,
+                textTheme,
+                colorScheme,
+              ),
               _divider(),
-              _infoRow(LocaleKeys.phone2.tr(), student['phone2']?.toString() ?? '-', Icons.phone, textTheme, colorScheme),
+              _infoRow(
+                LocaleKeys.phone2.tr(),
+                student['phone2']?.toString() ?? '-',
+                Icons.phone,
+                textTheme,
+                colorScheme,
+              ),
               _divider(),
-              _infoRow(LocaleKeys.father_job.tr(), student['father_job']?.toString() ?? '-', Icons.work_outline, textTheme, colorScheme),
+              _infoRow(
+                LocaleKeys.father_job.tr(),
+                student['father_job']?.toString() ?? '-',
+                Icons.work_outline,
+                textTheme,
+                colorScheme,
+              ),
               _divider(),
-              _infoRow(LocaleKeys.school_group.tr(), student['school']?.toString() ?? '-', Icons.school_outlined, textTheme, colorScheme),
+              _infoRow(
+                LocaleKeys.school_group.tr(),
+                student['school']?.toString() ?? '-',
+                Icons.school_outlined,
+                textTheme,
+                colorScheme,
+              ),
               _divider(),
-              _infoRow(LocaleKeys.previous_teacher.tr(), student['previous_teacher']?.toString() ?? '-', Icons.person_search_outlined, textTheme, colorScheme),
+              _infoRow(
+                LocaleKeys.previous_teacher.tr(),
+                student['previous_teacher']?.toString() ?? '-',
+                Icons.person_search_outlined,
+                textTheme,
+                colorScheme,
+              ),
             ],
           ),
         ),
@@ -58,9 +100,9 @@ class InfoTab extends StatelessWidget {
   }
 
   Widget _divider() => const Padding(
-        padding: EdgeInsets.symmetric(vertical: 12),
-        child: Divider(height: 1, thickness: 0.5),
-      );
+    padding: EdgeInsets.symmetric(vertical: 12),
+    child: Divider(height: 1, thickness: 0.5),
+  );
 
   String _getGradeLabel(String? grade) {
     if (grade == 'primary_1') return LocaleKeys.primary_1.tr();
@@ -89,7 +131,13 @@ class InfoTab extends StatelessWidget {
     return LocaleKeys.na.tr();
   }
 
-  Widget _infoRow(String label, String value, IconData icon, TextTheme textTheme, ColorScheme colorScheme) {
+  Widget _infoRow(
+    String label,
+    String value,
+    IconData icon,
+    TextTheme textTheme,
+    ColorScheme colorScheme,
+  ) {
     return Row(
       children: [
         Container(
@@ -106,7 +154,7 @@ class InfoTab extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                label, 
+                label,
                 style: textTheme.labelLarge?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w600,
@@ -114,7 +162,7 @@ class InfoTab extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                value, 
+                value,
                 style: textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),

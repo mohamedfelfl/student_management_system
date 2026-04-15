@@ -12,7 +12,7 @@ class EncryptionService {
   final FlutterSecureStorage _secureStorage;
 
   EncryptionService({FlutterSecureStorage? secureStorage})
-      : _secureStorage = secureStorage ?? const FlutterSecureStorage();
+    : _secureStorage = secureStorage ?? const FlutterSecureStorage();
 
   /// Returns the database encryption passphrase.
   /// Creates one on first call and persists it securely.

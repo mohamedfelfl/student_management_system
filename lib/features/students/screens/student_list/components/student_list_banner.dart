@@ -6,10 +6,7 @@ import 'package:student_management_system/generated/locale_keys.g.dart';
 class StudentListBanner extends StatelessWidget {
   final int totalStudents;
 
-  const StudentListBanner({
-    super.key,
-    required this.totalStudents,
-  });
+  const StudentListBanner({super.key, required this.totalStudents});
 
   @override
   Widget build(BuildContext context) {

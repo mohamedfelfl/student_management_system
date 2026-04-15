@@ -27,9 +27,9 @@ class AuthCubit extends Cubit<AuthState> {
   AuthCubit({
     required DatabaseService databaseService,
     AuditService? auditService,
-  })  : _databaseService = databaseService,
-        _auditService = auditService,
-        super(const AuthState.initial());
+  }) : _databaseService = databaseService,
+       _auditService = auditService,
+       super(const AuthState.initial());
 
   Future<void> login(String username, String password) async {
     emit(const AuthState.loading());
@@ -70,10 +70,12 @@ class AuthCubit extends Cubit<AuthState> {
         passwordHash: row['password_hash'] as String,
         role: row['role'] == 'admin' ? UserRole.admin : UserRole.user,
         permissions: (jsonDecode(row['permissions'] as String) as List)
-            .map((p) => UserPermission.values.firstWhere(
-                  (e) => e.name == p,
-                  orElse: () => UserPermission.manageStudents,
-                ))
+            .map(
+              (p) => UserPermission.values.firstWhere(
+                (e) => e.name == p,
+                orElse: () => UserPermission.manageStudents,
+              ),
+            )
             .toList(),
         createdAt: DateTime.tryParse(row['created_at'] as String? ?? ''),
       );
@@ -119,7 +121,10 @@ class AuthCubit extends Cubit<AuthState> {
 
   /// Migrate an unsalted user to salted password.
   Future<void> _migrateToCryptedPassword(
-      Database db, int userId, String plainPassword) async {
+    Database db,
+    int userId,
+    String plainPassword,
+  ) async {
     final salt = generateSalt();
     final newHash = _hashPassword(plainPassword, salt: salt);
     await db.update(

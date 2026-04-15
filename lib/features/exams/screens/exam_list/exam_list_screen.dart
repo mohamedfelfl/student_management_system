@@ -8,7 +8,6 @@ import '../../../../app/router/app_router.gr.dart';
 import '../../../../app/shared/widgets/responsive_layout.dart';
 import '../../../../generated/locale_keys.g.dart';
 import '../../cubits/exam_cubit.dart';
-import 'components/honor_card.dart';
 
 @RoutePage()
 class ExamListScreen extends StatefulWidget {
@@ -58,8 +57,7 @@ class _ExamListScreenState extends State<ExamListScreen> {
         leading: ResponsiveLayout.isMobile(context)
             ? IconButton(
                 icon: const Icon(Icons.menu),
-                onPressed: () =>
-                    Scaffold.of(context).openDrawer(),
+                onPressed: () => Scaffold.of(context).openDrawer(),
               )
             : const SizedBox.shrink(),
       ),
@@ -426,80 +424,6 @@ class _ExamListScreenState extends State<ExamListScreen> {
                             ),
                           );
                         }),
-                  SizedBox(height: 32.h),
-
-                  // Honor Board
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.emoji_events,
-                            color: Color(0xFF8D6E63),
-                          ),
-                          SizedBox(width: 8.w),
-                          Text(
-                            LocaleKeys.honor_board.tr(),
-                            style: textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.description_outlined),
-                            onPressed: () {
-                              _showExamFilterDialog(context, state.exams);
-                            },
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.calendar_month),
-                            onPressed: () async {
-                              final DateTimeRange? picked =
-                                  await showDateRangePicker(
-                                    context: context,
-                                    firstDate: DateTime(2020),
-                                    lastDate: DateTime.now().add(
-                                      const Duration(days: 365),
-                                    ),
-                                  );
-                              if (picked != null) {
-                                if (context.mounted) {
-                                  context.read<ExamCubit>().getTopStudents(
-                                    startDate: picked.start,
-                                    endDate: picked.end,
-                                  );
-                                }
-                              }
-                            },
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 16.h),
-                  state.topStudents.isEmpty
-                      ? Center(child: Text(LocaleKeys.no_honor_students.tr()))
-                      : ListView.separated(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: state.topStudents.length,
-                          separatorBuilder: (context, index) =>
-                              SizedBox(height: 12.h),
-                          itemBuilder: (context, index) {
-                            final student = state.topStudents[index];
-                            return HonorCard(
-                              result: student,
-                              rank: index + 1,
-                              colorScheme: colorScheme,
-                              textTheme: textTheme,
-                              isDark: isDark,
-                            );
-                          },
-                        ),
                 ],
               ),
             ),
@@ -508,42 +432,4 @@ class _ExamListScreenState extends State<ExamListScreen> {
       ),
     );
   }
-
-  void _showExamFilterDialog(BuildContext context, List<Map<String, dynamic>> exams) {
-    showModalBottomSheet(
-      context: context,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
-      ),
-      builder: (BuildContext bottomSheetContext) {
-        return ListView.builder(
-          padding: EdgeInsets.symmetric(vertical: 16.h),
-          itemCount: exams.length + 1,
-          itemBuilder: (context, index) {
-            if (index == 0) {
-              return ListTile(
-                leading: const Icon(Icons.all_inclusive),
-                title: Text(LocaleKeys.view_all.tr()),
-                onTap: () {
-                  this.context.read<ExamCubit>().getTopStudents(); // Reset filter
-                  Navigator.pop(bottomSheetContext);
-                },
-              );
-            }
-            final exam = exams[index - 1];
-            return ListTile(
-              leading: const Icon(Icons.description),
-              title: Text(exam['name'] as String),
-              subtitle: Text(exam['date']?.toString() ?? ''),
-              onTap: () {
-                this.context.read<ExamCubit>().getTopStudents(examId: exam['id'] as int);
-                Navigator.pop(bottomSheetContext);
-              },
-            );
-          },
-        );
-      },
-    );
-  }
 }
-

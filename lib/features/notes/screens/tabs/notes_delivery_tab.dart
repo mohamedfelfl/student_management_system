@@ -37,9 +37,9 @@ class _NotesDeliveryTabState extends State<NotesDeliveryTab> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final user = context.read<AuthCubit>().state.maybeWhen(
-          authenticated: (u) => u,
-          orElse: () => null,
-        );
+      authenticated: (u) => u,
+      orElse: () => null,
+    );
     final canManageNodes = user?.can(UserPermission.manageNotes) ?? false;
 
     return Scaffold(
@@ -66,7 +66,9 @@ class _NotesDeliveryTabState extends State<NotesDeliveryTab> {
                       items: state.notes.map((Note note) {
                         return DropdownMenuItem<int>(
                           value: note.id,
-                          child: Text('${note.name} - ${note.price} ${LocaleKeys.currency_symbol.tr()}'),
+                          child: Text(
+                            '${note.name} - ${note.price} ${LocaleKeys.currency_symbol.tr()}',
+                          ),
                         );
                       }).toList(),
                       onChanged: (val) {
@@ -150,7 +152,9 @@ class _NotesDeliveryTabState extends State<NotesDeliveryTab> {
                 }
 
                 return BlocListener<NotesCubit, NotesState>(
-                  listenWhen: (prev, curr) => prev.lastSaveTimestamp != curr.lastSaveTimestamp && curr.lastSaveTimestamp != null,
+                  listenWhen: (prev, curr) =>
+                      prev.lastSaveTimestamp != curr.lastSaveTimestamp &&
+                      curr.lastSaveTimestamp != null,
                   listener: (context, state) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -166,8 +170,12 @@ class _NotesDeliveryTabState extends State<NotesDeliveryTab> {
                         return const Center(child: CircularProgressIndicator());
                       }
 
-                      final visibleStudentIds = studentState.students.map((s) => s['id'] as int).toList();
-                      final allPending = visibleStudentIds.every((id) => noteState.pendingDeliveries[id] == true);
+                      final visibleStudentIds = studentState.students
+                          .map((s) => s['id'] as int)
+                          .toList();
+                      final allPending = visibleStudentIds.every(
+                        (id) => noteState.pendingDeliveries[id] == true,
+                      );
 
                       return Column(
                         children: [
@@ -177,7 +185,12 @@ class _NotesDeliveryTabState extends State<NotesDeliveryTab> {
                             onChanged: canManageNodes
                                 ? (bool? val) {
                                     if (val != null) {
-                                      context.read<NotesCubit>().updateBatchDeliveryLocal(visibleStudentIds, val);
+                                      context
+                                          .read<NotesCubit>()
+                                          .updateBatchDeliveryLocal(
+                                            visibleStudentIds,
+                                            val,
+                                          );
                                     }
                                   }
                                 : null,
@@ -188,7 +201,8 @@ class _NotesDeliveryTabState extends State<NotesDeliveryTab> {
                                 color: theme.colorScheme.primary,
                               ),
                             ),
-                            tileColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                            tileColor: theme.colorScheme.surfaceContainerHighest
+                                .withValues(alpha: 0.3),
                           ),
                           const Divider(height: 1),
                           Expanded(
@@ -197,55 +211,84 @@ class _NotesDeliveryTabState extends State<NotesDeliveryTab> {
                               itemBuilder: (context, index) {
                                 final student = studentState.students[index];
                                 final studentId = student['id'] as int;
-                                final isPending = noteState.pendingDeliveries[studentId] == true;
-                                final isDelivered = noteState.currentDeliveries[studentId] == true;
+                                final isPending =
+                                    noteState.pendingDeliveries[studentId] ==
+                                    true;
+                                final isDelivered =
+                                    noteState.currentDeliveries[studentId] ==
+                                    true;
 
                                 return CheckboxListTile(
-                                  controlAffinity: ListTileControlAffinity.leading,
+                                  controlAffinity:
+                                      ListTileControlAffinity.leading,
                                   value: isPending,
                                   onChanged: canManageNodes
                                       ? (bool? val) {
                                           if (val != null) {
-                                            context.read<NotesCubit>().updateDeliveryStatusLocal(studentId, val);
+                                            context
+                                                .read<NotesCubit>()
+                                                .updateDeliveryStatusLocal(
+                                                  studentId,
+                                                  val,
+                                                );
                                           }
                                         }
                                       : null,
                                   title: Text(student['name'] as String),
-                                  subtitle: Text(student['group_name']?.toString() ?? LocaleKeys.no_group.tr()),
+                                  subtitle: Text(
+                                    student['group_name']?.toString() ??
+                                        LocaleKeys.no_group.tr(),
+                                  ),
                                   secondary: Text(
-                                    isDelivered ? LocaleKeys.delivered.tr() : LocaleKeys.not_delivered.tr(),
-                                    style: theme.textTheme.labelMedium?.copyWith(
-                                      color: isDelivered 
-                                          ? Colors.green 
-                                          : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                                      fontWeight: isDelivered ? FontWeight.bold : FontWeight.normal,
-                                    ),
+                                    isDelivered
+                                        ? LocaleKeys.delivered.tr()
+                                        : LocaleKeys.not_delivered.tr(),
+                                    style: theme.textTheme.labelMedium
+                                        ?.copyWith(
+                                          color: isDelivered
+                                              ? Colors.green
+                                              : theme
+                                                    .colorScheme
+                                                    .onSurfaceVariant
+                                                    .withValues(alpha: 0.5),
+                                          fontWeight: isDelivered
+                                              ? FontWeight.bold
+                                              : FontWeight.normal,
+                                        ),
                                   ),
                                 );
                               },
                             ),
                           ),
-                          if (canManageNodes && noteState.selectedNoteId != null)
+                          if (canManageNodes &&
+                              noteState.selectedNoteId != null)
                             Padding(
                               padding: const EdgeInsets.all(16.0),
                               child: SizedBox(
                                 width: double.infinity,
                                 height: 50,
                                 child: ElevatedButton.icon(
-                                  onPressed: noteState.isLoading 
-                                      ? null 
-                                      : () => context.read<NotesCubit>().saveDeliveries(),
-                                  icon: noteState.isLoading 
+                                  onPressed: noteState.isLoading
+                                      ? null
+                                      : () => context
+                                            .read<NotesCubit>()
+                                            .saveDeliveries(),
+                                  icon: noteState.isLoading
                                       ? const SizedBox(
-                                          width: 20, 
-                                          height: 20, 
-                                          child: CircularProgressIndicator(strokeWidth: 2)
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
                                         )
                                       : const Icon(Icons.save),
-                                  label: Text(LocaleKeys.save_all.tr().toUpperCase()),
+                                  label: Text(
+                                    LocaleKeys.save_all.tr().toUpperCase(),
+                                  ),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: theme.colorScheme.primary,
-                                    foregroundColor: theme.colorScheme.onPrimary,
+                                    foregroundColor:
+                                        theme.colorScheme.onPrimary,
                                     elevation: 2,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),

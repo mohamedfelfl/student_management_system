@@ -26,9 +26,15 @@ class _AssistantFormScreenState extends State<AssistantFormScreen> {
   @override
   void initState() {
     super.initState();
-    _nameCtrl = TextEditingController(text: widget.assistant?['name'] as String? ?? '');
-    _serialCtrl = TextEditingController(text: widget.assistant?['serial_number'] as String? ?? '');
-    _phoneCtrl = TextEditingController(text: widget.assistant?['phone'] as String? ?? '');
+    _nameCtrl = TextEditingController(
+      text: widget.assistant?['name'] as String? ?? '',
+    );
+    _serialCtrl = TextEditingController(
+      text: widget.assistant?['serial_number'] as String? ?? '',
+    );
+    _phoneCtrl = TextEditingController(
+      text: widget.assistant?['phone'] as String? ?? '',
+    );
   }
 
   @override
@@ -50,7 +56,10 @@ class _AssistantFormScreenState extends State<AssistantFormScreen> {
       if (widget.assistant == null) {
         context.read<AssistantCubit>().createAssistant(data);
       } else {
-        context.read<AssistantCubit>().updateAssistant(widget.assistant!['id'] as int, data);
+        context.read<AssistantCubit>().updateAssistant(
+          widget.assistant!['id'] as int,
+          data,
+        );
       }
       context.router.back();
     }
@@ -61,7 +70,11 @@ class _AssistantFormScreenState extends State<AssistantFormScreen> {
     final isEdit = widget.assistant != null;
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEdit ? LocaleKeys.edit_assistant.tr() : LocaleKeys.add_assistant.tr()),
+        title: Text(
+          isEdit
+              ? LocaleKeys.edit_assistant.tr()
+              : LocaleKeys.add_assistant.tr(),
+        ),
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(24.r),
@@ -76,7 +89,9 @@ class _AssistantFormScreenState extends State<AssistantFormScreen> {
                   labelText: LocaleKeys.name.tr(),
                   border: OutlineInputBorder(),
                 ),
-                validator: (v) => v == null || v.isEmpty ? LocaleKeys.required_field.tr() : null,
+                validator: (v) => v == null || v.isEmpty
+                    ? LocaleKeys.required_field.tr()
+                    : null,
               ),
               SizedBox(height: 16.h),
               TextFormField(
@@ -85,7 +100,9 @@ class _AssistantFormScreenState extends State<AssistantFormScreen> {
                   labelText: LocaleKeys.assistant_serial_number.tr(),
                   border: OutlineInputBorder(),
                 ),
-                validator: (v) => v == null || v.isEmpty ? LocaleKeys.required_field.tr() : null,
+                validator: (v) => v == null || v.isEmpty
+                    ? LocaleKeys.required_field.tr()
+                    : null,
               ),
               SizedBox(height: 16.h),
               TextFormField(

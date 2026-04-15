@@ -6,10 +6,7 @@ import 'package:student_management_system/generated/locale_keys.g.dart';
 class PaymentStatsCard extends StatelessWidget {
   final double progress;
 
-  const PaymentStatsCard({
-    super.key,
-    required this.progress,
-  });
+  const PaymentStatsCard({super.key, required this.progress});
 
   @override
   Widget build(BuildContext context) {

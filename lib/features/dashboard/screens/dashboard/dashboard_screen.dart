@@ -4,15 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../../generated/locale_keys.g.dart';
-
 import '../../../../app/router/app_router.gr.dart';
 import '../../../../app/shared/widgets/responsive_layout.dart';
+import '../../../../generated/locale_keys.g.dart';
 import '../../../auth/cubits/auth_cubit.dart';
 import '../../../auth/models/user.dart';
 import '../../cubits/dashboard_cubit.dart';
-import 'components/banner_stat.dart';
 import 'components/action_card.dart';
+import 'components/banner_stat.dart';
 
 @RoutePage()
 class DashboardScreen extends StatefulWidget {
@@ -100,12 +99,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ],
                     ),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          LocaleKeys.welcome_admin.tr()
+                          LocaleKeys.welcome_admin
+                              .tr()
                               .replaceAll('المسؤول', user?.username ?? 'Admin')
                               .replaceAll('Admin', user?.username ?? 'Admin'),
+                          textAlign: TextAlign.start,
                           style: textTheme.titleMedium?.copyWith(
                             color: isDark
                                 ? colorScheme.onSurfaceVariant
@@ -115,6 +116,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         SizedBox(height: 8.h),
                         Text(
                           LocaleKeys.center_overview.tr(),
+                          textAlign: TextAlign.start,
                           style: textTheme.headlineMedium?.copyWith(
                             color: isDark
                                 ? colorScheme.onSurface
@@ -123,31 +125,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                         ),
                         SizedBox(height: 24.h),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            BannerStat(
-                              label: LocaleKeys.total_students.tr(),
-                              value: '${state.totalStudents}',
-                              isDark: isDark,
-                            ),
-                            Container(
-                              width: 1.w,
-                              height: 40.h,
-                              color: isDark
-                                  ? colorScheme.outlineVariant.withValues(
-                                      alpha: 0.3,
-                                    )
-                                  : colorScheme.onPrimary.withValues(
-                                      alpha: 0.2,
-                                    ),
-                            ),
-                            BannerStat(
-                              label: LocaleKeys.active_groups.tr(),
-                              value: '${state.totalGroups}',
-                              isDark: isDark,
-                            ),
-                          ],
+                        FittedBox(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              BannerStat(
+                                label: LocaleKeys.total_students.tr(),
+                                value: '${state.totalStudents}',
+                                isDark: isDark,
+                              ),
+                              _buildSeparator(colorScheme, isDark),
+                              BannerStat(
+                                label: LocaleKeys.active_groups.tr(),
+                                value: '${state.totalGroups}',
+                                isDark: isDark,
+                              ),
+                              _buildSeparator(colorScheme, isDark),
+                              BannerStat(
+                                label: LocaleKeys.total_assistants.tr(),
+                                value: '${state.totalAssistants}',
+                                isDark: isDark,
+                              ),
+                              _buildSeparator(colorScheme, isDark),
+                              BannerStat(
+                                label: LocaleKeys.total_exams.tr(),
+                                value: '${state.totalExams}',
+                                isDark: isDark,
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -155,7 +161,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   SizedBox(height: 32.h),
 
                   // Quick Actions Grid
-                  Text(LocaleKeys.quick_actions.tr(), style: textTheme.titleLarge),
+                  Text(
+                    LocaleKeys.quick_actions.tr(),
+                    style: textTheme.titleLarge,
+                  ),
                   SizedBox(height: 16.h),
                   LayoutBuilder(
                     builder:
@@ -165,32 +174,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               : 3;
 
                           final actions = [
-                            if (user?.can(UserPermission.manageStudents) ?? false)
+                            if (user?.can(UserPermission.manageStudents) ??
+                                false)
                               ActionCard(
                                 icon: Icons.person_add_rounded,
                                 label: LocaleKeys.new_student.tr(),
-                                onTap: () => context.router.push(StudentFormRoute()),
+                                onTap: () =>
+                                    context.router.push(StudentFormRoute()),
                                 color: const Color(0xFF6750A4),
                               ),
-                            if (user?.can(UserPermission.manageAttendance) ?? false)
+                            if (user?.can(UserPermission.manageAttendance) ??
+                                false)
                               ActionCard(
                                 icon: Icons.qr_code_scanner_rounded,
                                 label: LocaleKeys.scan_qr.tr(),
-                                onTap: () => context.router.push(QrScannerRoute()),
+                                onTap: () =>
+                                    context.router.push(QrScannerRoute()),
                                 color: const Color(0xFFE91E63),
                               ),
-                            if (user?.can(UserPermission.managePayments) ?? false)
+                            if (user?.can(UserPermission.managePayments) ??
+                                false)
                               ActionCard(
                                 icon: Icons.payments_rounded,
                                 label: LocaleKeys.add_payment.tr(),
-                                onTap: () => context.router.push(PaymentListRoute()),
+                                onTap: () =>
+                                    context.router.push(PaymentListRoute()),
                                 color: const Color(0xFF4CAF50),
                               ),
                             if (user?.can(UserPermission.manageExams) ?? false)
                               ActionCard(
                                 icon: Icons.quiz_rounded,
                                 label: LocaleKeys.exams.tr(),
-                                onTap: () => context.router.push(ExamFormRoute()),
+                                onTap: () =>
+                                    context.router.push(ExamFormRoute()),
                                 color: const Color(0xFFFF9800),
                               ),
                             if (user?.can(UserPermission.viewReports) ?? false)
@@ -204,7 +220,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ActionCard(
                                 icon: Icons.groups_rounded,
                                 label: LocaleKeys.groups.tr(),
-                                onTap: () => context.router.push(GroupListRoute()),
+                                onTap: () =>
+                                    context.router.push(GroupListRoute()),
                                 color: const Color(0xFF9C27B0),
                               ),
                             if (user?.can(UserPermission.manageNotes) ?? false)
@@ -214,6 +231,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 onTap: () => context.router.push(NotesRoute()),
                                 color: const Color(0xFF00897B),
                               ),
+                            if (user?.can(UserPermission.manageAssistants) ??
+                                false)
+                              ActionCard(
+                                icon: Icons.support_agent_rounded,
+                                label: LocaleKeys.assistants_directory.tr(),
+                                onTap: () =>
+                                    context.router.push(const AssistantListRoute()),
+                                color: const Color(0xFF795548),
+                              ),
+                            if (user?.role == UserRole.admin ||
+                                (user?.can(UserPermission.manageUsers) ??
+                                    false))
+                              ActionCard(
+                                icon: Icons.admin_panel_settings_rounded,
+                                label: LocaleKeys.admin_panel.tr(),
+                                onTap: () =>
+                                    context.router.push(const AdminPanelRoute()),
+                                color: const Color(0xFF3F51B5),
+                              ),
+                            if (user?.can(UserPermission.viewReports) ?? false)
+                              ActionCard(
+                                icon: Icons.emoji_events_rounded,
+                                label: LocaleKeys.honor_board.tr(),
+                                onTap: () =>
+                                    context.router.push(const HonoredStudentsRoute()),
+                                color: const Color(0xFFFFC107),
+                              ),
+                            ActionCard(
+                              icon: Icons.settings_rounded,
+                              label: LocaleKeys.settings.tr(),
+                              onTap: () =>
+                                  context.router.push(const SettingsRoute()),
+                              color: const Color(0xFF607D8B),
+                            ),
+                            ActionCard(
+                              icon: Icons.logout_rounded,
+                              label: LocaleKeys.logout.tr(),
+                              onTap: () => context.read<AuthCubit>().logout(),
+                              color: colorScheme.error,
+                            ),
                           ];
 
                           return GridView.count(
@@ -229,7 +286,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   SizedBox(height: 32.h),
 
-
                   const SizedBox(height: 24),
                 ],
               ),
@@ -237,6 +293,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildSeparator(ColorScheme colorScheme, bool isDark) {
+    return Container(
+      height: 32.h,
+      width: 1.5,
+      margin: EdgeInsets.symmetric(horizontal: 12.w),
+      decoration: BoxDecoration(
+        color: (isDark ? colorScheme.onSurface : colorScheme.onPrimary)
+            .withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(1),
+      ),
     );
   }
 }

@@ -15,7 +15,7 @@ class BackupService {
   final DatabaseService _databaseService;
 
   BackupService({required DatabaseService databaseService})
-      : _databaseService = databaseService;
+    : _databaseService = databaseService;
 
   /// Get the fixed backup directory path.
   Future<String> getBackupDirectory() async {
@@ -32,7 +32,11 @@ class BackupService {
   /// Get the database file path.
   Future<String> getDatabasePath() async {
     final documentsDir = await getApplicationDocumentsDirectory();
-    return p.join(documentsDir.path, 'StudentManagement', 'student_management.db');
+    return p.join(
+      documentsDir.path,
+      'StudentManagement',
+      'student_management.db',
+    );
   }
 
   /// Create a manual backup of the database.
@@ -56,6 +60,11 @@ class BackupService {
       final dbFile = File(dbPath);
       if (!await dbFile.exists()) {
         throw Exception('Database file not found');
+      }
+
+      final targetFile = File(backupPath);
+      if (await targetFile.exists()) {
+        await targetFile.delete();
       }
 
       await dbFile.copy(backupPath);
@@ -128,12 +137,14 @@ class BackupService {
     final backups = <BackupInfo>[];
     for (final file in files) {
       final stat = await file.stat();
-      backups.add(BackupInfo(
-        path: file.path,
-        name: p.basenameWithoutExtension(file.path),
-        size: stat.size,
-        createdAt: stat.modified,
-      ));
+      backups.add(
+        BackupInfo(
+          path: file.path,
+          name: p.basenameWithoutExtension(file.path),
+          size: stat.size,
+          createdAt: stat.modified,
+        ),
+      );
     }
 
     // Sort newest first
@@ -197,8 +208,9 @@ class BackupService {
     final counts = <String, int>{};
     for (final table in tables) {
       try {
-        final result =
-            await db.rawQuery('SELECT COUNT(*) as count FROM $table');
+        final result = await db.rawQuery(
+          'SELECT COUNT(*) as count FROM $table',
+        );
         counts[table] = result.first['count'] as int;
       } catch (_) {
         counts[table] = 0;

@@ -4,10 +4,7 @@ part 'user.freezed.dart';
 part 'user.g.dart';
 
 /// User roles in the system.
-enum UserRole {
-  admin,
-  user,
-}
+enum UserRole { admin, user }
 
 /// Permissions that can be assigned to users.
 enum UserPermission {

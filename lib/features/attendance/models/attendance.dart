@@ -7,6 +7,7 @@ part 'attendance.g.dart';
 enum AttendanceStatus {
   attended,
   missed,
+
   /// Student attended a different lesson (not their assigned group)
   otherLesson,
 }
@@ -18,9 +19,11 @@ abstract class Attendance with _$Attendance {
     required int studentId,
     required DateTime date,
     required AttendanceStatus status,
+
     /// Optional notes (e.g., which other lesson was attended)
     @Default('') String notes,
   }) = _Attendance;
 
-  factory Attendance.fromJson(Map<String, dynamic> json) => _$AttendanceFromJson(json);
+  factory Attendance.fromJson(Map<String, dynamic> json) =>
+      _$AttendanceFromJson(json);
 }

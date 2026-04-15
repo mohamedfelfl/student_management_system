@@ -47,7 +47,9 @@ class UserTile extends StatelessWidget {
                   children: [
                     Chip(
                       label: Text(
-                        user.role == UserRole.admin ? LocaleKeys.admin_role.tr() : LocaleKeys.user_role.tr(),
+                        user.role == UserRole.admin
+                            ? LocaleKeys.admin_role.tr()
+                            : LocaleKeys.user_role.tr(),
                         style: textTheme.labelSmall,
                       ),
                       padding: EdgeInsets.zero,
@@ -78,7 +80,10 @@ class UserTile extends StatelessWidget {
           ),
           PopupMenuButton<String>(
             itemBuilder: (BuildContext _) => <PopupMenuEntry<String>>[
-              PopupMenuItem<String>(value: 'edit', child: Text(LocaleKeys.edit.tr())),
+              PopupMenuItem<String>(
+                value: 'edit',
+                child: Text(LocaleKeys.edit.tr()),
+              ),
               PopupMenuItem<String>(
                 value: 'delete',
                 child: Text(LocaleKeys.delete.tr()),

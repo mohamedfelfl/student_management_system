@@ -33,7 +33,9 @@ class StudentSearchSection extends StatelessWidget {
             child: Container(
               padding: EdgeInsets.all(24.r),
               decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                color: colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.3,
+                ),
                 borderRadius: BorderRadius.circular(32.r),
                 border: Border.all(
                   color: colorScheme.outlineVariant.withValues(alpha: 0.3),
@@ -69,28 +71,45 @@ class StudentSearchSection extends StatelessWidget {
                     decoration: InputDecoration(
                       hintText: LocaleKeys.search_hint.tr(),
                       hintStyle: TextStyle(
-                        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                        color: colorScheme.onSurfaceVariant.withValues(
+                          alpha: 0.6,
+                        ),
                       ),
                       prefixIcon: Icon(
                         Icons.search,
-                        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                        color: colorScheme.onSurfaceVariant.withValues(
+                          alpha: 0.6,
+                        ),
                       ),
                       filled: true,
-                      fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                      fillColor: colorScheme.surfaceContainerHighest.withValues(
+                        alpha: 0.5,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16.r),
-                        borderSide: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.3)),
+                        borderSide: BorderSide(
+                          color: colorScheme.outlineVariant.withValues(
+                            alpha: 0.3,
+                          ),
+                        ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16.r),
-                        borderSide: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.3)),
+                        borderSide: BorderSide(
+                          color: colorScheme.outlineVariant.withValues(
+                            alpha: 0.3,
+                          ),
+                        ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16.r),
-                        borderSide: BorderSide(color: colorScheme.primary.withValues(alpha: 0.5)),
+                        borderSide: BorderSide(
+                          color: colorScheme.primary.withValues(alpha: 0.5),
+                        ),
                       ),
                     ),
-                    onChanged: (String q) => context.read<StudentCubit>().search(q),
+                    onChanged: (String q) =>
+                        context.read<StudentCubit>().search(q),
                   ),
                 ],
               ),
@@ -123,10 +142,14 @@ class StudentSearchSection extends StatelessWidget {
                       filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                       child: Container(
                         decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerHigh.withValues(alpha: 0.3),
+                          color: colorScheme.surfaceContainerHigh.withValues(
+                            alpha: 0.3,
+                          ),
                           borderRadius: BorderRadius.circular(16.r),
                           border: Border.all(
-                            color: colorScheme.outlineVariant.withValues(alpha: 0.2),
+                            color: colorScheme.outlineVariant.withValues(
+                              alpha: 0.2,
+                            ),
                           ),
                         ),
                         child: ListTile(
@@ -157,11 +180,15 @@ class StudentSearchSection extends StatelessWidget {
                           trailing: Icon(
                             Icons.arrow_forward_ios,
                             size: 16,
-                            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                            color: colorScheme.onSurfaceVariant.withValues(
+                              alpha: 0.6,
+                            ),
                           ),
                           onTap: () {
                             onStudentSelected(s);
-                            context.read<PaymentCubit>().loadPayments(s['id'] as int);
+                            context.read<PaymentCubit>().loadPayments(
+                              s['id'] as int,
+                            );
                           },
                         ),
                       ),

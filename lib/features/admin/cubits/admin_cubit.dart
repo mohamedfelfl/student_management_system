@@ -23,27 +23,36 @@ class AdminCubit extends Cubit<AdminState> {
   final DatabaseService _databaseService;
 
   AdminCubit({required DatabaseService databaseService})
-      : _databaseService = databaseService,
-        super(const AdminState());
+    : _databaseService = databaseService,
+      super(const AdminState());
 
   Future<void> loadUsers() async {
     emit(state.copyWith(isLoading: true, error: null));
     try {
       final Database db = await _databaseService.database;
-      final List<Map<String, Object?>> results = await db.query('users', orderBy: 'created_at DESC');
-      final users = results.map((row) => User(
-        id: row['id'] as int,
-        username: row['username'] as String,
-        passwordHash: row['password_hash'] as String,
-        role: row['role'] == 'admin' ? UserRole.admin : UserRole.user,
-        permissions: (jsonDecode(row['permissions'] as String) as List)
-            .map((p) => UserPermission.values.firstWhere(
-                  (e) => e.name == p,
-                  orElse: () => UserPermission.manageStudents,
-                ))
-            .toList(),
-        createdAt: DateTime.tryParse(row['created_at'] as String? ?? ''),
-      )).toList();
+      final List<Map<String, Object?>> results = await db.query(
+        'users',
+        orderBy: 'created_at DESC',
+      );
+      final users = results
+          .map(
+            (row) => User(
+              id: row['id'] as int,
+              username: row['username'] as String,
+              passwordHash: row['password_hash'] as String,
+              role: row['role'] == 'admin' ? UserRole.admin : UserRole.user,
+              permissions: (jsonDecode(row['permissions'] as String) as List)
+                  .map(
+                    (p) => UserPermission.values.firstWhere(
+                      (e) => e.name == p,
+                      orElse: () => UserPermission.manageStudents,
+                    ),
+                  )
+                  .toList(),
+              createdAt: DateTime.tryParse(row['created_at'] as String? ?? ''),
+            ),
+          )
+          .toList();
 
       emit(state.copyWith(users: users, isLoading: false));
     } catch (e) {
@@ -95,7 +104,9 @@ class AdminCubit extends Cubit<AdminState> {
       }
       if (role != null) updates['role'] = role.name;
       if (permissions != null) {
-        updates['permissions'] = jsonEncode(permissions.map((p) => p.name).toList());
+        updates['permissions'] = jsonEncode(
+          permissions.map((p) => p.name).toList(),
+        );
       }
 
       if (updates.isNotEmpty) {

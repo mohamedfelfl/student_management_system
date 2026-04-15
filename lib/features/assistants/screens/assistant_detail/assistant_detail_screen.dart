@@ -17,9 +17,7 @@ class AssistantDetailScreen extends StatelessWidget {
         appBar: AppBar(
           title: Text(assistant['name']),
           bottom: const TabBar(
-            tabs: [
-              Tab(icon: Icon(Icons.co_present), text: 'Attendance'),
-            ],
+            tabs: [Tab(icon: Icon(Icons.co_present), text: 'Attendance')],
           ),
         ),
         body: TabBarView(

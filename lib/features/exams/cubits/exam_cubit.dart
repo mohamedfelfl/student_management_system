@@ -3,7 +3,6 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import '../../../app/services/database_service.dart';
-
 import '../models/student_exam_result.dart';
 
 part 'exam_cubit.freezed.dart';
@@ -28,8 +27,12 @@ class ExamCubit extends Cubit<ExamState> {
   final DatabaseService _databaseService;
 
   ExamCubit({required DatabaseService databaseService})
-      : _databaseService = databaseService,
-        super(const ExamState());
+    : _databaseService = databaseService,
+      super(const ExamState());
+
+  void resetTopStudents() {
+    emit(state.copyWith(topStudents: []));
+  }
 
   Future<void> loadInitialData({DateTime? startDate, DateTime? endDate}) async {
     emit(state.copyWith(isLoading: true, error: null));
@@ -47,7 +50,10 @@ class ExamCubit extends Cubit<ExamState> {
   Future<void> loadExams() async {
     try {
       final Database db = await _databaseService.database;
-      final List<Map<String, Object?>> results = await db.query('exams', orderBy: 'date DESC');
+      final List<Map<String, Object?>> results = await db.query(
+        'exams',
+        orderBy: 'date DESC',
+      );
       emit(state.copyWith(exams: results));
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
@@ -57,21 +63,30 @@ class ExamCubit extends Cubit<ExamState> {
   Future<void> loadGroups() async {
     try {
       final Database db = await _databaseService.database;
-      final List<Map<String, Object?>> results = await db.query('groups', orderBy: 'name ASC');
+      final List<Map<String, Object?>> results = await db.query(
+        'groups',
+        orderBy: 'name ASC',
+      );
       emit(state.copyWith(groups: results));
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
     }
   }
 
-  Future<void> createExam(Map<String, dynamic> data, {List<int>? groupIds}) async {
+  Future<void> createExam(
+    Map<String, dynamic> data, {
+    List<int>? groupIds,
+  }) async {
     try {
       final Database db = await _databaseService.database;
       await db.transaction((txn) async {
         final id = await txn.insert('exams', data);
         if (groupIds != null && groupIds.isNotEmpty) {
           for (final groupId in groupIds) {
-            await txn.insert('exam_groups', {'exam_id': id, 'group_id': groupId});
+            await txn.insert('exam_groups', {
+              'exam_id': id,
+              'group_id': groupId,
+            });
           }
         }
       });
@@ -81,15 +96,31 @@ class ExamCubit extends Cubit<ExamState> {
     }
   }
 
-  Future<void> updateExam(int id, Map<String, dynamic> data, {List<int>? groupIds}) async {
+  Future<void> updateExam(
+    int id,
+    Map<String, dynamic> data, {
+    List<int>? groupIds,
+  }) async {
     try {
       final Database db = await _databaseService.database;
       await db.transaction((txn) async {
-        await txn.update('exams', data, where: 'id = ?', whereArgs: <Object?>[id]);
+        await txn.update(
+          'exams',
+          data,
+          where: 'id = ?',
+          whereArgs: <Object?>[id],
+        );
         if (groupIds != null) {
-          await txn.delete('exam_groups', where: 'exam_id = ?', whereArgs: [id]);
+          await txn.delete(
+            'exam_groups',
+            where: 'exam_id = ?',
+            whereArgs: [id],
+          );
           for (final groupId in groupIds) {
-            await txn.insert('exam_groups', {'exam_id': id, 'group_id': groupId});
+            await txn.insert('exam_groups', {
+              'exam_id': id,
+              'group_id': groupId,
+            });
           }
         }
       });
@@ -112,12 +143,17 @@ class ExamCubit extends Cubit<ExamState> {
   Future<void> calculateAverageScore() async {
     try {
       final Database db = await _databaseService.database;
-      final List<Map<String, Object?>> totalMarksResult = await db.rawQuery('SELECT SUM(score) as total FROM marks');
-      final List<Map<String, Object?>> totalExamsResult = await db.rawQuery('SELECT COUNT(*) as count FROM exams');
-      
-      final double totalScore = (totalMarksResult.first['total'] as num?)?.toDouble() ?? 0.0;
+      final List<Map<String, Object?>> totalMarksResult = await db.rawQuery(
+        'SELECT SUM(score) as total FROM marks',
+      );
+      final List<Map<String, Object?>> totalExamsResult = await db.rawQuery(
+        'SELECT COUNT(*) as count FROM exams',
+      );
+
+      final double totalScore =
+          (totalMarksResult.first['total'] as num?)?.toDouble() ?? 0.0;
       final int totalExams = (totalExamsResult.first['count'] as int?) ?? 1;
-      
+
       final double average = totalExams > 0 ? totalScore / totalExams : 0.0;
       emit(state.copyWith(averageScore: average));
     } catch (e) {
@@ -125,7 +161,13 @@ class ExamCubit extends Cubit<ExamState> {
     }
   }
 
-  Future<void> getTopStudents({DateTime? startDate, DateTime? endDate, int? examId}) async {
+  Future<void> getTopStudents({
+    DateTime? startDate,
+    DateTime? endDate,
+    int? examId,
+    int? groupId,
+    int? limit,
+  }) async {
     try {
       final Database db = await _databaseService.database;
       final List<String> conditions = [];
@@ -133,16 +175,39 @@ class ExamCubit extends Cubit<ExamState> {
 
       if (startDate != null && endDate != null) {
         conditions.add('e.date BETWEEN ? AND ?');
-        args.addAll([startDate.toIso8601String().split('T').first, endDate.toIso8601String().split('T').first]);
+        args.addAll([
+          startDate.toIso8601String().split('T').first,
+          endDate.toIso8601String().split('T').first,
+        ]);
       }
       if (examId != null) {
         conditions.add('e.id = ?');
         args.add(examId);
       }
 
-      final String whereClause = conditions.isNotEmpty ? 'WHERE ${conditions.join(' AND ')}' : '';
+      String joinClause = '''
+        JOIN marks m ON s.id = m.student_id
+        JOIN exams e ON m.exam_id = e.id
+      ''';
 
-      final List<Map<String, Object?>> results = await db.rawQuery('''
+      if (groupId != null) {
+        conditions.add('s.group_id = ?');
+        args.add(groupId);
+
+        // If filtering by group but not a specific exam,
+        // restrict results to exams explicitly assigned to this group via exam_groups.
+        if (examId == null) {
+          joinClause +=
+              '\n        JOIN exam_groups eg ON e.id = eg.exam_id AND eg.group_id = s.group_id';
+        }
+      }
+
+      final String whereClause = conditions.isNotEmpty
+          ? 'WHERE ${conditions.join(' AND ')}'
+          : '';
+
+      String query =
+          '''
         SELECT 
           s.id as studentId, 
           s.name as studentName, 
@@ -151,18 +216,26 @@ class ExamCubit extends Cubit<ExamState> {
           SUM(e.full_mark) as totalFullMarks,
           COUNT(m.id) as examCount
         FROM students s
-        JOIN marks m ON s.id = m.student_id
-        JOIN exams e ON m.exam_id = e.id
+        $joinClause
         $whereClause
         GROUP BY s.id
         ORDER BY totalMarks DESC
-      ''', args);
+      ''';
+
+      if (limit != null) {
+        query += '\n        LIMIT ?';
+        args.add(limit);
+      }
+
+      final List<Map<String, Object?>> results = await db.rawQuery(query, args);
 
       final List<StudentExamResult> topStudents = results.map((r) {
         final double totalMarks = (r['totalMarks'] as num).toDouble();
         final double totalFullMarks = (r['totalFullMarks'] as num).toDouble();
-        final double percentage = totalFullMarks > 0 ? (totalMarks / totalFullMarks) * 100 : 0.0;
-        
+        final double percentage = totalFullMarks > 0
+            ? (totalMarks / totalFullMarks) * 100
+            : 0.0;
+
         return StudentExamResult(
           studentId: r['studentId'] as int,
           studentName: r['studentName'] as String,
@@ -214,16 +287,19 @@ class ExamCubit extends Cubit<ExamState> {
     emit(state.copyWith(isLoading: true, error: null));
     try {
       final Database db = await _databaseService.database;
-      
+
       // Get all students from groups linked to this exam
-      final List<Map<String, Object?>> results = await db.rawQuery('''
+      final List<Map<String, Object?>> results = await db.rawQuery(
+        '''
         SELECT s.*, g.name as group_name
         FROM students s
         JOIN exam_groups eg ON s.group_id = eg.group_id
         JOIN groups g ON s.group_id = g.id
         WHERE eg.exam_id = ?
         ORDER BY g.name ASC, s.name ASC
-      ''', [examId]);
+      ''',
+        [examId],
+      );
 
       // Group them by group_name
       final Map<String, List<Map<String, dynamic>>> grouped = {};
@@ -235,10 +311,7 @@ class ExamCubit extends Cubit<ExamState> {
         grouped[groupName]!.add(student);
       }
 
-      emit(state.copyWith(
-        groupedExamStudents: grouped,
-        isLoading: false,
-      ));
+      emit(state.copyWith(groupedExamStudents: grouped, isLoading: false));
     } catch (e) {
       emit(state.copyWith(error: e.toString(), isLoading: false));
     }
@@ -249,7 +322,8 @@ class ExamCubit extends Cubit<ExamState> {
     emit(state.copyWith(isLoading: true, error: null));
     try {
       final Database db = await _databaseService.database;
-      final List<Map<String, Object?>> results = await db.rawQuery('''
+      final List<Map<String, Object?>> results = await db.rawQuery(
+        '''
         SELECT m.*, s.name as student_name, s.serial_number,
                e.name as exam_name, e.full_mark as exam_full_mark
         FROM marks m
@@ -257,7 +331,9 @@ class ExamCubit extends Cubit<ExamState> {
         JOIN exams e ON m.exam_id = e.id
         WHERE m.exam_id = ?
         ORDER BY m.score DESC
-      ''', <Object?>[examId]);
+      ''',
+        <Object?>[examId],
+      );
       emit(state.copyWith(marks: results, isLoading: false));
     } catch (e) {
       emit(state.copyWith(error: e.toString(), isLoading: false));
@@ -269,14 +345,17 @@ class ExamCubit extends Cubit<ExamState> {
     emit(state.copyWith(isLoading: true, error: null));
     try {
       final Database db = await _databaseService.database;
-      final List<Map<String, Object?>> results = await db.rawQuery('''
+      final List<Map<String, Object?>> results = await db.rawQuery(
+        '''
         SELECT m.*, e.name as exam_name, e.full_mark as exam_full_mark, e.date as exam_date
         FROM marks m
         JOIN exams e ON m.exam_id = e.id
         WHERE m.student_id = ?
         ORDER BY e.date DESC, m.id DESC
-      ''', <Object?>[studentId]);
-      
+      ''',
+        <Object?>[studentId],
+      );
+
       final Set<int> seenExams = <int>{};
       final List<Map<String, Object?>> deduplicated = <Map<String, Object?>>[];
       for (final Map<String, Object?> row in results) {
@@ -301,15 +380,11 @@ class ExamCubit extends Cubit<ExamState> {
   }) async {
     try {
       final Database db = await _databaseService.database;
-      await db.insert(
-        'marks',
-        <String, Object?>{
-          'exam_id': examId,
-          'student_id': studentId,
-          'score': score,
-        },
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+      await db.insert('marks', <String, Object?>{
+        'exam_id': examId,
+        'student_id': studentId,
+        'score': score,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
       await calculateAverageScore();
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
@@ -322,15 +397,11 @@ class ExamCubit extends Cubit<ExamState> {
       final Database db = await _databaseService.database;
       final Batch batch = db.batch();
       for (final MapEntry<int, double> entry in studentScores.entries) {
-        batch.insert(
-          'marks',
-          <String, Object?>{
-            'exam_id': examId,
-            'student_id': entry.key,
-            'score': entry.value,
-          },
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
+        batch.insert('marks', <String, Object?>{
+          'exam_id': examId,
+          'student_id': entry.key,
+          'score': entry.value,
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
       }
       await batch.commit(noResult: true);
       await loadMarks(examId);
@@ -343,20 +414,19 @@ class ExamCubit extends Cubit<ExamState> {
 
   /// Batch save marks without triggering state reloads.
   /// Used when saving before navigating away to avoid state churn.
-  Future<void> saveMarksQuietly(int examId, Map<int, double> studentScores) async {
+  Future<void> saveMarksQuietly(
+    int examId,
+    Map<int, double> studentScores,
+  ) async {
     try {
       final Database db = await _databaseService.database;
       final Batch batch = db.batch();
       for (final MapEntry<int, double> entry in studentScores.entries) {
-        batch.insert(
-          'marks',
-          <String, Object?>{
-            'exam_id': examId,
-            'student_id': entry.key,
-            'score': entry.value,
-          },
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
+        batch.insert('marks', <String, Object?>{
+          'exam_id': examId,
+          'student_id': entry.key,
+          'score': entry.value,
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
       }
       await batch.commit(noResult: true);
     } catch (e) {
@@ -398,7 +468,9 @@ class ExamCubit extends Cubit<ExamState> {
         args.add(toDate.toIso8601String().split('T').first);
       }
 
-      final String whereClause = conditions.isEmpty ? '' : 'WHERE ${conditions.join(' AND ')}';
+      final String whereClause = conditions.isEmpty
+          ? ''
+          : 'WHERE ${conditions.join(' AND ')}';
 
       return await db.rawQuery('''
         SELECT m.*, s.name as student_name, s.serial_number,

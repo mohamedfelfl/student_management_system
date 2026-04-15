@@ -10,7 +10,18 @@ import '../../../app/services/database_service.dart';
 
 part 'report_cubit.freezed.dart';
 
-enum ReportType { student, weekly, monthly, highestMarks, collection, attendanceDate, dailyPayments, groupPayments, assistant, notesDelivery }
+enum ReportType {
+  student,
+  weekly,
+  monthly,
+  highestMarks,
+  collection,
+  attendanceDate,
+  dailyPayments,
+  groupPayments,
+  assistant,
+  notesDelivery,
+}
 
 @freezed
 abstract class ReportState with _$ReportState {
@@ -26,8 +37,8 @@ class ReportCubit extends Cubit<ReportState> {
   final DatabaseService _databaseService;
 
   ReportCubit({required DatabaseService databaseService})
-      : _databaseService = databaseService,
-        super(const ReportState());
+    : _databaseService = databaseService,
+      super(const ReportState());
 
   /// Generate a full report for a single student.
   Future<void> generateStudentReport(int studentId) async {
@@ -36,12 +47,15 @@ class ReportCubit extends Cubit<ReportState> {
       final db = await _databaseService.database;
 
       // Get student info
-      final studentRows = await db.rawQuery('''
+      final studentRows = await db.rawQuery(
+        '''
         SELECT s.*, g.name as group_name
         FROM students s
         LEFT JOIN groups g ON s.group_id = g.id
         WHERE s.id = ?
-      ''', [studentId]);
+      ''',
+        [studentId],
+      );
 
       if (studentRows.isEmpty) {
         emit(const ReportState(error: 'Student not found'));
@@ -51,27 +65,36 @@ class ReportCubit extends Cubit<ReportState> {
       final student = studentRows.first;
 
       // Get marks
-      final marks = await db.rawQuery('''
+      final marks = await db.rawQuery(
+        '''
         SELECT m.score, e.name as exam_name, e.full_mark, e.date
         FROM marks m
         JOIN exams e ON m.exam_id = e.id
         WHERE m.student_id = ?
         ORDER BY e.date DESC
-      ''', [studentId]);
+      ''',
+        [studentId],
+      );
 
       // Get attendance
-      final attendance = await db.rawQuery('''
+      final attendance = await db.rawQuery(
+        '''
         SELECT * FROM attendance
         WHERE student_id = ?
         ORDER BY date DESC
-      ''', [studentId]);
+      ''',
+        [studentId],
+      );
 
       // Get payments
-      final payments = await db.rawQuery('''
+      final payments = await db.rawQuery(
+        '''
         SELECT * FROM payments
         WHERE student_id = ?
         ORDER BY year DESC, month DESC
-      ''', [studentId]);
+      ''',
+        [studentId],
+      );
 
       // Build PDF
       final pdf = await _createDocument();
@@ -82,8 +105,13 @@ class ReportCubit extends Cubit<ReportState> {
           build: (context) => [
             pw.Header(
               level: 0,
-              child: pw.Text('تقرير الطالب',
-                  style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+              child: pw.Text(
+                'تقرير الطالب',
+                style: pw.TextStyle(
+                  fontSize: 24,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
             ),
             pw.SizedBox(height: 10),
             _buildStudentInfoSection(student),
@@ -110,13 +138,16 @@ class ReportCubit extends Cubit<ReportState> {
       final db = await _databaseService.database;
       final String dateStr = date.toIso8601String().split('T').first;
 
-      final results = await db.rawQuery('''
+      final results = await db.rawQuery(
+        '''
         SELECT p.*, s.name as student_name, s.serial_number
         FROM payments p
         JOIN students s ON p.student_id = s.id
         WHERE p.paid_date LIKE ?
         ORDER BY s.name ASC
-      ''', ['$dateStr%']);
+      ''',
+        ['$dateStr%'],
+      );
 
       final pdf = await _createDocument();
       pdf.addPage(
@@ -129,28 +160,48 @@ class ReportCubit extends Cubit<ReportState> {
               child: pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
-                   pw.Text('تقرير المدفوعات اليومية',
-                      style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
-                   pw.Text(dateStr, style: const pw.TextStyle(fontSize: 16)),
+                  pw.Text(
+                    'تقرير المدفوعات اليومية',
+                    style: pw.TextStyle(
+                      fontSize: 24,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
+                  pw.Text(dateStr, style: const pw.TextStyle(fontSize: 16)),
                 ],
               ),
             ),
             pw.SizedBox(height: 20),
             if (results.isEmpty)
-              pw.Center(child: pw.Text('لا توجد مدفوعات في هذا اليوم', style: const pw.TextStyle(fontSize: 18)))
+              pw.Center(
+                child: pw.Text(
+                  'لا توجد مدفوعات في هذا اليوم',
+                  style: const pw.TextStyle(fontSize: 18),
+                ),
+              )
             else ...[
               pw.TableHelper.fromTextArray(
-                headers: ['التسلسل', 'الطالب', 'الشهر/السنة', 'المبلغ المدفوع', 'الوقت'],
+                tableDirection: pw.TextDirection.rtl,
+                headerDirection: pw.TextDirection.rtl,
+                headerAlignment: pw.Alignment.centerRight,
+                cellAlignment: pw.Alignment.centerRight,
+                headers: [
+                  'التسلسل',
+                  'الطالب',
+                  'الشهر/السنة',
+                  'المبلغ المدفوع',
+                  'الوقت',
+                ],
                 data: results.map((r) {
-                   final paidDate = DateTime.parse(r['paid_date'].toString());
-                   final timeStr = DateFormat('HH:mm').format(paidDate);
-                   return [
-                      r['serial_number'].toString(),
-                      r['student_name'].toString(),
-                      '${r['month']}/${r['year']}',
-                      '${LocaleKeys.currency_symbol.tr()} ${(r['paid_amount'] as num).toDouble().toStringAsFixed(2)}',
-                     timeStr,
-                   ];
+                  final paidDate = DateTime.parse(r['paid_date'].toString());
+                  final timeStr = DateFormat('HH:mm').format(paidDate);
+                  return [
+                    r['serial_number'].toString(),
+                    r['student_name'].toString(),
+                    '${r['month']}/${r['year']}',
+                    '${LocaleKeys.currency_symbol.tr()} ${(r['paid_amount'] as num).toDouble().toStringAsFixed(2)}',
+                    timeStr,
+                  ];
                 }).toList(),
               ),
               pw.SizedBox(height: 20),
@@ -158,10 +209,19 @@ class ReportCubit extends Cubit<ReportState> {
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.end,
                 children: [
-                  pw.Text('الإجمالي: ', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+                  pw.Text(
+                    'الإجمالي: ',
+                    style: pw.TextStyle(
+                      fontSize: 18,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
                   pw.Text(
                     '${LocaleKeys.currency_symbol.tr()} ${results.fold(0.0, (sum, r) => sum + (r['paid_amount'] as num).toDouble()).toStringAsFixed(2)}',
-                    style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+                    style: pw.TextStyle(
+                      fontSize: 18,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
@@ -176,8 +236,10 @@ class ReportCubit extends Cubit<ReportState> {
     }
   }
 
-  /// Generate a report of highest marks filtered by range and date.
   Future<void> generateHighestMarksReport({
+    int? examId,
+    int? groupId,
+    int? limit,
     double? minScore,
     double? maxScore,
     DateTime? fromDate,
@@ -189,6 +251,14 @@ class ReportCubit extends Cubit<ReportState> {
       final conditions = <String>[];
       final args = <dynamic>[];
 
+      if (examId != null) {
+        conditions.add('m.exam_id = ?');
+        args.add(examId);
+      }
+      if (groupId != null) {
+        conditions.add('s.group_id = ?');
+        args.add(groupId);
+      }
       if (minScore != null) {
         conditions.add('m.score >= ?');
         args.add(minScore);
@@ -206,9 +276,12 @@ class ReportCubit extends Cubit<ReportState> {
         args.add(toDate.toIso8601String().split('T').first);
       }
 
-      final whereClause = conditions.isEmpty ? '' : 'WHERE ${conditions.join(' AND ')}';
+      final whereClause = conditions.isEmpty
+          ? ''
+          : 'WHERE ${conditions.join(' AND ')}';
 
-      final results = await db.rawQuery('''
+      String query =
+          '''
         SELECT m.score, s.name as student_name, s.serial_number,
                e.name as exam_name, e.full_mark, e.date
         FROM marks m
@@ -216,7 +289,14 @@ class ReportCubit extends Cubit<ReportState> {
         JOIN exams e ON m.exam_id = e.id
         $whereClause
         ORDER BY m.score DESC
-      ''', args);
+      ''';
+
+      if (limit != null) {
+        query += '\n        LIMIT ?';
+        args.add(limit);
+      }
+
+      final results = await db.rawQuery(query, args);
 
       final pdf = await _createDocument();
       pdf.addPage(
@@ -226,16 +306,34 @@ class ReportCubit extends Cubit<ReportState> {
           build: (context) => [
             pw.Header(
               level: 0,
-              child: pw.Text('تقرير أعلى الدرجات',
-                  style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+              child: pw.Text(
+                'تقرير أعلى الدرجات',
+                style: pw.TextStyle(
+                  fontSize: 24,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
             ),
             pw.SizedBox(height: 10),
             pw.TableHelper.fromTextArray(
-              headers: ['التسلسل', 'الطالب', 'الامتحان', 'الدرجة', 'الدرجة النهائية', 'النسبة'],
+              tableDirection: pw.TextDirection.rtl,
+              headerDirection: pw.TextDirection.rtl,
+              headerAlignment: pw.Alignment.centerRight,
+              cellAlignment: pw.Alignment.centerRight,
+              headers: [
+                'التسلسل',
+                'الطالب',
+                'الامتحان',
+                'الدرجة',
+                'الدرجة النهائية',
+                'النسبة',
+              ],
               data: results.map((r) {
                 final score = (r['score'] as num).toDouble();
                 final fullMark = (r['full_mark'] as num).toDouble();
-                final pct = fullMark > 0 ? (score / fullMark * 100).toStringAsFixed(1) : '0';
+                final pct = fullMark > 0
+                    ? (score / fullMark * 100).toStringAsFixed(1)
+                    : '0';
                 return [
                   r['serial_number'].toString(),
                   r['student_name'].toString(),
@@ -276,7 +374,9 @@ class ReportCubit extends Cubit<ReportState> {
         args.add(toDate.toIso8601String().split('T').first);
       }
 
-      final whereClause = conditions.isEmpty ? '' : 'WHERE ${conditions.join(' AND ')}';
+      final whereClause = conditions.isEmpty
+          ? ''
+          : 'WHERE ${conditions.join(' AND ')}';
 
       final results = await db.rawQuery('''
         SELECT a.date, a.status, a.notes, s.name as student_name, s.serial_number, g.name as group_name
@@ -295,25 +395,46 @@ class ReportCubit extends Cubit<ReportState> {
           build: (context) => [
             pw.Header(
               level: 0,
-              child: pw.Text('تقرير الحضور',
-                  style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+              child: pw.Text(
+                'تقرير الحضور',
+                style: pw.TextStyle(
+                  fontSize: 24,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
             ),
             pw.SizedBox(height: 10),
             if (fromDate != null || toDate != null)
-              pw.Text('الفترة: ${fromDate?.toIso8601String().split('T').first ?? 'أي'} إلى ${toDate?.toIso8601String().split('T').first ?? 'أي'}',
-                  style: pw.TextStyle(fontSize: 14)),
+              pw.Text(
+                'الفترة: ${fromDate?.toIso8601String().split('T').first ?? 'أي'} إلى ${toDate?.toIso8601String().split('T').first ?? 'أي'}',
+                style: pw.TextStyle(fontSize: 14),
+              ),
             pw.SizedBox(height: 10),
             if (results.isEmpty)
               pw.Text('لا توجد سجلات حضور')
             else
-            pw.TableHelper.fromTextArray(
-                headers: ['التاريخ', 'التسلسل', 'الطالب', 'المجموعة', 'الحالة', 'الملاحظات'],
+              pw.TableHelper.fromTextArray(
+                tableDirection: pw.TextDirection.rtl,
+                headerDirection: pw.TextDirection.rtl,
+                headerAlignment: pw.Alignment.centerRight,
+                cellAlignment: pw.Alignment.centerRight,
+                headers: [
+                  'التاريخ',
+                  'التسلسل',
+                  'الطالب',
+                  'المجموعة',
+                  'الحالة',
+                  'الملاحظات',
+                ],
                 data: results.map((r) {
                   final status = r['status']?.toString() ?? '';
                   final notes = r['notes']?.toString() ?? '';
-                  final displayStatus = (status == 'attended' || status == 'otherLesson')
-                      ? LocaleKeys.present.tr() 
-                      : (status == 'missed' ? LocaleKeys.absent.tr() : LocaleKeys.other_lesson.tr());
+                  final displayStatus =
+                      (status == 'attended' || status == 'otherLesson')
+                      ? LocaleKeys.present.tr()
+                      : (status == 'missed'
+                            ? LocaleKeys.absent.tr()
+                            : LocaleKeys.other_lesson.tr());
                   return [
                     r['date'].toString(),
                     r['serial_number'].toString(),
@@ -338,10 +459,7 @@ class ReportCubit extends Cubit<ReportState> {
     final font = await PdfGoogleFonts.cairoRegular();
     final fontBold = await PdfGoogleFonts.cairoBold();
     return pw.Document(
-      theme: pw.ThemeData.withFont(
-        base: font,
-        bold: fontBold,
-      ),
+      theme: pw.ThemeData.withFont(base: font, bold: fontBold),
     );
   }
 
@@ -349,8 +467,10 @@ class ReportCubit extends Cubit<ReportState> {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        pw.Text('معلومات الطالب',
-            style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+        pw.Text(
+          'معلومات الطالب',
+          style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+        ),
         pw.SizedBox(height: 8),
         pw.Text('الاسم: ${student['name']}'),
         pw.Text('التسلسل: ${student['serial_number']}'),
@@ -365,18 +485,32 @@ class ReportCubit extends Cubit<ReportState> {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        pw.Text('نتائج الامتحانات',
-            style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+        pw.Text(
+          'نتائج الامتحانات',
+          style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+        ),
         pw.SizedBox(height: 8),
         if (marks.isEmpty)
           pw.Text('لا توجد سجلات امتحانات')
         else
           pw.TableHelper.fromTextArray(
-            headers: ['الامتحان', 'الدرجة', 'الدرجة النهائية', 'النسبة', 'التاريخ'],
+            tableDirection: pw.TextDirection.rtl,
+            headerDirection: pw.TextDirection.rtl,
+            headerAlignment: pw.Alignment.centerRight,
+            cellAlignment: pw.Alignment.centerRight,
+            headers: [
+              'الامتحان',
+              'الدرجة',
+              'الدرجة النهائية',
+              'النسبة',
+              'التاريخ',
+            ],
             data: marks.map((m) {
               final score = (m['score'] as num).toDouble();
               final full = (m['full_mark'] as num).toDouble();
-              final pct = full > 0 ? (score / full * 100).toStringAsFixed(1) : '0';
+              final pct = full > 0
+                  ? (score / full * 100).toStringAsFixed(1)
+                  : '0';
               return [
                 m['exam_name'].toString(),
                 score.toStringAsFixed(1),
@@ -398,29 +532,31 @@ class ReportCubit extends Cubit<ReportState> {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        pw.Text('الحضور',
-            style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+        pw.Text(
+          'الحضور',
+          style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+        ),
         pw.SizedBox(height: 8),
         pw.Text('نسبة الحضور: $rate% ($attended/$total)'),
         pw.SizedBox(height: 4),
         if (attendance.isNotEmpty)
           pw.TableHelper.fromTextArray(
+            tableDirection: pw.TextDirection.rtl,
+            headerDirection: pw.TextDirection.rtl,
+            headerAlignment: pw.Alignment.centerRight,
+            cellAlignment: pw.Alignment.centerRight,
             headers: ['التاريخ', 'الحالة', 'الملاحظات'],
-            data: attendance
-                .take(20)
-                .map((a) {
-                  final status = a['status']?.toString() ?? '';
-                  final notes = a['notes']?.toString() ?? '';
-                  final displayStatus = (status == 'attended' || status == 'otherLesson')
-                      ? LocaleKeys.present.tr() 
-                      : (status == 'missed' ? LocaleKeys.absent.tr() : LocaleKeys.other_lesson.tr());
-                  return [
-                      a['date'].toString(),
-                      displayStatus,
-                      notes,
-                    ];
-                })
-                .toList(),
+            data: attendance.take(20).map((a) {
+              final status = a['status']?.toString() ?? '';
+              final notes = a['notes']?.toString() ?? '';
+              final displayStatus =
+                  (status == 'attended' || status == 'otherLesson')
+                  ? LocaleKeys.present.tr()
+                  : (status == 'missed'
+                        ? LocaleKeys.absent.tr()
+                        : LocaleKeys.other_lesson.tr());
+              return [a['date'].toString(), displayStatus, notes];
+            }).toList(),
           ),
       ],
     );
@@ -430,13 +566,19 @@ class ReportCubit extends Cubit<ReportState> {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        pw.Text('سجل المدفوعات',
-            style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+        pw.Text(
+          'سجل المدفوعات',
+          style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+        ),
         pw.SizedBox(height: 8),
         if (payments.isEmpty)
           pw.Text('لا توجد سجلات مدفوعات')
         else
           pw.TableHelper.fromTextArray(
+            tableDirection: pw.TextDirection.rtl,
+            headerDirection: pw.TextDirection.rtl,
+            headerAlignment: pw.Alignment.centerRight,
+            cellAlignment: pw.Alignment.centerRight,
             headers: ['الشهر/السنة', 'الإجمالي', 'المدفوع', 'المتبقي'],
             data: payments.map((p) {
               final total = (p['total_amount'] as num).toDouble();
@@ -463,7 +605,7 @@ class ReportCubit extends Cubit<ReportState> {
     emit(const ReportState(isLoading: true));
     try {
       final db = await _databaseService.database;
-      
+
       final int startVal = fromDate.year * 12 + fromDate.month;
       final int endVal = toDate.year * 12 + toDate.month;
 
@@ -471,7 +613,8 @@ class ReportCubit extends Cubit<ReportState> {
       final minVal = startVal <= endVal ? startVal : endVal;
       final maxVal = startVal > endVal ? startVal : endVal;
 
-      final results = await db.rawQuery('''
+      final results = await db.rawQuery(
+        '''
         SELECT p.*, s.name as student_name, s.serial_number
         FROM payments p
         JOIN students s ON p.student_id = s.id
@@ -479,7 +622,9 @@ class ReportCubit extends Cubit<ReportState> {
         AND (p.year * 12 + p.month) >= ?
         AND (p.year * 12 + p.month) <= ?
         ORDER BY s.name ASC, p.year ASC, p.month ASC
-      ''', [groupId, minVal, maxVal]);
+      ''',
+        [groupId, minVal, maxVal],
+      );
 
       final pdf = await _createDocument();
 
@@ -493,23 +638,49 @@ class ReportCubit extends Cubit<ReportState> {
           build: (context) => [
             pw.Header(
               level: 0,
-              child: pw.Text('تقرير مدفوعات المجموعة',
-                  style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+              child: pw.Text(
+                'تقرير مدفوعات المجموعة',
+                style: pw.TextStyle(
+                  fontSize: 24,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
             ),
             pw.SizedBox(height: 10),
-            pw.Text('المجموعة: $groupName', style: const pw.TextStyle(fontSize: 16)),
-            pw.Text('الفترة: $fromStr إلى $toStr', style: const pw.TextStyle(fontSize: 14)),
+            pw.Text(
+              'المجموعة: $groupName',
+              style: const pw.TextStyle(fontSize: 16),
+            ),
+            pw.Text(
+              'الفترة: $fromStr إلى $toStr',
+              style: const pw.TextStyle(fontSize: 14),
+            ),
             pw.SizedBox(height: 10),
             if (results.isEmpty)
               pw.Text('لا توجد مدفوعات في هذه الفترة')
             else
               pw.TableHelper.fromTextArray(
-                headers: ['التسلسل', 'الطالب', 'الشهر/السنة', 'الإجمالي', 'المدفوع', 'المتبقي', 'تاريخ الدفع'],
+                tableDirection: pw.TextDirection.rtl,
+                headerDirection: pw.TextDirection.rtl,
+                headerAlignment: pw.Alignment.centerRight,
+                cellAlignment: pw.Alignment.centerRight,
+                headers: [
+                  'التسلسل',
+                  'الطالب',
+                  'الشهر/السنة',
+                  'الإجمالي',
+                  'المدفوع',
+                  'المتبقي',
+                  'تاريخ الدفع',
+                ],
+
                 data: results.map((r) {
                   final total = (r['total_amount'] as num).toDouble();
                   final paid = (r['paid_amount'] as num).toDouble();
                   final paidDate = r['paid_date'] != null
-                      ? DateFormat('dd/MM/yyyy').format(DateTime.parse(r['paid_date'].toString()))
+                      ? DateFormat(
+                          'dd/MM/yyyy',
+                        ).format(DateTime.parse(r['paid_date'].toString()))
                       : '';
                   return [
                     r['serial_number'].toString(),
@@ -550,11 +721,14 @@ class ReportCubit extends Cubit<ReportState> {
       }
       final assistant = assistants.first;
 
-      final attendanceRecords = await db.rawQuery('''
+      final attendanceRecords = await db.rawQuery(
+        '''
         SELECT * FROM assistant_attendance
         WHERE assistant_id = ?
         ORDER BY date DESC, id DESC
-      ''', [assistantId]);
+      ''',
+        [assistantId],
+      );
 
       final pdf = await _createDocument();
 
@@ -565,18 +739,36 @@ class ReportCubit extends Cubit<ReportState> {
           build: (context) => [
             pw.Header(
               level: 0,
-              child: pw.Text('تقرير حضور المساعد',
-                  style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+              child: pw.Text(
+                'تقرير حضور المساعد',
+                style: pw.TextStyle(
+                  fontSize: 24,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
             ),
             pw.SizedBox(height: 10),
-            pw.Text('الاسم: ${assistant['name']}', style: const pw.TextStyle(fontSize: 16)),
-            pw.Text('رقم التسلسل: ${assistant['serial_number']}', style: const pw.TextStyle(fontSize: 14)),
-            pw.Text('رقم الهاتف: ${assistant['phone']}', style: const pw.TextStyle(fontSize: 14)),
+            pw.Text(
+              'الاسم: ${assistant['name']}',
+              style: const pw.TextStyle(fontSize: 16),
+            ),
+            pw.Text(
+              'رقم التسلسل: ${assistant['serial_number']}',
+              style: const pw.TextStyle(fontSize: 14),
+            ),
+            pw.Text(
+              'رقم الهاتف: ${assistant['phone']}',
+              style: const pw.TextStyle(fontSize: 14),
+            ),
             pw.SizedBox(height: 20),
             if (attendanceRecords.isEmpty)
               pw.Text('لا توجد سجلات حضور لهذا المساعد')
             else
               pw.TableHelper.fromTextArray(
+                tableDirection: pw.TextDirection.rtl,
+                headerDirection: pw.TextDirection.rtl,
+                headerAlignment: pw.Alignment.centerRight,
+                cellAlignment: pw.Alignment.centerRight,
                 headers: ['التاريخ', 'النوع'],
                 data: attendanceRecords.map((r) {
                   return [
@@ -667,11 +859,20 @@ class ReportCubit extends Cubit<ReportState> {
           build: (context) => [
             pw.Header(
               level: 0,
-              child: pw.Text(title,
-                  style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+              child: pw.Text(
+                title,
+                style: pw.TextStyle(
+                  fontSize: 24,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
             ),
             pw.SizedBox(height: 10),
             pw.TableHelper.fromTextArray(
+              tableDirection: pw.TextDirection.rtl,
+              headerDirection: pw.TextDirection.rtl,
+              headerAlignment: pw.Alignment.centerRight,
+              cellAlignment: pw.Alignment.centerRight,
               headers: [
                 'م',
                 'اسم الطالب',

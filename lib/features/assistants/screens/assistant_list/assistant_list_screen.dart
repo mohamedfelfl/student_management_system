@@ -66,14 +66,18 @@ class _AssistantListScreenState extends State<AssistantListScreen> {
                         decoration: InputDecoration(
                           hintText: LocaleKeys.search_hint.tr(),
                           prefixIcon: const Icon(Icons.search),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
-                        onChanged: (v) => context.read<AssistantCubit>().search(v),
+                        onChanged: (v) =>
+                            context.read<AssistantCubit>().search(v),
                       ),
                     ),
                     SizedBox(width: 16.w),
                     ElevatedButton.icon(
-                      onPressed: () => context.router.push(AssistantFormRoute()),
+                      onPressed: () =>
+                          context.router.push(AssistantFormRoute()),
                       icon: const Icon(Icons.add),
                       label: Text(LocaleKeys.add_assistant.tr()),
                     ),
@@ -84,34 +88,49 @@ class _AssistantListScreenState extends State<AssistantListScreen> {
                   child: state.isLoading
                       ? const Center(child: CircularProgressIndicator())
                       : state.assistants.isEmpty
-                          ? Center(child: Text(LocaleKeys.no_assistants_found.tr()))
-                          : ListView.builder(
-                              itemCount: state.assistants.length,
-                              itemBuilder: (context, index) {
-                                final assistant = state.assistants[index];
-                                return Card(
-                                  margin: EdgeInsets.only(bottom: 12.h),
-                                  child: ListTile(
-                                    title: Text(assistant['name']),
-                                    subtitle: Text('${LocaleKeys.serial_number.tr()}: ${assistant['serial_number']} | ${assistant['phone']}'),
-                                    onTap: () => context.router.push(AssistantDetailRoute(assistant: assistant)),
-                                    trailing: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        IconButton(
-                                          icon: const Icon(Icons.edit, color: Colors.blue),
-                                          onPressed: () => context.router.push(AssistantFormRoute(assistant: assistant)),
+                      ? Center(child: Text(LocaleKeys.no_assistants_found.tr()))
+                      : ListView.builder(
+                          itemCount: state.assistants.length,
+                          itemBuilder: (context, index) {
+                            final assistant = state.assistants[index];
+                            return Card(
+                              margin: EdgeInsets.only(bottom: 12.h),
+                              child: ListTile(
+                                title: Text(assistant['name']),
+                                subtitle: Text(
+                                  '${LocaleKeys.serial_number.tr()}: ${assistant['serial_number']} | ${assistant['phone']}',
+                                ),
+                                onTap: () => context.router.push(
+                                  AssistantDetailRoute(assistant: assistant),
+                                ),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.edit,
+                                        color: Colors.blue,
+                                      ),
+                                      onPressed: () => context.router.push(
+                                        AssistantFormRoute(
+                                          assistant: assistant,
                                         ),
-                                        IconButton(
-                                          icon: const Icon(Icons.delete, color: Colors.red),
-                                          onPressed: () => _confirmDelete(assistant),
-                                        ),
-                                      ],
+                                      ),
                                     ),
-                                  ),
-                                );
-                              },
-                            ),
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.delete,
+                                        color: Colors.red,
+                                      ),
+                                      onPressed: () =>
+                                          _confirmDelete(assistant),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                 ),
               ],
             ),
@@ -126,7 +145,9 @@ class _AssistantListScreenState extends State<AssistantListScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(LocaleKeys.delete_assistant.tr()),
-        content: Text(LocaleKeys.confirm_delete_assistant.tr(args: [assistant['name']])),
+        content: Text(
+          LocaleKeys.confirm_delete_assistant.tr(args: [assistant['name']]),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -134,11 +155,18 @@ class _AssistantListScreenState extends State<AssistantListScreen> {
           ),
           ElevatedButton(
             onPressed: () {
-              context.read<AssistantCubit>().deleteAssistant(assistant['id'] as int);
+              context.read<AssistantCubit>().deleteAssistant(
+                assistant['id'] as int,
+              );
               Navigator.pop(ctx);
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
-            child: Text(LocaleKeys.delete.tr(), style: TextStyle(color: Theme.of(context).colorScheme.onError)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: Text(
+              LocaleKeys.delete.tr(),
+              style: TextStyle(color: Theme.of(context).colorScheme.onError),
+            ),
           ),
         ],
       ),

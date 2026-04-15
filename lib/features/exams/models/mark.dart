@@ -10,10 +10,13 @@ abstract class Mark with _$Mark {
     required int examId,
     required int studentId,
     required double score,
+
     /// Populated via join — not stored in marks table
     String? studentName,
+
     /// Populated via join — not stored in marks table
     String? examName,
+
     /// Populated via join — not stored in marks table
     double? examFullMark,
   }) = _Mark;
@@ -24,6 +27,7 @@ abstract class Mark with _$Mark {
 /// Extension for computed mark properties.
 extension MarkGrade on Mark {
   /// Percentage score relative to full mark.
-  double get percentage =>
-      examFullMark != null && examFullMark! > 0 ? (score / examFullMark!) * 100 : 0;
+  double get percentage => examFullMark != null && examFullMark! > 0
+      ? (score / examFullMark!) * 100
+      : 0;
 }

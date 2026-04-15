@@ -4,11 +4,13 @@ import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../features/auth/cubits/auth_cubit.dart';
 import '../../../features/auth/models/user.dart';
 import '../../../generated/locale_keys.g.dart';
 import '../../cubits/locale_cubit.dart';
+import '../../cubits/shell_navigation_cubit.dart';
 import '../../router/app_router.gr.dart';
 import '../widgets/responsive_layout.dart';
 
@@ -39,7 +41,7 @@ class ShellScreen extends StatelessWidget {
             destination: NavigationRailDestination(
               icon: const Icon(Icons.dashboard_outlined),
               selectedIcon: const Icon(Icons.dashboard),
-              label: Text('dashboard'.tr()),
+              label: Text('dashboard'.tr(), style: GoogleFonts.cairo()),
             ),
           ),
           if (user.can(UserPermission.manageStudents))
@@ -48,7 +50,7 @@ class ShellScreen extends StatelessWidget {
               destination: NavigationRailDestination(
                 icon: const Icon(Icons.people_outline),
                 selectedIcon: const Icon(Icons.people),
-                label: Text('students'.tr()),
+                label: Text('students'.tr(), style: GoogleFonts.cairo()),
               ),
             ),
           if (user.can(UserPermission.manageExams))
@@ -57,7 +59,7 @@ class ShellScreen extends StatelessWidget {
               destination: NavigationRailDestination(
                 icon: const Icon(Icons.quiz_outlined),
                 selectedIcon: const Icon(Icons.quiz),
-                label: Text('exams'.tr()),
+                label: Text('exams'.tr(), style: GoogleFonts.cairo()),
               ),
             ),
           if (user.can(UserPermission.managePayments))
@@ -66,7 +68,10 @@ class ShellScreen extends StatelessWidget {
               destination: NavigationRailDestination(
                 icon: const Icon(Icons.payment_outlined),
                 selectedIcon: const Icon(Icons.payment),
-                label: Text('payments_tracking'.tr()),
+                label: Text(
+                  'payments_tracking'.tr(),
+                  style: GoogleFonts.cairo(),
+                ),
               ),
             ),
           if (user.can(UserPermission.manageAttendance))
@@ -75,7 +80,10 @@ class ShellScreen extends StatelessWidget {
               destination: NavigationRailDestination(
                 icon: const Icon(Icons.qr_code_scanner_outlined),
                 selectedIcon: const Icon(Icons.qr_code_scanner),
-                label: Text(LocaleKeys.qr_attendance.tr()),
+                label: Text(
+                  LocaleKeys.qr_attendance.tr(),
+                  style: GoogleFonts.cairo(),
+                ),
               ),
             ),
           if (user.can(UserPermission.manageGroups))
@@ -84,7 +92,7 @@ class ShellScreen extends StatelessWidget {
               destination: NavigationRailDestination(
                 icon: const Icon(Icons.groups_outlined),
                 selectedIcon: const Icon(Icons.groups),
-                label: Text('groups'.tr()),
+                label: Text('groups'.tr(), style: GoogleFonts.cairo()),
               ),
             ),
           if (user.can(UserPermission.manageNotes))
@@ -93,7 +101,7 @@ class ShellScreen extends StatelessWidget {
               destination: NavigationRailDestination(
                 icon: const Icon(Icons.menu_book_outlined),
                 selectedIcon: const Icon(Icons.menu_book),
-                label: Text(LocaleKeys.notes.tr()),
+                label: Text(LocaleKeys.notes.tr(), style: GoogleFonts.cairo()),
               ),
             ),
           if (user.can(UserPermission.viewReports))
@@ -102,7 +110,19 @@ class ShellScreen extends StatelessWidget {
               destination: NavigationRailDestination(
                 icon: const Icon(Icons.assessment_outlined),
                 selectedIcon: const Icon(Icons.assessment),
-                label: Text('reports'.tr()),
+                label: Text('reports'.tr(), style: GoogleFonts.cairo()),
+              ),
+            ),
+          if (user.can(UserPermission.viewReports))
+            (
+              route: const HonoredStudentsRoute(),
+              destination: NavigationRailDestination(
+                icon: const Icon(Icons.emoji_events_outlined),
+                selectedIcon: const Icon(Icons.emoji_events),
+                label: Text(
+                  LocaleKeys.honor_board.tr(),
+                  style: GoogleFonts.cairo(),
+                ),
               ),
             ),
           if (user.role == UserRole.admin ||
@@ -112,7 +132,7 @@ class ShellScreen extends StatelessWidget {
               destination: NavigationRailDestination(
                 icon: const Icon(Icons.admin_panel_settings_outlined),
                 selectedIcon: const Icon(Icons.admin_panel_settings),
-                label: Text('admin'.tr()),
+                label: Text('admin'.tr(), style: GoogleFonts.cairo()),
               ),
             ),
           if (user.can(UserPermission.manageAssistants))
@@ -121,15 +141,18 @@ class ShellScreen extends StatelessWidget {
               destination: NavigationRailDestination(
                 icon: const Icon(Icons.support_agent_outlined),
                 selectedIcon: const Icon(Icons.support_agent),
-                label: Text(LocaleKeys.assistants_directory.tr()),
+                label: Text(
+                  LocaleKeys.assistants_directory.tr(),
+                  style: GoogleFonts.cairo(),
+                ),
               ),
             ),
           (
             route: const SettingsRoute(),
-            destination: const NavigationRailDestination(
-              icon: Icon(Icons.settings_outlined),
-              selectedIcon: Icon(Icons.settings),
-              label: Text('Settings'),
+            destination: NavigationRailDestination(
+              icon: const Icon(Icons.settings_outlined),
+              selectedIcon: const Icon(Icons.settings),
+              label: Text(LocaleKeys.settings.tr(), style: GoogleFonts.cairo()),
             ),
           ),
         ];
@@ -146,76 +169,164 @@ class ShellScreen extends StatelessWidget {
           builder: (context, child) {
             final tabsRouter = AutoTabsRouter.of(context);
 
-            return Scaffold(
-              drawer: ResponsiveLayout.isMobile(context)
-                  ? _buildDrawer(
-                      context,
-                      isDark,
-                      colorScheme,
-                      destinations,
-                      tabsRouter,
-                    )
-                  : null,
-              body: ResponsiveLayout(
-                selectedIndex: tabsRouter.activeIndex,
-                onDestinationSelected: tabsRouter.setActiveIndex,
-                destinations: destinations,
-                leading: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Image.asset(
-                    'assets/images/logo.png',
-                    width: 48,
-                    height: 48,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-                trailing: Expanded(
-                  child: Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: IconButton(
-                        icon: const Icon(Icons.logout),
-                        onPressed: () => context.read<AuthCubit>().logout(),
-                        tooltip: 'logout'.tr(),
-                        color: colorScheme.error,
-                      ),
-                    ),
-                  ),
-                ),
-                mobileBody: child,
-                desktopBody: child,
-              ),
-              bottomNavigationBar: ResponsiveLayout.isMobile(context)
-                  ? NavigationBar(
-                      selectedIndex:
-                          tabsRouter.activeIndex < destinations.take(5).length
-                          ? tabsRouter.activeIndex
-                          : 0,
-                      onDestinationSelected: (int index) {
-                        if (index == destinations.take(5).length) {
-                          context.read<AuthCubit>().logout();
-                        } else {
-                          tabsRouter.setActiveIndex(index);
-                        }
-                      },
-                      destinations: [
-                        ...destinations
-                            .take(5)
-                            .map(
-                              (d) => NavigationDestination(
-                                icon: d.icon,
-                                selectedIcon: d.selectedIcon,
-                                label: (d.label as Text).data ?? '',
+            return BlocBuilder<ShellNavigationCubit, ShellNavigationState>(
+              builder: (context, navState) {
+                return Scaffold(
+                  extendBody: true,
+                  drawer: ResponsiveLayout.isMobile(context)
+                      ? _buildDrawer(
+                          context,
+                          isDark,
+                          colorScheme,
+                          destinations,
+                          tabsRouter,
+                        )
+                      : null,
+                  body: ResponsiveLayout(
+                    isCollapsed: navState.isCollapsed,
+                    selectedIndex: tabsRouter.activeIndex,
+                    onDestinationSelected: tabsRouter.setActiveIndex,
+                    destinations: destinations,
+                    leading: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Image.asset(
+                            'assets/images/logo.png',
+                            width: 48,
+                            height: 48,
+                            fit: BoxFit.contain,
+                          ),
+                          if (!navState.isCollapsed) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              'SMS',
+                              style: GoogleFonts.cairo(
+                                fontWeight: FontWeight.w900,
+                                fontSize: 18,
+                                color: colorScheme.primary,
                               ),
                             ),
-                        NavigationDestination(
-                          icon: const Icon(Icons.logout),
-                          label: 'logout'.tr(),
+                          ],
+                        ],
+                      ),
+                    ),
+                    trailing: Flexible(
+                      child: SingleChildScrollView(
+                        child: Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: Icon(
+                                    navState.isCollapsed
+                                        ? Icons.chevron_right
+                                        : Icons.chevron_left,
+                                  ),
+                                  onPressed: () => context
+                                      .read<ShellNavigationCubit>()
+                                      .toggleSidebar(),
+                                  tooltip: navState.isCollapsed
+                                      ? 'Expand'
+                                      : 'Collapse',
+                                ),
+                                const SizedBox(height: 8),
+                                IconButton(
+                                  icon: const Icon(Icons.logout),
+                                  onPressed: () =>
+                                      context.read<AuthCubit>().logout(),
+                                  tooltip: 'logout'.tr(),
+                                  color: colorScheme.error,
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                      ],
-                    )
-                  : null,
+                      ),
+                    ),
+                    mobileBody: child,
+                    desktopBody: child,
+                  ),
+                  bottomNavigationBar: ResponsiveLayout.isMobile(context)
+                      ? SafeArea(
+                          child: Container(
+                            height: 70,
+                            margin: const EdgeInsets.all(16),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(24),
+                              child: BackdropFilter(
+                                filter: ImageFilter.blur(
+                                  sigmaX: 15,
+                                  sigmaY: 15,
+                                ),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.surface.withValues(
+                                      alpha: 0.8,
+                                    ),
+                                    borderRadius: BorderRadius.circular(24),
+                                    border: Border.all(
+                                      color: colorScheme.onSurface.withValues(
+                                        alpha: 0.1,
+                                      ),
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.1,
+                                        ),
+                                        blurRadius: 20,
+                                        offset: const Offset(0, 10),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceAround,
+                                    children: [
+                                      ...List.generate(
+                                        destinations.take(4).length,
+                                        (i) {
+                                          final d = destinations[i];
+                                          final isSelected =
+                                              tabsRouter.activeIndex == i;
+                                          return _buildBottomNavItem(
+                                            context,
+                                            icon: d.icon,
+                                            selectedIcon: d.selectedIcon,
+                                            label: (d.label as Text).data ?? '',
+                                            isSelected: isSelected,
+                                            onTap: () =>
+                                                tabsRouter.setActiveIndex(i),
+                                          );
+                                        },
+                                      ),
+                                      _buildBottomNavItem(
+                                        context,
+                                        icon: const Icon(Icons.more_horiz),
+                                        selectedIcon: const Icon(Icons.menu),
+                                        label: 'menu'.tr(),
+                                        isSelected: tabsRouter.activeIndex >= 4,
+                                        onTap: () =>
+                                            Scaffold.of(context).openDrawer(),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        )
+                      : null,
+                );
+              },
             );
           },
         );
@@ -238,81 +349,126 @@ class ShellScreen extends StatelessWidget {
             padding: EdgeInsets.zero,
             children: [
               DrawerHeader(
-                decoration: BoxDecoration(color: colorScheme.primary),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      colorScheme.primary,
+                      colorScheme.primary.withValues(alpha: 0.7),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.asset(
-                        'assets/images/logo.png',
-                        width: 48,
-                        height: 48,
-                        fit: BoxFit.cover,
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.asset(
+                          'assets/images/logo.png',
+                          width: 48,
+                          height: 48,
+                          fit: BoxFit.contain,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 12),
                     Text(
                       'SMS',
-                      style: Theme.of(context).textTheme.headlineMedium
-                          ?.copyWith(color: colorScheme.onPrimary),
+                      style: GoogleFonts.cairo(
+                        textStyle: Theme.of(context).textTheme.headlineMedium,
+                        color: colorScheme.onPrimary,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                      ),
                     ),
                   ],
                 ),
               ),
+              const SizedBox(height: 8),
               ...List.generate(destinations.length, (int i) {
                 final NavigationRailDestination dest = destinations[i];
                 final bool isSelected = tabsRouter.activeIndex == i;
-                return ListTile(
-                  leading: IconTheme(
-                    data: IconThemeData(
-                      color: isSelected
-                          ? colorScheme.primary
-                          : colorScheme.onSurfaceVariant,
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
+                  child: ListTile(
+                    leading: IconTheme(
+                      data: IconThemeData(
+                        color: isSelected
+                            ? colorScheme.primary
+                            : colorScheme.onSurfaceVariant,
+                        size: isSelected ? 28 : 24,
+                      ),
+                      child: isSelected ? dest.selectedIcon : dest.icon,
                     ),
-                    child: isSelected ? dest.selectedIcon : dest.icon,
-                  ),
-                  title: Text(
-                    dest.label is Text ? (dest.label as Text).data ?? '' : '',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                      color: isSelected
-                          ? colorScheme.primary
-                          : colorScheme.onSurface,
+                    title: Text(
+                      dest.label is Text ? (dest.label as Text).data ?? '' : '',
+                      style: GoogleFonts.cairo(
+                        fontSize: 16,
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.w500,
+                        color: isSelected
+                            ? colorScheme.primary
+                            : colorScheme.onSurface,
+                      ),
                     ),
+                    selected: isSelected,
+                    selectedTileColor: colorScheme.primaryContainer.withValues(
+                      alpha: 0.6,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                    onTap: () {
+                      Navigator.pop(context);
+                      tabsRouter.setActiveIndex(i);
+                    },
                   ),
-                  selected: isSelected,
-                  selectedTileColor: colorScheme.primaryContainer.withValues(
-                    alpha: 0.5,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    tabsRouter.setActiveIndex(i);
-                  },
                 );
               }),
               const SizedBox(height: 16),
               const Divider(indent: 16, endIndent: 16),
-              ListTile(
-                leading: Icon(Icons.logout, color: colorScheme.error),
-                title: Text(
-                  'logout'.tr(),
-                  style: TextStyle(
-                    color: colorScheme.error,
-                    fontWeight: FontWeight.bold,
-                  ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
                 ),
-                onTap: () {
-                  Navigator.pop(context);
-                  context.read<AuthCubit>().logout();
-                },
+                child: ListTile(
+                  leading: Icon(Icons.logout, color: colorScheme.error),
+                  title: Text(
+                    'logout'.tr(),
+                    style: GoogleFonts.cairo(
+                      color: colorScheme.error,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.read<AuthCubit>().logout();
+                  },
+                ),
               ),
               const SizedBox(height: 16),
               Padding(
@@ -324,7 +480,10 @@ class ShellScreen extends StatelessWidget {
                     TextButton(
                       onPressed: () =>
                           context.read<LocaleCubit>().toggleLanguage(),
-                      child: const Text('عربي / EN'),
+                      child: Text(
+                        'عربي / EN',
+                        style: GoogleFonts.cairo(fontWeight: FontWeight.w600),
+                      ),
                     ),
                     const Spacer(),
                     Icon(Icons.dark_mode, color: colorScheme.onSurfaceVariant),
@@ -333,8 +492,8 @@ class ShellScreen extends StatelessWidget {
                       value: isDark,
                       onChanged: (_) {
                         context.read<LocaleCubit>().setThemeMode(
-                              isDark ? ThemeMode.light : ThemeMode.dark,
-                            );
+                          isDark ? ThemeMode.light : ThemeMode.dark,
+                        );
                       },
                     ),
                   ],
@@ -342,6 +501,62 @@ class ShellScreen extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomNavItem(
+    BuildContext context, {
+    required Widget icon,
+    required Widget selectedIcon,
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+    bool isError = false,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final color = isError
+        ? colorScheme.error
+        : (isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant);
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutQuint,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? (isError
+                    ? colorScheme.errorContainer
+                    : colorScheme.primaryContainer)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconTheme(
+              data: IconThemeData(color: color, size: 24),
+              child: isSelected ? selectedIcon : icon,
+            ),
+            if (isSelected) ...[
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  label,
+                  style: GoogleFonts.cairo(
+                    color: color,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ],
         ),
       ),
     );

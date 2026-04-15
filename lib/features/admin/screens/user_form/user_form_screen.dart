@@ -63,105 +63,127 @@ class _UserFormScreenState extends State<UserFormScreen> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 600),
             child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    IconButton(
-                      onPressed: () => context.router.maybePop(),
-                      icon: const Icon(Icons.arrow_back),
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => context.router.maybePop(),
+                        icon: const Icon(Icons.arrow_back),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _isEditing
+                            ? LocaleKeys.edit_user.tr()
+                            : LocaleKeys.add_user.tr(),
+                        style: textTheme.headlineLarge,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 28),
+
+                  TextFormField(
+                    controller: _usernameController,
+                    decoration: InputDecoration(
+                      labelText: LocaleKeys.username.tr(),
+                      prefixIcon: const Icon(Icons.person_outline),
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      _isEditing ? LocaleKeys.edit_user.tr() : LocaleKeys.add_user.tr(),
-                      style: textTheme.headlineLarge,
+                    validator: (v) => v == null || v.isEmpty
+                        ? LocaleKeys.required_field.tr()
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
+
+                  TextFormField(
+                    controller: _passwordController,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      labelText: _isEditing
+                          ? LocaleKeys.new_password_optional.tr()
+                          : LocaleKeys.password.tr(),
+                      prefixIcon: const Icon(Icons.lock_outline),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 28),
-
-                TextFormField(
-                  controller: _usernameController,
-                  decoration: InputDecoration(
-                    labelText: LocaleKeys.username.tr(),
-                    prefixIcon: const Icon(Icons.person_outline),
+                    validator: (v) => !_isEditing && (v == null || v.isEmpty)
+                        ? LocaleKeys.required_field.tr()
+                        : null,
                   ),
-                  validator: (v) => v == null || v.isEmpty ? LocaleKeys.required_field.tr() : null,
-                ),
-                const SizedBox(height: 16),
+                  const SizedBox(height: 24),
 
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    labelText: _isEditing ? LocaleKeys.new_password_optional.tr() : LocaleKeys.password.tr(),
-                    prefixIcon: const Icon(Icons.lock_outline),
+                  // Role selection
+                  Text(LocaleKeys.role.tr(), style: textTheme.titleMedium),
+                  const SizedBox(height: 8),
+                  SegmentedButton<UserRole>(
+                    segments: [
+                      ButtonSegment(
+                        value: UserRole.admin,
+                        label: Text(LocaleKeys.admin_role.tr()),
+                      ),
+                      ButtonSegment(
+                        value: UserRole.user,
+                        label: Text(LocaleKeys.user_role.tr()),
+                      ),
+                    ],
+                    selected: {_selectedRole},
+                    onSelectionChanged: (roles) {
+                      setState(() {
+                        _selectedRole = roles.first;
+                        if (_selectedRole == UserRole.admin) {
+                          _selectedPermissions.addAll(UserPermission.values);
+                        }
+                      });
+                    },
                   ),
-                  validator: (v) =>
-                      !_isEditing && (v == null || v.isEmpty) ? LocaleKeys.required_field.tr() : null,
-                ),
-                const SizedBox(height: 24),
+                  const SizedBox(height: 24),
 
-                // Role selection
-                Text(LocaleKeys.role.tr(), style: textTheme.titleMedium),
-                const SizedBox(height: 8),
-                SegmentedButton<UserRole>(
-                  segments: [
-                    ButtonSegment(value: UserRole.admin, label: Text(LocaleKeys.admin_role.tr())),
-                    ButtonSegment(value: UserRole.user, label: Text(LocaleKeys.user_role.tr())),
-                  ],
-                  selected: {_selectedRole},
-                  onSelectionChanged: (roles) {
-                    setState(() {
-                      _selectedRole = roles.first;
-                      if (_selectedRole == UserRole.admin) {
-                        _selectedPermissions.addAll(UserPermission.values);
-                      }
-                    });
-                  },
-                ),
-                const SizedBox(height: 24),
-
-                // Permissions
-                Text(LocaleKeys.permissions.tr(), style: textTheme.titleMedium),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: UserPermission.values.map((UserPermission perm) {
-                    final bool isSelected = _selectedPermissions.contains(perm);
-                    return FilterChip(
-                      label: Text(perm.name),
-                      selected: isSelected,
-                      onSelected: _selectedRole == UserRole.admin
-                          ? null
-                          : (bool selected) {
-                              setState(() {
-                                if (selected) {
-                                  _selectedPermissions.add(perm);
-                                } else {
-                                  _selectedPermissions.remove(perm);
-                                }
-                              });
-                            },
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 32),
-
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: _submit,
-                    child: Text(_isEditing ? LocaleKeys.update.tr() : LocaleKeys.create.tr()),
+                  // Permissions
+                  Text(
+                    LocaleKeys.permissions.tr(),
+                    style: textTheme.titleMedium,
                   ),
-                ),
-              ],
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: UserPermission.values.map((UserPermission perm) {
+                      final bool isSelected = _selectedPermissions.contains(
+                        perm,
+                      );
+                      return FilterChip(
+                        label: Text(perm.name),
+                        selected: isSelected,
+                        onSelected: _selectedRole == UserRole.admin
+                            ? null
+                            : (bool selected) {
+                                setState(() {
+                                  if (selected) {
+                                    _selectedPermissions.add(perm);
+                                  } else {
+                                    _selectedPermissions.remove(perm);
+                                  }
+                                });
+                              },
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 32),
+
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton(
+                      onPressed: _submit,
+                      child: Text(
+                        _isEditing
+                            ? LocaleKeys.update.tr()
+                            : LocaleKeys.create.tr(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
           ),
         ),
       ),

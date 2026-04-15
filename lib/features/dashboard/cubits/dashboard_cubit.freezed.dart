@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$DashboardState {
 
- int get totalStudents; int get totalGroups; double get attendanceRate; double get paymentCollectionRate; int get upcomingExams; List<Map<String, dynamic>> get recentAttendance; List<Map<String, dynamic>> get recentPayments; bool get isLoading; String? get error;
+ int get totalStudents; int get totalGroups; int get totalAssistants; int get totalExams; double get attendanceRate; double get paymentCollectionRate; int get upcomingExams; List<Map<String, dynamic>> get recentAttendance; List<Map<String, dynamic>> get recentPayments; bool get isLoading; String? get error;
 /// Create a copy of DashboardState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $DashboardStateCopyWith<DashboardState> get copyWith => _$DashboardStateCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DashboardState&&(identical(other.totalStudents, totalStudents) || other.totalStudents == totalStudents)&&(identical(other.totalGroups, totalGroups) || other.totalGroups == totalGroups)&&(identical(other.attendanceRate, attendanceRate) || other.attendanceRate == attendanceRate)&&(identical(other.paymentCollectionRate, paymentCollectionRate) || other.paymentCollectionRate == paymentCollectionRate)&&(identical(other.upcomingExams, upcomingExams) || other.upcomingExams == upcomingExams)&&const DeepCollectionEquality().equals(other.recentAttendance, recentAttendance)&&const DeepCollectionEquality().equals(other.recentPayments, recentPayments)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.error, error) || other.error == error));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DashboardState&&(identical(other.totalStudents, totalStudents) || other.totalStudents == totalStudents)&&(identical(other.totalGroups, totalGroups) || other.totalGroups == totalGroups)&&(identical(other.totalAssistants, totalAssistants) || other.totalAssistants == totalAssistants)&&(identical(other.totalExams, totalExams) || other.totalExams == totalExams)&&(identical(other.attendanceRate, attendanceRate) || other.attendanceRate == attendanceRate)&&(identical(other.paymentCollectionRate, paymentCollectionRate) || other.paymentCollectionRate == paymentCollectionRate)&&(identical(other.upcomingExams, upcomingExams) || other.upcomingExams == upcomingExams)&&const DeepCollectionEquality().equals(other.recentAttendance, recentAttendance)&&const DeepCollectionEquality().equals(other.recentPayments, recentPayments)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.error, error) || other.error == error));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,totalStudents,totalGroups,attendanceRate,paymentCollectionRate,upcomingExams,const DeepCollectionEquality().hash(recentAttendance),const DeepCollectionEquality().hash(recentPayments),isLoading,error);
+int get hashCode => Object.hash(runtimeType,totalStudents,totalGroups,totalAssistants,totalExams,attendanceRate,paymentCollectionRate,upcomingExams,const DeepCollectionEquality().hash(recentAttendance),const DeepCollectionEquality().hash(recentPayments),isLoading,error);
 
 @override
 String toString() {
-  return 'DashboardState(totalStudents: $totalStudents, totalGroups: $totalGroups, attendanceRate: $attendanceRate, paymentCollectionRate: $paymentCollectionRate, upcomingExams: $upcomingExams, recentAttendance: $recentAttendance, recentPayments: $recentPayments, isLoading: $isLoading, error: $error)';
+  return 'DashboardState(totalStudents: $totalStudents, totalGroups: $totalGroups, totalAssistants: $totalAssistants, totalExams: $totalExams, attendanceRate: $attendanceRate, paymentCollectionRate: $paymentCollectionRate, upcomingExams: $upcomingExams, recentAttendance: $recentAttendance, recentPayments: $recentPayments, isLoading: $isLoading, error: $error)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $DashboardStateCopyWith<$Res>  {
   factory $DashboardStateCopyWith(DashboardState value, $Res Function(DashboardState) _then) = _$DashboardStateCopyWithImpl;
 @useResult
 $Res call({
- int totalStudents, int totalGroups, double attendanceRate, double paymentCollectionRate, int upcomingExams, List<Map<String, dynamic>> recentAttendance, List<Map<String, dynamic>> recentPayments, bool isLoading, String? error
+ int totalStudents, int totalGroups, int totalAssistants, int totalExams, double attendanceRate, double paymentCollectionRate, int upcomingExams, List<Map<String, dynamic>> recentAttendance, List<Map<String, dynamic>> recentPayments, bool isLoading, String? error
 });
 
 
@@ -62,10 +62,12 @@ class _$DashboardStateCopyWithImpl<$Res>
 
 /// Create a copy of DashboardState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? totalStudents = null,Object? totalGroups = null,Object? attendanceRate = null,Object? paymentCollectionRate = null,Object? upcomingExams = null,Object? recentAttendance = null,Object? recentPayments = null,Object? isLoading = null,Object? error = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? totalStudents = null,Object? totalGroups = null,Object? totalAssistants = null,Object? totalExams = null,Object? attendanceRate = null,Object? paymentCollectionRate = null,Object? upcomingExams = null,Object? recentAttendance = null,Object? recentPayments = null,Object? isLoading = null,Object? error = freezed,}) {
   return _then(_self.copyWith(
 totalStudents: null == totalStudents ? _self.totalStudents : totalStudents // ignore: cast_nullable_to_non_nullable
 as int,totalGroups: null == totalGroups ? _self.totalGroups : totalGroups // ignore: cast_nullable_to_non_nullable
+as int,totalAssistants: null == totalAssistants ? _self.totalAssistants : totalAssistants // ignore: cast_nullable_to_non_nullable
+as int,totalExams: null == totalExams ? _self.totalExams : totalExams // ignore: cast_nullable_to_non_nullable
 as int,attendanceRate: null == attendanceRate ? _self.attendanceRate : attendanceRate // ignore: cast_nullable_to_non_nullable
 as double,paymentCollectionRate: null == paymentCollectionRate ? _self.paymentCollectionRate : paymentCollectionRate // ignore: cast_nullable_to_non_nullable
 as double,upcomingExams: null == upcomingExams ? _self.upcomingExams : upcomingExams // ignore: cast_nullable_to_non_nullable
@@ -158,10 +160,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int totalStudents,  int totalGroups,  double attendanceRate,  double paymentCollectionRate,  int upcomingExams,  List<Map<String, dynamic>> recentAttendance,  List<Map<String, dynamic>> recentPayments,  bool isLoading,  String? error)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int totalStudents,  int totalGroups,  int totalAssistants,  int totalExams,  double attendanceRate,  double paymentCollectionRate,  int upcomingExams,  List<Map<String, dynamic>> recentAttendance,  List<Map<String, dynamic>> recentPayments,  bool isLoading,  String? error)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DashboardState() when $default != null:
-return $default(_that.totalStudents,_that.totalGroups,_that.attendanceRate,_that.paymentCollectionRate,_that.upcomingExams,_that.recentAttendance,_that.recentPayments,_that.isLoading,_that.error);case _:
+return $default(_that.totalStudents,_that.totalGroups,_that.totalAssistants,_that.totalExams,_that.attendanceRate,_that.paymentCollectionRate,_that.upcomingExams,_that.recentAttendance,_that.recentPayments,_that.isLoading,_that.error);case _:
   return orElse();
 
 }
@@ -179,10 +181,10 @@ return $default(_that.totalStudents,_that.totalGroups,_that.attendanceRate,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int totalStudents,  int totalGroups,  double attendanceRate,  double paymentCollectionRate,  int upcomingExams,  List<Map<String, dynamic>> recentAttendance,  List<Map<String, dynamic>> recentPayments,  bool isLoading,  String? error)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int totalStudents,  int totalGroups,  int totalAssistants,  int totalExams,  double attendanceRate,  double paymentCollectionRate,  int upcomingExams,  List<Map<String, dynamic>> recentAttendance,  List<Map<String, dynamic>> recentPayments,  bool isLoading,  String? error)  $default,) {final _that = this;
 switch (_that) {
 case _DashboardState():
-return $default(_that.totalStudents,_that.totalGroups,_that.attendanceRate,_that.paymentCollectionRate,_that.upcomingExams,_that.recentAttendance,_that.recentPayments,_that.isLoading,_that.error);case _:
+return $default(_that.totalStudents,_that.totalGroups,_that.totalAssistants,_that.totalExams,_that.attendanceRate,_that.paymentCollectionRate,_that.upcomingExams,_that.recentAttendance,_that.recentPayments,_that.isLoading,_that.error);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -199,10 +201,10 @@ return $default(_that.totalStudents,_that.totalGroups,_that.attendanceRate,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int totalStudents,  int totalGroups,  double attendanceRate,  double paymentCollectionRate,  int upcomingExams,  List<Map<String, dynamic>> recentAttendance,  List<Map<String, dynamic>> recentPayments,  bool isLoading,  String? error)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int totalStudents,  int totalGroups,  int totalAssistants,  int totalExams,  double attendanceRate,  double paymentCollectionRate,  int upcomingExams,  List<Map<String, dynamic>> recentAttendance,  List<Map<String, dynamic>> recentPayments,  bool isLoading,  String? error)?  $default,) {final _that = this;
 switch (_that) {
 case _DashboardState() when $default != null:
-return $default(_that.totalStudents,_that.totalGroups,_that.attendanceRate,_that.paymentCollectionRate,_that.upcomingExams,_that.recentAttendance,_that.recentPayments,_that.isLoading,_that.error);case _:
+return $default(_that.totalStudents,_that.totalGroups,_that.totalAssistants,_that.totalExams,_that.attendanceRate,_that.paymentCollectionRate,_that.upcomingExams,_that.recentAttendance,_that.recentPayments,_that.isLoading,_that.error);case _:
   return null;
 
 }
@@ -214,11 +216,13 @@ return $default(_that.totalStudents,_that.totalGroups,_that.attendanceRate,_that
 
 
 class _DashboardState implements DashboardState {
-  const _DashboardState({this.totalStudents = 0, this.totalGroups = 0, this.attendanceRate = 0.0, this.paymentCollectionRate = 0.0, this.upcomingExams = 0, final  List<Map<String, dynamic>> recentAttendance = const [], final  List<Map<String, dynamic>> recentPayments = const [], this.isLoading = false, this.error}): _recentAttendance = recentAttendance,_recentPayments = recentPayments;
+  const _DashboardState({this.totalStudents = 0, this.totalGroups = 0, this.totalAssistants = 0, this.totalExams = 0, this.attendanceRate = 0.0, this.paymentCollectionRate = 0.0, this.upcomingExams = 0, final  List<Map<String, dynamic>> recentAttendance = const [], final  List<Map<String, dynamic>> recentPayments = const [], this.isLoading = false, this.error}): _recentAttendance = recentAttendance,_recentPayments = recentPayments;
   
 
 @override@JsonKey() final  int totalStudents;
 @override@JsonKey() final  int totalGroups;
+@override@JsonKey() final  int totalAssistants;
+@override@JsonKey() final  int totalExams;
 @override@JsonKey() final  double attendanceRate;
 @override@JsonKey() final  double paymentCollectionRate;
 @override@JsonKey() final  int upcomingExams;
@@ -249,16 +253,16 @@ _$DashboardStateCopyWith<_DashboardState> get copyWith => __$DashboardStateCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DashboardState&&(identical(other.totalStudents, totalStudents) || other.totalStudents == totalStudents)&&(identical(other.totalGroups, totalGroups) || other.totalGroups == totalGroups)&&(identical(other.attendanceRate, attendanceRate) || other.attendanceRate == attendanceRate)&&(identical(other.paymentCollectionRate, paymentCollectionRate) || other.paymentCollectionRate == paymentCollectionRate)&&(identical(other.upcomingExams, upcomingExams) || other.upcomingExams == upcomingExams)&&const DeepCollectionEquality().equals(other._recentAttendance, _recentAttendance)&&const DeepCollectionEquality().equals(other._recentPayments, _recentPayments)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.error, error) || other.error == error));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DashboardState&&(identical(other.totalStudents, totalStudents) || other.totalStudents == totalStudents)&&(identical(other.totalGroups, totalGroups) || other.totalGroups == totalGroups)&&(identical(other.totalAssistants, totalAssistants) || other.totalAssistants == totalAssistants)&&(identical(other.totalExams, totalExams) || other.totalExams == totalExams)&&(identical(other.attendanceRate, attendanceRate) || other.attendanceRate == attendanceRate)&&(identical(other.paymentCollectionRate, paymentCollectionRate) || other.paymentCollectionRate == paymentCollectionRate)&&(identical(other.upcomingExams, upcomingExams) || other.upcomingExams == upcomingExams)&&const DeepCollectionEquality().equals(other._recentAttendance, _recentAttendance)&&const DeepCollectionEquality().equals(other._recentPayments, _recentPayments)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.error, error) || other.error == error));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,totalStudents,totalGroups,attendanceRate,paymentCollectionRate,upcomingExams,const DeepCollectionEquality().hash(_recentAttendance),const DeepCollectionEquality().hash(_recentPayments),isLoading,error);
+int get hashCode => Object.hash(runtimeType,totalStudents,totalGroups,totalAssistants,totalExams,attendanceRate,paymentCollectionRate,upcomingExams,const DeepCollectionEquality().hash(_recentAttendance),const DeepCollectionEquality().hash(_recentPayments),isLoading,error);
 
 @override
 String toString() {
-  return 'DashboardState(totalStudents: $totalStudents, totalGroups: $totalGroups, attendanceRate: $attendanceRate, paymentCollectionRate: $paymentCollectionRate, upcomingExams: $upcomingExams, recentAttendance: $recentAttendance, recentPayments: $recentPayments, isLoading: $isLoading, error: $error)';
+  return 'DashboardState(totalStudents: $totalStudents, totalGroups: $totalGroups, totalAssistants: $totalAssistants, totalExams: $totalExams, attendanceRate: $attendanceRate, paymentCollectionRate: $paymentCollectionRate, upcomingExams: $upcomingExams, recentAttendance: $recentAttendance, recentPayments: $recentPayments, isLoading: $isLoading, error: $error)';
 }
 
 
@@ -269,7 +273,7 @@ abstract mixin class _$DashboardStateCopyWith<$Res> implements $DashboardStateCo
   factory _$DashboardStateCopyWith(_DashboardState value, $Res Function(_DashboardState) _then) = __$DashboardStateCopyWithImpl;
 @override @useResult
 $Res call({
- int totalStudents, int totalGroups, double attendanceRate, double paymentCollectionRate, int upcomingExams, List<Map<String, dynamic>> recentAttendance, List<Map<String, dynamic>> recentPayments, bool isLoading, String? error
+ int totalStudents, int totalGroups, int totalAssistants, int totalExams, double attendanceRate, double paymentCollectionRate, int upcomingExams, List<Map<String, dynamic>> recentAttendance, List<Map<String, dynamic>> recentPayments, bool isLoading, String? error
 });
 
 
@@ -286,10 +290,12 @@ class __$DashboardStateCopyWithImpl<$Res>
 
 /// Create a copy of DashboardState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? totalStudents = null,Object? totalGroups = null,Object? attendanceRate = null,Object? paymentCollectionRate = null,Object? upcomingExams = null,Object? recentAttendance = null,Object? recentPayments = null,Object? isLoading = null,Object? error = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? totalStudents = null,Object? totalGroups = null,Object? totalAssistants = null,Object? totalExams = null,Object? attendanceRate = null,Object? paymentCollectionRate = null,Object? upcomingExams = null,Object? recentAttendance = null,Object? recentPayments = null,Object? isLoading = null,Object? error = freezed,}) {
   return _then(_DashboardState(
 totalStudents: null == totalStudents ? _self.totalStudents : totalStudents // ignore: cast_nullable_to_non_nullable
 as int,totalGroups: null == totalGroups ? _self.totalGroups : totalGroups // ignore: cast_nullable_to_non_nullable
+as int,totalAssistants: null == totalAssistants ? _self.totalAssistants : totalAssistants // ignore: cast_nullable_to_non_nullable
+as int,totalExams: null == totalExams ? _self.totalExams : totalExams // ignore: cast_nullable_to_non_nullable
 as int,attendanceRate: null == attendanceRate ? _self.attendanceRate : attendanceRate // ignore: cast_nullable_to_non_nullable
 as double,paymentCollectionRate: null == paymentCollectionRate ? _self.paymentCollectionRate : paymentCollectionRate // ignore: cast_nullable_to_non_nullable
 as double,upcomingExams: null == upcomingExams ? _self.upcomingExams : upcomingExams // ignore: cast_nullable_to_non_nullable

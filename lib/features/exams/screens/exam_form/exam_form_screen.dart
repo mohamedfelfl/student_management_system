@@ -37,12 +37,13 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
       if (exam.isNotEmpty) {
         _nameController.text = exam['name']?.toString() ?? '';
         final fullMark = exam['full_mark'];
-        _fullMarkController.text = fullMark is num 
-            ? fullMark.toStringAsFixed(0) 
+        _fullMarkController.text = fullMark is num
+            ? fullMark.toStringAsFixed(0)
             : fullMark?.toString() ?? '';
-        
+
         if (exam['date'] != null) {
-          _selectedDate = DateTime.tryParse(exam['date'].toString()) ?? DateTime.now();
+          _selectedDate =
+              DateTime.tryParse(exam['date'].toString()) ?? DateTime.now();
         }
       }
       _loadExamGroups();
@@ -50,7 +51,9 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
   }
 
   Future<void> _loadExamGroups() async {
-    final groups = await context.read<ExamCubit>().getExamGroups(widget.examId!);
+    final groups = await context.read<ExamCubit>().getExamGroups(
+      widget.examId!,
+    );
     if (mounted) {
       setState(() {
         _selectedGroupIds.clear();
@@ -72,7 +75,11 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.examId != null ? LocaleKeys.edit_exam.tr() : LocaleKeys.add_exam.tr()),
+        title: Text(
+          widget.examId != null
+              ? LocaleKeys.edit_exam.tr()
+              : LocaleKeys.add_exam.tr(),
+        ),
         leading: IconButton(
           onPressed: () => context.router.maybePop(),
           icon: const Icon(Icons.arrow_back),
@@ -85,8 +92,12 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
             constraints: BoxConstraints(maxWidth: 800.w),
             child: Card(
               elevation: 0,
-              color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24.r)),
+              color: Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24.r),
+              ),
               child: Padding(
                 padding: EdgeInsets.all(32.r),
                 child: Form(
@@ -95,7 +106,9 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        widget.examId != null ? LocaleKeys.edit_exam.tr() : LocaleKeys.add_exam.tr(),
+                        widget.examId != null
+                            ? LocaleKeys.edit_exam.tr()
+                            : LocaleKeys.add_exam.tr(),
                         style: textTheme.headlineLarge,
                       ),
                       SizedBox(height: 32.h),
@@ -105,7 +118,9 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
                           labelText: LocaleKeys.exam_name.tr(),
                           prefixIcon: const Icon(Icons.description),
                         ),
-                        validator: (value) => value?.isEmpty ?? true ? LocaleKeys.required_field.tr() : null,
+                        validator: (value) => value?.isEmpty ?? true
+                            ? LocaleKeys.required_field.tr()
+                            : null,
                       ),
                       SizedBox(height: 20.h),
                       TextFormField(
@@ -115,8 +130,12 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
                           prefixIcon: const Icon(Icons.score),
                         ),
                         keyboardType: TextInputType.number,
-                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                        validator: (value) => value?.isEmpty ?? true ? LocaleKeys.required_field.tr() : null,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        validator: (value) => value?.isEmpty ?? true
+                            ? LocaleKeys.required_field.tr()
+                            : null,
                       ),
                       SizedBox(height: 20.h),
                       InkWell(
@@ -143,7 +162,9 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
                       SizedBox(height: 32.h),
                       Text(
                         LocaleKeys.link_to_groups.tr(),
-                        style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       SizedBox(height: 12.h),
                       BlocBuilder<ExamCubit, ExamState>(
@@ -156,7 +177,8 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
                             runSpacing: 8.h,
                             children: state.groups.map((group) {
                               final int groupId = group['id'] as int;
-                              final bool isSelected = _selectedGroupIds.contains(groupId);
+                              final bool isSelected = _selectedGroupIds
+                                  .contains(groupId);
                               return FilterChip(
                                 label: Text(group['name'] as String),
                                 selected: isSelected,
@@ -181,11 +203,18 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
                         child: ElevatedButton(
                           onPressed: _submit,
                           style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16.r),
+                            ),
                           ),
                           child: Text(
-                            widget.examId != null ? LocaleKeys.update.tr() : LocaleKeys.create_exam.tr(),
-                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            widget.examId != null
+                                ? LocaleKeys.update.tr()
+                                : LocaleKeys.create_exam.tr(),
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
@@ -202,7 +231,7 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
 
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    
+
     final examData = {
       'name': _nameController.text.trim(),
       'full_mark': double.parse(_fullMarkController.text),
@@ -210,11 +239,18 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
     };
 
     if (widget.examId != null) {
-      await context.read<ExamCubit>().updateExam(widget.examId!, examData, groupIds: _selectedGroupIds);
+      await context.read<ExamCubit>().updateExam(
+        widget.examId!,
+        examData,
+        groupIds: _selectedGroupIds,
+      );
     } else {
-      await context.read<ExamCubit>().createExam(examData, groupIds: _selectedGroupIds);
+      await context.read<ExamCubit>().createExam(
+        examData,
+        groupIds: _selectedGroupIds,
+      );
     }
-    
+
     if (mounted) {
       context.router.maybePop();
     }

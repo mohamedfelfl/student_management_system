@@ -28,13 +28,15 @@ class PaymentsTab extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               FilledButton.icon(
-                onPressed: () => context.router.push(
-                  PaymentListRoute(studentId: studentId),
-                ),
+                onPressed: () =>
+                    context.router.push(PaymentListRoute(studentId: studentId)),
                 icon: const Icon(Icons.open_in_new, size: 18),
                 label: Text(LocaleKeys.payments_tracking.tr()),
                 style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                   visualDensity: VisualDensity.compact,
                 ),
               ),
@@ -71,7 +73,8 @@ class PaymentsTab extends StatelessWidget {
                               ? LocaleKeys.payment_disabled_free_student.tr()
                               : LocaleKeys.no_payment_records.tr(),
                           textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          style: Theme.of(context).textTheme.bodyLarge
+                              ?.copyWith(
                                 color: isFree
                                     ? Theme.of(context).colorScheme.error
                                     : null,
@@ -125,7 +128,9 @@ class PaymentsTab extends StatelessWidget {
                               children: [
                                 Text(
                                   '${p['month']}/${p['year']}',
-                                  style: Theme.of(context).textTheme.titleMedium,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium,
                                 ),
                                 const SizedBox(height: 4),
                                 Text(

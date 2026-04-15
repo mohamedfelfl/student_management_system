@@ -27,7 +27,7 @@ class GroupCubit extends Cubit<GroupState> {
     emit(state.copyWith(isLoading: true, error: null));
     try {
       final db = await _databaseService.database;
-      
+
       // Load groups with student count
       final groupResults = await db.rawQuery('''
         SELECT g.*, COUNT(s.id) as student_count
@@ -36,24 +36,24 @@ class GroupCubit extends Cubit<GroupState> {
         GROUP BY g.id
         ORDER BY g.name ASC
       ''');
-      
+
       final List<Map<String, dynamic>> groupsWithSchedules = [];
-      
+
       for (final g in groupResults) {
         final mutableGroup = Map<String, dynamic>.from(g);
         final groupId = g['id'];
-        
+
         // Load schedules for this group
         final scheduleResults = await db.query(
           'group_schedules',
           where: 'group_id = ?',
           whereArgs: [groupId],
         );
-        
+
         mutableGroup['schedules'] = scheduleResults;
         groupsWithSchedules.add(mutableGroup);
       }
-      
+
       emit(state.copyWith(groups: groupsWithSchedules, isLoading: false));
     } catch (e) {
       emit(state.copyWith(error: e.toString(), isLoading: false));
@@ -62,13 +62,13 @@ class GroupCubit extends Cubit<GroupState> {
 
   Future<void> createGroup(Map<String, dynamic> data) async {
     try {
-      final List<Map<String, dynamic>> schedules = 
+      final List<Map<String, dynamic>> schedules =
           List<Map<String, dynamic>>.from(data.remove('schedules') ?? []);
-      
+
       final db = await _databaseService.database;
       await db.transaction((txn) async {
         final groupId = await txn.insert('groups', data);
-        
+
         for (final schedule in schedules) {
           await txn.insert('group_schedules', {
             ...schedule,
@@ -76,7 +76,7 @@ class GroupCubit extends Cubit<GroupState> {
           });
         }
       });
-      
+
       await loadGroups();
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
@@ -85,24 +85,25 @@ class GroupCubit extends Cubit<GroupState> {
 
   Future<void> updateGroup(int id, Map<String, dynamic> data) async {
     try {
-      final List<Map<String, dynamic>> schedules = 
+      final List<Map<String, dynamic>> schedules =
           List<Map<String, dynamic>>.from(data.remove('schedules') ?? []);
-          
+
       final db = await _databaseService.database;
       await db.transaction((txn) async {
         await txn.update('groups', data, where: 'id = ?', whereArgs: [id]);
-        
+
         // Refresh schedules: delete and re-insert
-        await txn.delete('group_schedules', where: 'group_id = ?', whereArgs: [id]);
-        
+        await txn.delete(
+          'group_schedules',
+          where: 'group_id = ?',
+          whereArgs: [id],
+        );
+
         for (final schedule in schedules) {
-          await txn.insert('group_schedules', {
-            ...schedule,
-            'group_id': id,
-          });
+          await txn.insert('group_schedules', {...schedule, 'group_id': id});
         }
       });
-      
+
       await loadGroups();
     } catch (e) {
       emit(state.copyWith(error: e.toString()));

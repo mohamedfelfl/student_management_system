@@ -11,8 +11,14 @@ import '../../../assistants/cubits/assistant_cubit.dart';
 import '../../../groups/cubits/group_cubit.dart';
 import '../../../notes/cubits/notes_cubit.dart';
 import '../../../students/cubits/student_cubit.dart';
+import '../../../exams/cubits/exam_cubit.dart';
 import '../../cubits/report_cubit.dart';
+
 enum NotesReportMode { all, student, group }
+
+enum HRFilterType { exam, group }
+
+const List<int> _limitOptions = [3, 5, 10, 20, 50, 100];
 
 @RoutePage()
 class ReportScreen extends StatefulWidget {
@@ -25,8 +31,6 @@ class ReportScreen extends StatefulWidget {
 class _ReportScreenState extends State<ReportScreen> {
   ReportType _selectedType = ReportType.student;
   int? _selectedStudentId;
-  double? _minScore;
-  double? _maxScore;
   DateTime? _fromDate;
   DateTime? _toDate;
   int? _selectedGroupId;
@@ -35,6 +39,12 @@ class _ReportScreenState extends State<ReportScreen> {
   int? _selectedNoteGroupId;
   NotesReportMode _notesReportMode = NotesReportMode.all;
 
+  // Highest Marks specific
+  HRFilterType _hMarksFilterType = HRFilterType.exam;
+  int? _hMarksExamId;
+  int? _hMarksGroupId;
+  int _hMarksLimit = 10;
+
   @override
   void initState() {
     super.initState();
@@ -42,6 +52,7 @@ class _ReportScreenState extends State<ReportScreen> {
     context.read<GroupCubit>().loadGroups();
     context.read<AssistantCubit>().loadAssistants();
     context.read<NotesCubit>().loadNotes();
+    context.read<ExamCubit>().loadExams();
   }
 
   @override
@@ -63,6 +74,7 @@ class _ReportScreenState extends State<ReportScreen> {
                   build: (format) => state.pdfDocument!.save(),
                   canChangeOrientation: false,
                   canChangePageFormat: false,
+                  canDebug: false,
                 ),
               ),
             ),
@@ -148,8 +160,9 @@ class _ReportScreenState extends State<ReportScreen> {
                   ChoiceChip(
                     label: Text(LocaleKeys.report_notes_delivery.tr()),
                     selected: _selectedType == ReportType.notesDelivery,
-                    onSelected: (_) =>
-                        setState(() => _selectedType = ReportType.notesDelivery),
+                    onSelected: (_) => setState(
+                      () => _selectedType = ReportType.notesDelivery,
+                    ),
                   ),
                 ],
               ),
@@ -335,126 +348,171 @@ class _ReportScreenState extends State<ReportScreen> {
   }
 
   Widget _buildHighestMarksReport(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final minController = TextEditingController(
-      text: _minScore?.toString() ?? '',
-    );
-    final maxController = TextEditingController(
-      text: _maxScore?.toString() ?? '',
-    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Filter Type Toggle
+        SizedBox(
+          width: double.infinity,
+          child: Padding(
+            padding: EdgeInsets.only(bottom: 24.h),
+            child: SegmentedButton<HRFilterType>(
+              segments: [
+                ButtonSegment(
+                  value: HRFilterType.exam,
+                  label: Text(LocaleKeys.exam.tr()),
+                  icon: const Icon(Icons.quiz),
+                ),
+                ButtonSegment(
+                  value: HRFilterType.group,
+                  label: Text(LocaleKeys.groups.tr()),
+                  icon: const Icon(Icons.groups),
+                ),
+              ],
+              style: SegmentedButton.styleFrom(
+                visualDensity: VisualDensity.comfortable,
+                padding: EdgeInsets.symmetric(vertical: 12.h),
+              ),
+              selected: {_hMarksFilterType},
+              onSelectionChanged: (set) {
+                setState(() {
+                  _hMarksFilterType = set.first;
+                  _hMarksExamId = null;
+                  _hMarksGroupId = null;
+                });
+              },
+            ),
+          ),
+        ),
 
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            LocaleKeys.filter_score_range.tr(),
-            style: textTheme.titleMedium,
-          ),
-          SizedBox(height: 12.h),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: minController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: LocaleKeys.min_score.tr(),
-                  ),
-                  onChanged: (v) => _minScore = double.tryParse(v),
-                ),
-              ),
-              SizedBox(width: 16.w),
-              Expanded(
-                child: TextField(
-                  controller: maxController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: LocaleKeys.max_score.tr(),
-                  ),
-                  onChanged: (v) => _maxScore = double.tryParse(v),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 16.h),
-          Text(LocaleKeys.filter_date_range.tr(), style: textTheme.titleMedium),
-          SizedBox(height: 12.h),
-          Row(
-            children: [
-              Expanded(
-                child: ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(
-                    _fromDate?.toIso8601String().split('T').first ??
-                        LocaleKeys.from_date.tr(),
-                  ),
-                  leading: const Icon(Icons.calendar_today),
-                  onTap: () async {
-                    final d = await showDatePicker(
-                      context: context,
-                      initialDate: _fromDate ?? DateTime.now(),
-                      firstDate: DateTime(2020),
-                      lastDate: DateTime(2030),
-                    );
-                    if (d != null) setState(() => _fromDate = d);
-                  },
-                ),
-              ),
-              Expanded(
-                child: ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(
-                    _toDate?.toIso8601String().split('T').first ??
-                        LocaleKeys.to_date.tr(),
-                  ),
-                  leading: const Icon(Icons.calendar_today),
-                  onTap: () async {
-                    final d = await showDatePicker(
-                      context: context,
-                      initialDate: _toDate ?? DateTime.now(),
-                      firstDate: DateTime(2020),
-                      lastDate: DateTime(2030),
-                    );
-                    if (d != null) setState(() => _toDate = d);
-                  },
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 24.h),
-          BlocBuilder<ReportCubit, ReportState>(
+        // Specific Selection Dropdown
+        if (_hMarksFilterType == HRFilterType.exam)
+          BlocBuilder<ExamCubit, ExamState>(
             builder: (context, state) {
-              return SizedBox(
-                width: double.infinity,
-                height: 52.h,
-                child: ElevatedButton.icon(
-                  onPressed: state.isLoading
-                      ? null
-                      : () => context
-                            .read<ReportCubit>()
-                            .generateHighestMarksReport(
-                              minScore: _minScore,
-                              maxScore: _maxScore,
-                              fromDate: _fromDate,
-                              toDate: _toDate,
-                            ),
-                  icon: state.isLoading
-                      ? SizedBox(
-                          width: 20.r,
-                          height: 20.r,
-                          child: const CircularProgressIndicator(
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Icon(Icons.picture_as_pdf),
-                  label: Text(LocaleKeys.generate_report.tr()),
-                ),
+              return _buildReportDropdown<int?>(
+                label: LocaleKeys.select_exam_hint.tr(),
+                value: _hMarksExamId,
+                items: state.exams
+                    .map(
+                      (e) => DropdownMenuItem(
+                        value: e['id'] as int,
+                        child: Text(e['name'] as String),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (v) => setState(() => _hMarksExamId = v),
+                icon: Icons.description,
+              );
+            },
+          )
+        else
+          BlocBuilder<GroupCubit, GroupState>(
+            builder: (context, state) {
+              return _buildReportDropdown<int?>(
+                label: LocaleKeys.select_group_hint.tr(),
+                value: _hMarksGroupId,
+                items: state.groups
+                    .map(
+                      (g) => DropdownMenuItem(
+                        value: g['id'] as int,
+                        child: Text(g['name'] as String),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (v) => setState(() => _hMarksGroupId = v),
+                icon: Icons.groups,
               );
             },
           ),
-        ],
+
+        SizedBox(height: 16.h),
+
+        // Limit Dropdown
+        _buildReportDropdown<int>(
+          label: LocaleKeys.limit.tr(),
+          value: _hMarksLimit,
+          items: _limitOptions
+              .map((n) => DropdownMenuItem(value: n, child: Text(n.toString())))
+              .toList(),
+          onChanged: (v) {
+            if (v != null) setState(() => _hMarksLimit = v);
+          },
+          icon: Icons.format_list_numbered,
+        ),
+
+        const Spacer(),
+
+        // Generate Button
+        BlocBuilder<ReportCubit, ReportState>(
+          builder: (context, state) {
+            final hasSelection = (_hMarksFilterType == HRFilterType.exam
+                ? _hMarksExamId != null
+                : _hMarksGroupId != null);
+
+            return SizedBox(
+              width: double.infinity,
+              height: 52.h,
+              child: ElevatedButton.icon(
+                onPressed: state.isLoading || !hasSelection
+                    ? null
+                    : () => context
+                          .read<ReportCubit>()
+                          .generateHighestMarksReport(
+                            examId: _hMarksExamId,
+                            groupId: _hMarksGroupId,
+                            limit: _hMarksLimit,
+                          ),
+                icon: state.isLoading
+                    ? SizedBox(
+                        width: 20.r,
+                        height: 20.r,
+                        child: const CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.picture_as_pdf),
+                label: Text(LocaleKeys.generate_report.tr()),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildReportDropdown<T>({
+    required String label,
+    required T value,
+    required List<DropdownMenuItem<T>> items,
+    required ValueChanged<T?> onChanged,
+    required IconData icon,
+  }) {
+    final theme = Theme.of(context);
+    return DropdownButtonFormField<T>(
+      initialValue: value,
+      items: items,
+      onChanged: onChanged,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, color: theme.colorScheme.primary),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16.r),
+          borderSide: BorderSide(color: theme.colorScheme.outlineVariant),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16.r),
+          borderSide: BorderSide(color: theme.colorScheme.outlineVariant),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16.r),
+          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
+        ),
+        filled: true,
+        fillColor: theme.brightness == Brightness.dark
+            ? theme.colorScheme.surfaceContainerLow
+            : Colors.grey[50],
       ),
+      icon: const Icon(Icons.arrow_drop_down),
+      dropdownColor: theme.colorScheme.surface,
+      borderRadius: BorderRadius.circular(16.r),
     );
   }
 
@@ -715,151 +773,152 @@ class _ReportScreenState extends State<ReportScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-          Text(LocaleKeys.report_notes_delivery.tr(), style: textTheme.titleMedium),
-          SizedBox(height: 12.h),
-          
-          // Mode selector
-          Center(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: SegmentedButton<NotesReportMode>(
-                segments: [
-                  ButtonSegment(
-                    value: NotesReportMode.all,
-                    label: Text(LocaleKeys.all_students.tr()),
-                    icon: const Icon(Icons.people),
-                  ),
-                  ButtonSegment(
-                    value: NotesReportMode.student,
-                    label: Text(LocaleKeys.student.tr()),
-                    icon: const Icon(Icons.person),
-                  ),
-                  ButtonSegment(
-                    value: NotesReportMode.group,
-                    label: Text(LocaleKeys.select_group.tr()),
-                    icon: const Icon(Icons.groups),
-                  ),
-                ],
-                selected: {_notesReportMode},
-                onSelectionChanged: (value) {
-                  setState(() {
-                    _notesReportMode = value.first;
-                    _selectedNoteStudentId = null;
-                    _selectedNoteGroupId = null;
-                  });
-                },
-              ),
+        Text(
+          LocaleKeys.report_notes_delivery.tr(),
+          style: textTheme.titleMedium,
+        ),
+        SizedBox(height: 12.h),
+
+        // Mode selector
+        Center(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: SegmentedButton<NotesReportMode>(
+              segments: [
+                ButtonSegment(
+                  value: NotesReportMode.all,
+                  label: Text(LocaleKeys.all_students.tr()),
+                  icon: const Icon(Icons.people),
+                ),
+                ButtonSegment(
+                  value: NotesReportMode.student,
+                  label: Text(LocaleKeys.student.tr()),
+                  icon: const Icon(Icons.person),
+                ),
+                ButtonSegment(
+                  value: NotesReportMode.group,
+                  label: Text(LocaleKeys.select_group.tr()),
+                  icon: const Icon(Icons.groups),
+                ),
+              ],
+              selected: {_notesReportMode},
+              onSelectionChanged: (value) {
+                setState(() {
+                  _notesReportMode = value.first;
+                  _selectedNoteStudentId = null;
+                  _selectedNoteGroupId = null;
+                });
+              },
             ),
           ),
-          SizedBox(height: 24.h),
+        ),
+        SizedBox(height: 24.h),
 
-          if (_notesReportMode == NotesReportMode.student) ...[
-            // Student selector
-            BlocBuilder<StudentCubit, StudentState>(
-              builder: (context, state) {
-                return LayoutBuilder(
-                  builder: (context, constraints) {
-                    return DropdownMenu<int?>(
-                      width: constraints.maxWidth,
-                      initialSelection: _selectedNoteStudentId,
-                      label: Text(LocaleKeys.student.tr()),
-                      leadingIcon: const Icon(Icons.person),
-                      enableSearch: true,
-                      enableFilter: true,
-                      dropdownMenuEntries: [
-                        ...state.students.map(
-                          (s) => DropdownMenuEntry<int?>(
-                            value: s['id'] as int,
-                            label: '${s['name']} (${s['serial_number']})',
-                          ),
-                        ),
-                      ],
-                      onSelected: (v) {
-                        setState(() {
-                          _selectedNoteStudentId = v;
-                        });
-                      },
-                    );
-                  },
-                );
-              },
-            ),
-            SizedBox(height: 16.h),
-          ],
-
-          if (_notesReportMode == NotesReportMode.group) ...[
-            // Group selector
-            BlocBuilder<GroupCubit, GroupState>(
-              builder: (context, state) {
-                return LayoutBuilder(
-                  builder: (context, constraints) {
-                    return DropdownMenu<int?>(
-                      width: constraints.maxWidth,
-                      initialSelection: _selectedNoteGroupId,
-                      label: Text(LocaleKeys.select_group.tr()),
-                      leadingIcon: const Icon(Icons.groups),
-                      enableSearch: true,
-                      enableFilter: true,
-                      dropdownMenuEntries: [
-                        ...state.groups.map(
-                          (g) => DropdownMenuEntry<int?>(
-                            value: g['id'] as int,
-                            label: g['name'] as String,
-                          ),
-                        ),
-                      ],
-                      onSelected: (v) {
-                        setState(() {
-                          _selectedNoteGroupId = v;
-                        });
-                      },
-                    );
-                  },
-                );
-              },
-            ),
-            SizedBox(height: 16.h),
-          ],
-
-          BlocBuilder<ReportCubit, ReportState>(
+        if (_notesReportMode == NotesReportMode.student) ...[
+          // Student selector
+          BlocBuilder<StudentCubit, StudentState>(
             builder: (context, state) {
-              return SizedBox(
-                width: double.infinity,
-                height: 52.h,
-                child: ElevatedButton.icon(
-                  onPressed: state.isLoading
-                      ? null
-                      : () {
-                          String? groupName;
-                          if (_selectedNoteGroupId != null) {
-                            final groupState = context.read<GroupCubit>().state;
-                            groupName = groupState.groups.firstWhere(
-                                  (g) => g['id'] == _selectedNoteGroupId,
-                                )['name'] as String;
-                          }
-                          context
-                              .read<ReportCubit>()
-                              .generateNotesDeliveryReport(
-                                studentId: _selectedNoteStudentId,
-                                groupId: _selectedNoteGroupId,
-                                groupName: groupName,
-                              );
-                        },
-                  icon: state.isLoading
-                      ? SizedBox(
-                          width: 20.r,
-                          height: 20.r,
-                          child: const CircularProgressIndicator(
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Icon(Icons.picture_as_pdf),
-                  label: Text(LocaleKeys.generate_report.tr()),
-                ),
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  return DropdownMenu<int?>(
+                    width: constraints.maxWidth,
+                    initialSelection: _selectedNoteStudentId,
+                    label: Text(LocaleKeys.student.tr()),
+                    leadingIcon: const Icon(Icons.person),
+                    enableSearch: true,
+                    enableFilter: true,
+                    dropdownMenuEntries: [
+                      ...state.students.map(
+                        (s) => DropdownMenuEntry<int?>(
+                          value: s['id'] as int,
+                          label: '${s['name']} (${s['serial_number']})',
+                        ),
+                      ),
+                    ],
+                    onSelected: (v) {
+                      setState(() {
+                        _selectedNoteStudentId = v;
+                      });
+                    },
+                  );
+                },
               );
             },
           ),
+          SizedBox(height: 16.h),
         ],
+
+        if (_notesReportMode == NotesReportMode.group) ...[
+          // Group selector
+          BlocBuilder<GroupCubit, GroupState>(
+            builder: (context, state) {
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  return DropdownMenu<int?>(
+                    width: constraints.maxWidth,
+                    initialSelection: _selectedNoteGroupId,
+                    label: Text(LocaleKeys.select_group.tr()),
+                    leadingIcon: const Icon(Icons.groups),
+                    enableSearch: true,
+                    enableFilter: true,
+                    dropdownMenuEntries: [
+                      ...state.groups.map(
+                        (g) => DropdownMenuEntry<int?>(
+                          value: g['id'] as int,
+                          label: g['name'] as String,
+                        ),
+                      ),
+                    ],
+                    onSelected: (v) {
+                      setState(() {
+                        _selectedNoteGroupId = v;
+                      });
+                    },
+                  );
+                },
+              );
+            },
+          ),
+          SizedBox(height: 16.h),
+        ],
+
+        BlocBuilder<ReportCubit, ReportState>(
+          builder: (context, state) {
+            return SizedBox(
+              width: double.infinity,
+              height: 52.h,
+              child: ElevatedButton.icon(
+                onPressed: state.isLoading
+                    ? null
+                    : () {
+                        String? groupName;
+                        if (_selectedNoteGroupId != null) {
+                          final groupState = context.read<GroupCubit>().state;
+                          groupName =
+                              groupState.groups.firstWhere(
+                                    (g) => g['id'] == _selectedNoteGroupId,
+                                  )['name']
+                                  as String;
+                        }
+                        context.read<ReportCubit>().generateNotesDeliveryReport(
+                          studentId: _selectedNoteStudentId,
+                          groupId: _selectedNoteGroupId,
+                          groupName: groupName,
+                        );
+                      },
+                icon: state.isLoading
+                    ? SizedBox(
+                        width: 20.r,
+                        height: 20.r,
+                        child: const CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.picture_as_pdf),
+                label: Text(LocaleKeys.generate_report.tr()),
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 }

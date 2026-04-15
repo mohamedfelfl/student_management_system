@@ -8,7 +8,7 @@ class SettingsService {
   final DatabaseService _databaseService;
 
   SettingsService({required DatabaseService databaseService})
-      : _databaseService = databaseService;
+    : _databaseService = databaseService;
 
   /// Get a setting value by key.
   Future<String?> get(String key) async {
@@ -54,15 +54,11 @@ class SettingsService {
   Future<void> set(String key, String value) async {
     try {
       final Database db = await _databaseService.database;
-      await db.insert(
-        'app_settings',
-        {
-          'key': key,
-          'value': value,
-          'updated_at': DateTime.now().toIso8601String(),
-        },
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+      await db.insert('app_settings', {
+        'key': key,
+        'value': value,
+        'updated_at': DateTime.now().toIso8601String(),
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
     } catch (e) {
       if (kDebugMode) {
         print('SettingsService: Error writing setting "$key": $e');
@@ -86,10 +82,9 @@ class SettingsService {
       final Database db = await _databaseService.database;
       final results = await db.query('app_settings');
       return Map.fromEntries(
-        results.map((row) => MapEntry(
-              row['key'] as String,
-              row['value'] as String,
-            )),
+        results.map(
+          (row) => MapEntry(row['key'] as String, row['value'] as String),
+        ),
       );
     } catch (e) {
       if (kDebugMode) {
@@ -129,7 +124,8 @@ abstract class SettingsKeys {
 
   // Backup
   static const autoBackupEnabled = 'auto_backup_enabled';
-  static const autoBackupSchedule = 'auto_backup_schedule'; // 'daily', 'weekly', 'on_close'
+  static const autoBackupSchedule =
+      'auto_backup_schedule'; // 'daily', 'weekly', 'on_close'
   static const maxBackups = 'max_backups';
 
   // Privacy

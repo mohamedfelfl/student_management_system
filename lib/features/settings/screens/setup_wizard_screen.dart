@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import '../../../app/di/injection.dart';
@@ -16,7 +17,6 @@ import '../services/settings_service.dart';
 /// Shown when no admin user exists. Guides the user through:
 /// 1. Creating an admin account (username + password)
 /// 2. Binding the device (hardware fingerprint + license key)
-/// 3. Setting the academic year
 @RoutePage()
 class SetupWizardScreen extends StatefulWidget {
   const SetupWizardScreen({super.key});
@@ -44,9 +44,6 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
   bool _isBindingDevice = false;
   bool _deviceBound = false;
 
-  // Step 3: Academic year
-  final _academicYearController = TextEditingController();
-
   bool _isSubmitting = false;
 
   @override
@@ -71,7 +68,6 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
     _usernameController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
-    _academicYearController.dispose();
     super.dispose();
   }
 
@@ -129,8 +125,10 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 32,
+                ),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 520),
                   child: Column(
@@ -144,8 +142,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: colorScheme.primary
-                                  .withValues(alpha: 0.1),
+                              color: colorScheme.primary.withValues(alpha: 0.1),
                               blurRadius: 16,
                               offset: const Offset(0, 8),
                             ),
@@ -186,8 +183,6 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                           _buildStepIndicator(0, 'Account', Icons.person),
                           _buildStepConnector(0),
                           _buildStepIndicator(1, 'Device', Icons.devices),
-                          _buildStepConnector(1),
-                          _buildStepIndicator(2, 'Year', Icons.school),
                         ],
                       ),
                       const SizedBox(height: 32),
@@ -203,8 +198,9 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                           ),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: colorScheme.outlineVariant
-                                .withValues(alpha: 0.2),
+                            color: colorScheme.outlineVariant.withValues(
+                              alpha: 0.2,
+                            ),
                           ),
                           boxShadow: [
                             BoxShadow(
@@ -215,15 +211,23 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                           ],
                         ),
                         child: SizedBox(
-                          height: 340,
+                          height: 420,
                           child: PageView(
                             controller: _pageController,
                             physics: const NeverScrollableScrollPhysics(),
                             children: [
-                              _buildStep1Account(colorScheme, textTheme),
-                              _buildStep2Device(colorScheme, textTheme),
-                              _buildStep3AcademicYear(
-                                  colorScheme, textTheme),
+                              SingleChildScrollView(
+                                child: _buildStep1Account(
+                                  colorScheme,
+                                  textTheme,
+                                ),
+                              ),
+                              SingleChildScrollView(
+                                child: _buildStep2Device(
+                                  colorScheme,
+                                  textTheme,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -233,19 +237,41 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                       // Navigation buttons
                       Row(
                         children: [
-                          if (_currentStep > 0)
-                            OutlinedButton(
-                              onPressed: _previousStep,
-                              child: const Text('Back'),
+                          Expanded(
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: _currentStep > 0
+                                  ? OutlinedButton(
+                                      onPressed: _previousStep,
+                                      style: OutlinedButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 24,
+                                          vertical: 16,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                      ),
+                                      child: const Text('Back'),
+                                    )
+                                  : const SizedBox.shrink(),
                             ),
-                          const Spacer(),
+                          ),
                           ElevatedButton(
                             onPressed: _isSubmitting ? null : _nextStep,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: colorScheme.primary,
                               foregroundColor: colorScheme.onPrimary,
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 32, vertical: 16),
+                                horizontal: 48,
+                                vertical: 16,
+                              ),
+                              elevation: 2,
+                              shadowColor: colorScheme.primary.withValues(
+                                alpha: 0.3,
+                              ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -259,10 +285,13 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                                       color: Colors.white,
                                     ),
                                   )
-                                : Text(_currentStep == 2
-                                    ? 'Complete Setup'
-                                    : 'Next'),
+                                : Text(
+                                    _currentStep == 1
+                                        ? 'Complete Setup'
+                                        : 'Next',
+                                  ),
                           ),
+                          const Expanded(child: SizedBox.shrink()),
                         ],
                       ),
                     ],
@@ -355,8 +384,9 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
           const SizedBox(height: 8),
           Text(
             'This will be the main administrator account.',
-            style: textTheme.bodyMedium
-                ?.copyWith(color: colorScheme.onSurfaceVariant),
+            style: textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 24),
           TextFormField(
@@ -364,8 +394,9 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
             decoration: InputDecoration(
               labelText: 'Username',
               prefixIcon: const Icon(Icons.person_outline),
-              border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             validator: (v) =>
                 v == null || v.trim().isEmpty ? 'Username is required' : null,
@@ -378,11 +409,13 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
             decoration: InputDecoration(
               labelText: 'Password',
               prefixIcon: const Icon(Icons.lock_outline),
-              border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               suffixIcon: IconButton(
                 icon: Icon(
-                    _obscurePassword ? Icons.visibility_off : Icons.visibility),
+                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                ),
                 onPressed: () =>
                     setState(() => _obscurePassword = !_obscurePassword),
               ),
@@ -397,11 +430,13 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
             decoration: InputDecoration(
               labelText: 'Confirm Password',
               prefixIcon: const Icon(Icons.lock_outline),
-              border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               suffixIcon: IconButton(
                 icon: Icon(
-                    _obscureConfirm ? Icons.visibility_off : Icons.visibility),
+                  _obscureConfirm ? Icons.visibility_off : Icons.visibility,
+                ),
                 onPressed: () =>
                     setState(() => _obscureConfirm = !_obscureConfirm),
               ),
@@ -432,8 +467,9 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
         const SizedBox(height: 8),
         Text(
           'This app will be restricted to this computer only.',
-          style: textTheme.bodyMedium
-              ?.copyWith(color: colorScheme.onSurfaceVariant),
+          style: textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
         ),
         const SizedBox(height: 24),
         Container(
@@ -454,6 +490,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                 _fingerprint.length > 20
                     ? '${_fingerprint.substring(0, 20)}...'
                     : _fingerprint,
+                copyText: _fingerprint,
               ),
             ],
           ),
@@ -465,8 +502,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
             decoration: BoxDecoration(
               color: Colors.green.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                  color: Colors.green.withValues(alpha: 0.3)),
+              border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
             ),
             child: const Row(
               children: [
@@ -509,7 +545,12 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
     );
   }
 
-  Widget _buildDeviceInfoRow(IconData icon, String label, String value) {
+  Widget _buildDeviceInfoRow(
+    IconData icon,
+    String label,
+    String value, {
+    String? copyText,
+  }) {
     final colorScheme = Theme.of(context).colorScheme;
     return Row(
       children: [
@@ -537,64 +578,33 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
             overflow: TextOverflow.ellipsis,
           ),
         ),
+        if (copyText != null) ...[
+          const SizedBox(width: 8),
+          IconButton(
+            onPressed: () async {
+              await Clipboard.setData(ClipboardData(text: copyText));
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Copied to clipboard'),
+                    behavior: SnackBarBehavior.floating,
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              }
+            },
+            icon: const Icon(Icons.copy, size: 16),
+            tooltip: 'Copy',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            color: colorScheme.primary,
+          ),
+        ],
       ],
     );
   }
 
   // ─── STEP 3: ACADEMIC YEAR ───
-
-  Widget _buildStep3AcademicYear(
-      ColorScheme colorScheme, TextTheme textTheme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Set Academic Year',
-          style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Set the current academic year for reports and payments.',
-          style: textTheme.bodyMedium
-              ?.copyWith(color: colorScheme.onSurfaceVariant),
-        ),
-        const SizedBox(height: 24),
-        TextFormField(
-          controller: _academicYearController,
-          decoration: InputDecoration(
-            labelText: 'Academic Year',
-            hintText: 'e.g. 2025/2026',
-            prefixIcon: const Icon(Icons.school),
-            border:
-                OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-        ),
-        const SizedBox(height: 24),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: colorScheme.primaryContainer.withValues(alpha: 0.3),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.info_outline, color: colorScheme.primary, size: 20),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'You can always change this later in Settings.',
-                  style: TextStyle(
-                    color: colorScheme.onSurfaceVariant,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
 
   // ─── NAVIGATION ───
 
@@ -613,8 +623,11 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
     if (_currentStep == 0) {
       if (!(_step1FormKey.currentState?.validate() ?? false)) return;
       setState(() => _currentStep = 1);
-      _pageController.animateToPage(1,
-          duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+      _pageController.animateToPage(
+        1,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
     } else if (_currentStep == 1) {
       if (!_deviceBound) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -625,10 +638,6 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
         );
         return;
       }
-      setState(() => _currentStep = 2);
-      _pageController.animateToPage(2,
-          duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
-    } else if (_currentStep == 2) {
       await _completeSetup();
     }
   }
@@ -666,8 +675,9 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
       final Database db = await dbService.database;
 
       // 1. Create admin user with salted password
-      final (passwordHash, salt) =
-          AuthCubit.hashPasswordWithSalt(_passwordController.text);
+      final (passwordHash, salt) = AuthCubit.hashPasswordWithSalt(
+        _passwordController.text,
+      );
 
       await db.insert('users', {
         'username': _usernameController.text.trim(),
@@ -686,15 +696,6 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
           'manageNotes',
         ]),
       });
-
-      // 2. Save academic year
-      if (_academicYearController.text.trim().isNotEmpty) {
-        final settingsService = getIt<SettingsService>();
-        await settingsService.set(
-          SettingsKeys.academicYear,
-          _academicYearController.text.trim(),
-        );
-      }
 
       // 3. Mark setup as completed
       final settingsService = getIt<SettingsService>();

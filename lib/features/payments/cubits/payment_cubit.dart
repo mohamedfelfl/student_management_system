@@ -21,8 +21,8 @@ class PaymentCubit extends Cubit<PaymentState> {
   final DatabaseService _databaseService;
 
   PaymentCubit({required DatabaseService databaseService})
-      : _databaseService = databaseService,
-        super(const PaymentState());
+    : _databaseService = databaseService,
+      super(const PaymentState());
 
   /// Load payments for a specific student.
   Future<void> loadPayments(int studentId) async {
@@ -39,11 +39,13 @@ class PaymentCubit extends Cubit<PaymentState> {
       // Calculate total surplus (carry-forward) for this student
       final double surplus = _calculateTotalSurplus(results);
 
-      emit(state.copyWith(
-        payments: results,
-        totalSurplus: surplus,
-        isLoading: false,
-      ));
+      emit(
+        state.copyWith(
+          payments: results,
+          totalSurplus: surplus,
+          isLoading: false,
+        ),
+      );
     } catch (e) {
       emit(state.copyWith(error: e.toString(), isLoading: false));
     }
@@ -59,7 +61,7 @@ class PaymentCubit extends Cubit<PaymentState> {
   }) async {
     try {
       final Database db = await _databaseService.database;
-      
+
       await db.insert('payments', <String, Object?>{
         'student_id': studentId,
         'month': month,
@@ -80,19 +82,19 @@ class PaymentCubit extends Cubit<PaymentState> {
     try {
       final Database db = await _databaseService.database;
       final String dateStr = date.toIso8601String().split('T')[0];
-      
-      final List<Map<String, Object?>> results = await db.rawQuery('''
+
+      final List<Map<String, Object?>> results = await db.rawQuery(
+        '''
         SELECT p.*, s.name as student_name
         FROM payments p
         JOIN students s ON p.student_id = s.id
         WHERE p.paid_date LIKE ?
         ORDER BY p.paid_date DESC
-      ''', ['$dateStr%']);
+      ''',
+        ['$dateStr%'],
+      );
 
-      emit(state.copyWith(
-        dailyPayments: results,
-        isLoading: false,
-      ));
+      emit(state.copyWith(dailyPayments: results, isLoading: false));
     } catch (e) {
       emit(state.copyWith(error: e.toString(), isLoading: false));
     }
@@ -101,7 +103,12 @@ class PaymentCubit extends Cubit<PaymentState> {
   Future<void> updatePayment(int id, Map<String, dynamic> data) async {
     try {
       final Database db = await _databaseService.database;
-      await db.update('payments', data, where: 'id = ?', whereArgs: <Object?>[id]);
+      await db.update(
+        'payments',
+        data,
+        where: 'id = ?',
+        whereArgs: <Object?>[id],
+      );
 
       // Reload for the student
       final Object? studentId = data['student_id'];
@@ -135,7 +142,7 @@ class PaymentCubit extends Cubit<PaymentState> {
 
       monthlyPaid[key] = (monthlyPaid[key] ?? 0) + paid;
       // We assume total_amount is the same for all records of the same month
-      monthlyTotal[key] = total; 
+      monthlyTotal[key] = total;
     }
 
     double surplus = 0;

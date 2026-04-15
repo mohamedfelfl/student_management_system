@@ -6,10 +6,7 @@ import 'package:student_management_system/generated/locale_keys.g.dart';
 class SearchResultsIndicator extends StatelessWidget {
   final int count;
 
-  const SearchResultsIndicator({
-    super.key,
-    required this.count,
-  });
+  const SearchResultsIndicator({super.key, required this.count});
 
   @override
   Widget build(BuildContext context) {
@@ -19,10 +16,7 @@ class SearchResultsIndicator extends StatelessWidget {
     return Align(
       alignment: Alignment.centerLeft,
       child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: 18.w,
-          vertical: 12.h,
-        ),
+        padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 12.h),
         decoration: BoxDecoration(
           color: colorScheme.secondaryContainer,
           borderRadius: BorderRadius.circular(20.r),

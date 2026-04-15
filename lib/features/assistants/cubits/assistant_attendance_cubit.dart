@@ -21,19 +21,22 @@ class AssistantAttendanceCubit extends Cubit<AssistantAttendanceState> {
   final DatabaseService _databaseService;
 
   AssistantAttendanceCubit({required DatabaseService databaseService})
-      : _databaseService = databaseService,
-        super(const AssistantAttendanceState());
+    : _databaseService = databaseService,
+      super(const AssistantAttendanceState());
 
   Future<void> loadAttendance(int assistantId) async {
     emit(state.copyWith(isLoading: true, error: null));
     try {
       final Database db = await _databaseService.database;
-      final List<Map<String, Object?>> results = await db.rawQuery('''
+      final List<Map<String, Object?>> results = await db.rawQuery(
+        '''
         SELECT aa.*
         FROM assistant_attendance aa
         WHERE aa.assistant_id = ?
         ORDER BY aa.date DESC, aa.id DESC
-      ''', [assistantId]);
+      ''',
+        [assistantId],
+      );
       emit(state.copyWith(records: results, isLoading: false));
     } catch (e) {
       emit(state.copyWith(error: e.toString(), isLoading: false));
@@ -57,19 +60,25 @@ class AssistantAttendanceCubit extends Cubit<AssistantAttendanceState> {
       if (latest.isNotEmpty) {
         final lastType = latest.first['type'] as String;
         if (lastType == type) {
-          final typeString = type == 'in' ? LocaleKeys.in_type.tr() : LocaleKeys.out_type.tr();
-          emit(state.copyWith(
-            error: LocaleKeys.invalid_attendance_in_out.tr(args: [typeString, typeString]),
-          ));
+          final typeString = type == 'in'
+              ? LocaleKeys.in_type.tr()
+              : LocaleKeys.out_type.tr();
+          emit(
+            state.copyWith(
+              error: LocaleKeys.invalid_attendance_in_out.tr(
+                args: [typeString, typeString],
+              ),
+            ),
+          );
           return;
         }
       } else if (type == 'out') {
-          // If the very first record of the day is "out" we could theoretically restrict it,
-          // but maybe they forgot to sign in. The requirement states:
-          // "the error message tell him that in & out are recorded" - wait, the user said
-          // "first record attendance is in and the second is out if the user to add attendance again for the assiss. the error message tell him that in & out are recorded"
-          // Let's implement specifically that restriction: if there's an IN and OUT for the day, subsequent attempts error.
-          // Let's count records today.
+        // If the very first record of the day is "out" we could theoretically restrict it,
+        // but maybe they forgot to sign in. The requirement states:
+        // "the error message tell him that in & out are recorded" - wait, the user said
+        // "first record attendance is in and the second is out if the user to add attendance again for the assiss. the error message tell him that in & out are recorded"
+        // Let's implement specifically that restriction: if there's an IN and OUT for the day, subsequent attempts error.
+        // Let's count records today.
       }
 
       final List<Map<String, Object?>> allToday = await db.query(
@@ -80,17 +89,13 @@ class AssistantAttendanceCubit extends Cubit<AssistantAttendanceState> {
       );
 
       if (allToday.length >= 2) {
-         emit(state.copyWith(
-            error: LocaleKeys.assistant_attendance_full.tr(),
-          ));
-          return;
+        emit(state.copyWith(error: LocaleKeys.assistant_attendance_full.tr()));
+        return;
       }
 
       if (allToday.isEmpty && type != 'in') {
-         emit(state.copyWith(
-            error: LocaleKeys.first_record_must_be_in.tr(),
-          ));
-          return;
+        emit(state.copyWith(error: LocaleKeys.first_record_must_be_in.tr()));
+        return;
       }
 
       await db.insert('assistant_attendance', <String, Object?>{
@@ -109,7 +114,11 @@ class AssistantAttendanceCubit extends Cubit<AssistantAttendanceState> {
   Future<void> deleteAttendance(int id, int assistantId) async {
     try {
       final Database db = await _databaseService.database;
-      await db.delete('assistant_attendance', where: 'id = ?', whereArgs: <Object?>[id]);
+      await db.delete(
+        'assistant_attendance',
+        where: 'id = ?',
+        whereArgs: <Object?>[id],
+      );
       await loadAttendance(assistantId);
     } catch (e) {
       emit(state.copyWith(error: e.toString()));

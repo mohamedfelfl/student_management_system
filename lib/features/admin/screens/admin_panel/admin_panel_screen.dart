@@ -55,7 +55,10 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(LocaleKeys.admin_panel.tr(), style: textTheme.headlineLarge),
+                          Text(
+                            LocaleKeys.admin_panel.tr(),
+                            style: textTheme.headlineLarge,
+                          ),
                           const SizedBox(height: 4),
                           Text(
                             LocaleKeys.manage_users_permissions.tr(),

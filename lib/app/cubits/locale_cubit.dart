@@ -18,12 +18,18 @@ class LocaleCubit extends Cubit<LocaleState> {
   final SettingsService _settingsService;
 
   LocaleCubit({required SettingsService settingsService})
-      : _settingsService = settingsService,
-        super(const LocaleState());
+    : _settingsService = settingsService,
+      super(const LocaleState());
 
   Future<void> loadInitialSettings() async {
-    final themeStr = await _settingsService.getOrDefault(SettingsKeys.themeMode, 'system');
-    final lang = await _settingsService.getOrDefault(SettingsKeys.language, 'ar');
+    final themeStr = await _settingsService.getOrDefault(
+      SettingsKeys.themeMode,
+      'system',
+    );
+    final lang = await _settingsService.getOrDefault(
+      SettingsKeys.language,
+      'ar',
+    );
 
     ThemeMode mode;
     switch (themeStr) {
@@ -37,10 +43,7 @@ class LocaleCubit extends Cubit<LocaleState> {
         mode = ThemeMode.system;
     }
 
-    emit(state.copyWith(
-      themeMode: mode,
-      languageCode: lang,
-    ));
+    emit(state.copyWith(themeMode: mode, languageCode: lang));
   }
 
   void setLanguage(String languageCode) {

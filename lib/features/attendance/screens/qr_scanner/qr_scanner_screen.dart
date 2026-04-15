@@ -30,7 +30,8 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
   @override
   void initState() {
     super.initState();
-    _isDesktop = !kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS);
+    _isDesktop =
+        !kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS);
     if (!_isDesktop) {
       _cameraController = MobileScannerController();
     }
@@ -63,7 +64,10 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
                 onPressed: () => Scaffold.of(context).openDrawer(),
               )
             : null,
-        title: Text('qr_attendance'.tr(), style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
+        title: Text(
+          'qr_attendance'.tr(),
+          style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+        ),
         centerTitle: true,
       ),
       body: BlocListener<AttendanceCubit, AttendanceState>(
@@ -71,7 +75,11 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
           if (state.scanSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(LocaleKeys.attendance_recorded_for.tr(args: [state.lastScannedStudent ?? ''])),
+                content: Text(
+                  LocaleKeys.attendance_recorded_for.tr(
+                    args: [state.lastScannedStudent ?? ''],
+                  ),
+                ),
                 backgroundColor: Colors.green,
                 behavior: SnackBarBehavior.floating,
               ),
@@ -99,23 +107,28 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
                 _buildDesktopScanner(context, isDark, colorScheme, textTheme)
               else
                 _buildMobileScanner(context, isDark, colorScheme, textTheme),
-                
+
               SizedBox(height: 32.h),
-              
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('recent_record'.tr(), style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                    TextButton(
-                      onPressed: () {
-                         context.router.push(AttendanceListRoute());
-                      }, 
-                      child: Text('view_all'.tr()),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'recent_record'.tr(),
+                    style: textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
                     ),
-                  ],
-                ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      context.router.push(AttendanceListRoute());
+                    },
+                    child: Text('view_all'.tr()),
+                  ),
+                ],
+              ),
               SizedBox(height: 16.h),
-              
+
               BlocBuilder<AttendanceCubit, AttendanceState>(
                 builder: (context, state) {
                   if (state.records.isEmpty) {
@@ -124,29 +137,33 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
                         padding: EdgeInsets.all(32.r),
                         child: Text(
                           'No recent records found.',
-                          style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant),
+                          style: textTheme.bodyLarge?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       ),
                     );
                   }
-                  
+
                   return ListView.separated(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: state.records.length,
-                    separatorBuilder: (context, index) => SizedBox(height: 16.h),
+                    separatorBuilder: (context, index) =>
+                        SizedBox(height: 16.h),
                     itemBuilder: (context, index) {
                       final record = state.records[index];
                       final String status = record['status']?.toString() ?? '';
-                      final bool isOwnGroup = status == AttendanceStatus.attended.name;
+                      final bool isOwnGroup =
+                          status == AttendanceStatus.attended.name;
                       final String notes = record['notes']?.toString() ?? '';
-                      
+
                       final String displayStatus = notes.isNotEmpty
                           ? notes
                           : isOwnGroup
-                              ? LocaleKeys.attended.tr()
-                              : LocaleKeys.other_lesson.tr();
-                      
+                          ? LocaleKeys.attended.tr()
+                          : LocaleKeys.other_lesson.tr();
+
                       return _buildRecentScanCard(
                         name: record['student_name'] as String? ?? 'Unknown',
                         time: record['date'] as String? ?? '',
@@ -167,22 +184,40 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
     );
   }
 
-  Widget _buildDesktopScanner(BuildContext context, bool isDark, ColorScheme colorScheme, TextTheme textTheme) {
+  Widget _buildDesktopScanner(
+    BuildContext context,
+    bool isDark,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
     return Container(
       padding: EdgeInsets.all(32.r),
       decoration: BoxDecoration(
-        color: isDark ? colorScheme.surfaceContainerHigh : colorScheme.surfaceContainerLowest,
+        color: isDark
+            ? colorScheme.surfaceContainerHigh
+            : colorScheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(32.r),
       ),
       child: Column(
         children: [
-          Icon(Icons.qr_code_scanner_rounded, size: 80.r, color: colorScheme.primary),
+          Icon(
+            Icons.qr_code_scanner_rounded,
+            size: 80.r,
+            color: colorScheme.primary,
+          ),
           SizedBox(height: 24.h),
-          Text(LocaleKeys.connect_scanner.tr(), style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+          Text(
+            LocaleKeys.connect_scanner.tr(),
+            style: textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           SizedBox(height: 8.h),
           Text(
             LocaleKeys.scanner_hint.tr(),
-            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+            style: textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 32.h),
@@ -197,12 +232,19 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
                     hintText: LocaleKeys.scan_hint.tr(),
                     prefixIcon: const Icon(Icons.qr_code),
                     filled: true,
-                    fillColor: isDark ? colorScheme.surfaceContainerLow : colorScheme.surfaceContainerHighest,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16.r), borderSide: BorderSide.none),
+                    fillColor: isDark
+                        ? colorScheme.surfaceContainerLow
+                        : colorScheme.surfaceContainerHighest,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16.r),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                   onSubmitted: (value) {
                     if (value.isNotEmpty) {
-                      context.read<AttendanceCubit>().recordAttendanceBySerial(value.trim());
+                      context.read<AttendanceCubit>().recordAttendanceBySerial(
+                        value.trim(),
+                      );
                     }
                   },
                 ),
@@ -212,12 +254,16 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
                 onPressed: () {
                   final serial = _manualController.text.trim();
                   if (serial.isNotEmpty) {
-                    context.read<AttendanceCubit>().recordAttendanceBySerial(serial);
+                    context.read<AttendanceCubit>().recordAttendanceBySerial(
+                      serial,
+                    );
                   }
                 },
                 style: ElevatedButton.styleFrom(
                   padding: EdgeInsets.all(20.r),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16.r),
+                  ),
                 ),
                 child: const Icon(Icons.send),
               ),
@@ -228,7 +274,12 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
     );
   }
 
-  Widget _buildMobileScanner(BuildContext context, bool isDark, ColorScheme colorScheme, TextTheme textTheme) {
+  Widget _buildMobileScanner(
+    BuildContext context,
+    bool isDark,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
     return Column(
       children: [
         // Camera Viewfinder Box
@@ -237,7 +288,9 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
           decoration: BoxDecoration(
             color: Colors.black,
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.1)),
+            border: Border.all(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.1),
+            ),
           ),
           clipBehavior: Clip.antiAlias,
           child: Stack(
@@ -248,7 +301,9 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
                   final List<Barcode> barcodes = capture.barcodes;
                   for (final Barcode barcode in barcodes) {
                     if (barcode.rawValue != null) {
-                      context.read<AttendanceCubit>().recordAttendanceBySerial(barcode.rawValue!);
+                      context.read<AttendanceCubit>().recordAttendanceBySerial(
+                        barcode.rawValue!,
+                      );
                       break;
                     }
                   }
@@ -265,21 +320,34 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
                 top: 16,
                 right: 16,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.6),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.3)),
+                    border: Border.all(
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: Row(
                     children: [
                       Container(
                         width: 8,
                         height: 8,
-                        decoration: const BoxDecoration(color: Colors.greenAccent, shape: BoxShape.circle),
+                        decoration: const BoxDecoration(
+                          color: Colors.greenAccent,
+                          shape: BoxShape.circle,
+                        ),
                       ),
                       const SizedBox(width: 8),
-                      Text('Active Now', style: textTheme.labelSmall?.copyWith(color: Colors.white)),
+                      Text(
+                        'Active Now',
+                        style: textTheme.labelSmall?.copyWith(
+                          color: Colors.white,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -288,7 +356,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
           ),
         ),
         const SizedBox(height: 24),
-        
+
         // Camera Controls
         Row(
           children: [
@@ -298,7 +366,9 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
                 icon: const Icon(Icons.flash_on_rounded),
                 label: Text(LocaleKeys.toggle_flash.tr()),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: colorScheme.primaryContainer.withValues(alpha: 0.5),
+                  backgroundColor: colorScheme.primaryContainer.withValues(
+                    alpha: 0.5,
+                  ),
                   foregroundColor: colorScheme.onPrimaryContainer,
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(vertical: 16),
@@ -312,7 +382,9 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
                 icon: const Icon(Icons.cameraswitch_rounded),
                 label: Text(LocaleKeys.switch_camera.tr()),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: isDark ? colorScheme.surfaceContainerHigh : colorScheme.surfaceContainerHighest,
+                  backgroundColor: isDark
+                      ? colorScheme.surfaceContainerHigh
+                      : colorScheme.surfaceContainerHighest,
                   foregroundColor: colorScheme.onSurface,
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(vertical: 16),
@@ -322,7 +394,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
           ],
         ),
         const SizedBox(height: 24),
-        
+
         // Manual Entry Fallback
         TextField(
           controller: _manualController,
@@ -331,12 +403,19 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
             hintText: LocaleKeys.enter_serial_hint.tr(),
             prefixIcon: const Icon(Icons.keyboard),
             filled: true,
-            fillColor: isDark ? colorScheme.surfaceContainerHigh : colorScheme.surfaceContainerLowest,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+            fillColor: isDark
+                ? colorScheme.surfaceContainerHigh
+                : colorScheme.surfaceContainerLowest,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
+            ),
           ),
           onSubmitted: (value) {
             if (value.isNotEmpty) {
-              context.read<AttendanceCubit>().recordAttendanceBySerial(value.trim());
+              context.read<AttendanceCubit>().recordAttendanceBySerial(
+                value.trim(),
+              );
             }
           },
         ),
@@ -353,12 +432,16 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
     required TextTheme textTheme,
     required bool isSuccess,
   }) {
-    final Color statusColor = isSuccess ? const Color(0xFF6750A4) : const Color(0xFFB3261E);
-    
+    final Color statusColor = isSuccess
+        ? const Color(0xFF6750A4)
+        : const Color(0xFFB3261E);
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: isDark ? colorScheme.surfaceContainerHigh : colorScheme.surfaceContainerLowest,
+        color: isDark
+            ? colorScheme.surfaceContainerHigh
+            : colorScheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(32),
       ),
       child: Column(
@@ -376,9 +459,17 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          Text(name, style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+          Text(
+            name,
+            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 4),
-          Text(time, style: textTheme.labelMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
+          Text(
+            time,
+            style: textTheme.labelMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
@@ -388,7 +479,10 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
             ),
             child: Text(
               status,
-              style: textTheme.labelMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+              style: textTheme.labelMedium?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -410,28 +504,47 @@ class ScannerOverlayPainter extends CustomPainter {
       ..strokeWidth = 4;
 
     final length = 30.0;
-    
+
     // Top Left
     canvas.drawLine(const Offset(0, 0), Offset(length, 0), paint);
     canvas.drawLine(const Offset(0, 0), Offset(0, length), paint);
-    
+
     // Top Right
-    canvas.drawLine(Offset(size.width, 0), Offset(size.width - length, 0), paint);
+    canvas.drawLine(
+      Offset(size.width, 0),
+      Offset(size.width - length, 0),
+      paint,
+    );
     canvas.drawLine(Offset(size.width, 0), Offset(size.width, length), paint);
-    
+
     // Bottom Left
     canvas.drawLine(Offset(0, size.height), Offset(length, size.height), paint);
-    canvas.drawLine(Offset(0, size.height), Offset(0, size.height - length), paint);
-    
+    canvas.drawLine(
+      Offset(0, size.height),
+      Offset(0, size.height - length),
+      paint,
+    );
+
     // Bottom Right
-    canvas.drawLine(Offset(size.width, size.height), Offset(size.width - length, size.height), paint);
-    canvas.drawLine(Offset(size.width, size.height), Offset(size.width, size.height - length), paint);
-    
+    canvas.drawLine(
+      Offset(size.width, size.height),
+      Offset(size.width - length, size.height),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(size.width, size.height),
+      Offset(size.width, size.height - length),
+      paint,
+    );
+
     // Scanning Line Animation placeholder
     final linePaint = Paint()
       ..color = color.withValues(alpha: 0.5)
       ..style = PaintingStyle.fill;
-    canvas.drawRect(Rect.fromLTWH(20, size.height / 2, size.width - 40, 2), linePaint);
+    canvas.drawRect(
+      Rect.fromLTWH(20, size.height / 2, size.width - 40, 2),
+      linePaint,
+    );
   }
 
   @override

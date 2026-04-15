@@ -59,25 +59,40 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
       _previousTeacherController.text =
           student['previous_teacher']?.toString() ?? '';
       _selectedGroupId = student['group_id'] as int?;
-      
+
       final String? gradeValue = student['grade']?.toString();
       // Ensure the grade exists in our predefined keys to avoid DropdownButton assertion failure
       const List<String> validGrades = [
-        'primary_1', 'primary_2', 'primary_3', 'primary_4', 'primary_5', 'primary_6',
-        'prep_1', 'prep_2', 'prep_3',
-        'sec_1', 'sec_2', 'sec_3'
+        'primary_1',
+        'primary_2',
+        'primary_3',
+        'primary_4',
+        'primary_5',
+        'primary_6',
+        'prep_1',
+        'prep_2',
+        'prep_3',
+        'sec_1',
+        'sec_2',
+        'sec_3',
       ];
       _selectedGrade = validGrades.contains(gradeValue) ? gradeValue : null;
 
       _selectedStatus = student['student_status']?.toString() ?? 'normal';
-      
+
       final String? dayValue = student['attendance_day']?.toString();
       // Ensure the day exists in our predefined keys to avoid DropdownButton assertion failure
       const List<String> validDays = [
-        'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+        'Monday',
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday',
+        'Saturday',
+        'Sunday',
       ];
       _selectedAttendanceDay = validDays.contains(dayValue) ? dayValue : null;
-      
+
       setState(() {});
     }
   }
@@ -381,7 +396,8 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
                         child: Text(LocaleKeys.sunday.tr()),
                       ),
                     ],
-                    onChanged: (v) => setState(() => _selectedAttendanceDay = v),
+                    onChanged: (v) =>
+                        setState(() => _selectedAttendanceDay = v),
                   ),
                   const SizedBox(height: 32),
 

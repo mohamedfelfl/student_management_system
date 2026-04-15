@@ -207,7 +207,7 @@ return $default(_that.languageCode,_that.themeMode);case _:
 
 
 class _LocaleState implements LocaleState {
-  const _LocaleState({this.languageCode = 'en', this.themeMode = ThemeMode.system});
+  const _LocaleState({this.languageCode = 'ar', this.themeMode = ThemeMode.system});
   
 
 @override@JsonKey() final  String languageCode;

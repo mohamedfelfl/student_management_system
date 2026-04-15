@@ -369,7 +369,7 @@ class CodegenLoader extends AssetLoader{
   "purge": "تطهير",
   "confirm_purge": "تأكيد التطهير",
   "confirm_purge_msg": "أدخل كلمة المرور لحذف البيانات الأقدم من {} سنة/سنوات.",
-  "reset_all_data_warning": "سيقوم هذا بحذف सभी بيانات الطلاب والمدفوعات والحضور والامتحانات. لا يمكن التراجع عن هذا!",
+  "reset_all_data_warning": "سيقوم هذا بحذف جميع بيانات الطلاب والمدفوعات والحضور والامتحانات. لا يمكن التراجع عن هذا!",
   "enter_password": "أدخل كلمة المرور الخاصة بك",
   "confirm": "تأكيد",
   "app_version": "إصدار التطبيق",
@@ -412,7 +412,13 @@ class CodegenLoader extends AssetLoader{
   "reset_failed": "فشلت إعادة الضبط: {}",
   "import_backup": "استيراد نسخة احتياطية",
   "select_backup_file": "اختر ملف النسخة الاحتياطية",
-  "confirm_restore_from_file": "هل أنت متأكد من رغبتك في الاستعادة من هذا الملف؟ سيتم عمل نسخة احتياطية للبيانات الحالية أولاً."
+  "confirm_restore_from_file": "هل أنت متأكد من رغبتك في الاستعادة من هذا الملف؟ سيتم عمل نسخة احتياطية للبيانات الحالية أولاً.",
+  "copy": "نسخ",
+  "copied_to_clipboard": "تم النسخ إلى الحافظة",
+  "total_assistants": "إجمالي المساعدين",
+  "total_exams": "إجمالي الامتحانات",
+  "exam": "امتحان",
+  "limit": "الحد الأقصى للتعداد"
 };
 static const Map<String,dynamic> _en = {
   "app_title": "Student Management System",
@@ -812,7 +818,13 @@ static const Map<String,dynamic> _en = {
   "reset_failed": "Reset failed: {}",
   "import_backup": "Import Backup",
   "select_backup_file": "Select Backup File",
-  "confirm_restore_from_file": "Are you sure you want to restore from this file? Current data will be backed up first."
+  "confirm_restore_from_file": "Are you sure you want to restore from this file? Current data will be backed up first.",
+  "copy": "Copy",
+  "copied_to_clipboard": "Copied to clipboard",
+  "total_assistants": "Total Assistants",
+  "total_exams": "Total Exams",
+  "exam": "Exam",
+  "limit": "Limit"
 };
 static const Map<String, Map<String,dynamic>> mapLocales = {"ar": _ar, "en": _en};
 }

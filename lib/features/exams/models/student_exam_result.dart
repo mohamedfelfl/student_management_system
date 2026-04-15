@@ -15,5 +15,6 @@ abstract class StudentExamResult with _$StudentExamResult {
     @Default(0) int examCount,
   }) = _StudentExamResult;
 
-  factory StudentExamResult.fromJson(Map<String, dynamic> json) => _$StudentExamResultFromJson(json);
+  factory StudentExamResult.fromJson(Map<String, dynamic> json) =>
+      _$StudentExamResultFromJson(json);
 }

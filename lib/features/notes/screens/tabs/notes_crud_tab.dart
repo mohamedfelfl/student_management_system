@@ -16,9 +16,9 @@ class NotesCrudTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final user = context.read<AuthCubit>().state.maybeWhen(
-          authenticated: (u) => u,
-          orElse: () => null,
-        );
+      authenticated: (u) => u,
+      orElse: () => null,
+    );
     final canManageNodes = user?.can(UserPermission.manageNotes) ?? false;
 
     return Scaffold(
@@ -64,11 +64,15 @@ class NotesCrudTab extends StatelessWidget {
               final note = state.notes[index];
               return Card(
                 elevation: 0,
-                color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                color: theme.colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.3,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                   side: BorderSide(
-                    color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                    color: theme.colorScheme.outlineVariant.withValues(
+                      alpha: 0.5,
+                    ),
                   ),
                 ),
                 child: ListTile(
@@ -97,7 +101,10 @@ class NotesCrudTab extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                              icon: Icon(Icons.edit, color: theme.colorScheme.primary),
+                              icon: Icon(
+                                Icons.edit,
+                                color: theme.colorScheme.primary,
+                              ),
                               tooltip: LocaleKeys.edit_note.tr(),
                               onPressed: () {
                                 final cubit = context.read<NotesCubit>();
@@ -111,7 +118,10 @@ class NotesCrudTab extends StatelessWidget {
                               },
                             ),
                             IconButton(
-                              icon: Icon(Icons.delete, color: theme.colorScheme.error),
+                              icon: Icon(
+                                Icons.delete,
+                                color: theme.colorScheme.error,
+                              ),
                               tooltip: LocaleKeys.delete_note.tr(),
                               onPressed: () => _confirmDelete(context, note),
                             ),

@@ -61,13 +61,25 @@ class _ExamsManagementScreenState extends State<ExamsManagementScreen> {
               try {
                 final examDate = DateTime.parse(examDateStr);
                 // Strip time for accurate boundary check
-                final dateOnly = DateTime(examDate.year, examDate.month, examDate.day);
-                final startOnly = DateTime(_selectedDateRange!.start.year, _selectedDateRange!.start.month, _selectedDateRange!.start.day);
-                final endOnly = DateTime(_selectedDateRange!.end.year, _selectedDateRange!.end.month, _selectedDateRange!.end.day);
-                
-                return dateOnly.isAtSameMomentAs(startOnly) || 
-                       dateOnly.isAtSameMomentAs(endOnly) ||
-                       (dateOnly.isAfter(startOnly) && dateOnly.isBefore(endOnly));
+                final dateOnly = DateTime(
+                  examDate.year,
+                  examDate.month,
+                  examDate.day,
+                );
+                final startOnly = DateTime(
+                  _selectedDateRange!.start.year,
+                  _selectedDateRange!.start.month,
+                  _selectedDateRange!.start.day,
+                );
+                final endOnly = DateTime(
+                  _selectedDateRange!.end.year,
+                  _selectedDateRange!.end.month,
+                  _selectedDateRange!.end.day,
+                );
+
+                return dateOnly.isAtSameMomentAs(startOnly) ||
+                    dateOnly.isAtSameMomentAs(endOnly) ||
+                    (dateOnly.isAfter(startOnly) && dateOnly.isBefore(endOnly));
               } catch (_) {
                 return false;
               }
@@ -88,7 +100,9 @@ class _ExamsManagementScreenState extends State<ExamsManagementScreen> {
                           hintText: 'search'.tr(),
                           prefixIcon: const Icon(Icons.search),
                           filled: true,
-                          fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                          fillColor: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
@@ -103,9 +117,11 @@ class _ExamsManagementScreenState extends State<ExamsManagementScreen> {
                     SizedBox(width: 8.w),
                     Container(
                       decoration: BoxDecoration(
-                        color: _selectedDateRange != null 
+                        color: _selectedDateRange != null
                             ? Theme.of(context).colorScheme.primaryContainer
-                            : Theme.of(context).colorScheme.surfaceContainerHighest,
+                            : Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: IconButton(
@@ -140,7 +156,9 @@ class _ExamsManagementScreenState extends State<ExamsManagementScreen> {
                         child: IconButton(
                           icon: Icon(
                             Icons.clear,
-                            color: Theme.of(context).colorScheme.onErrorContainer,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onErrorContainer,
                           ),
                           onPressed: () {
                             setState(() {
@@ -169,7 +187,9 @@ class _ExamsManagementScreenState extends State<ExamsManagementScreen> {
                               ),
                               title: Text(
                                 exam['name'] as String,
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                               subtitle: Text(
                                 '${LocaleKeys.full_mark.tr()}: ${exam['full_mark']} | ${exam['date']}',
@@ -178,9 +198,14 @@ class _ExamsManagementScreenState extends State<ExamsManagementScreen> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   IconButton(
-                                    icon: const Icon(Icons.delete, color: Colors.red),
-                                    onPressed: () =>
-                                        _showDeleteDialog(context, exam['id'] as int),
+                                    icon: const Icon(
+                                      Icons.delete,
+                                      color: Colors.red,
+                                    ),
+                                    onPressed: () => _showDeleteDialog(
+                                      context,
+                                      exam['id'] as int,
+                                    ),
                                   ),
                                   const Icon(Icons.chevron_right),
                                 ],

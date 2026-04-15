@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class BannerStat extends StatelessWidget {
   final String label;
@@ -18,21 +19,24 @@ class BannerStat extends StatelessWidget {
     final TextTheme textTheme = Theme.of(context).textTheme;
 
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           value,
-          style: textTheme.headlineMedium?.copyWith(
+          style: textTheme.headlineSmall?.copyWith(
             color: isDark ? colorScheme.onSurface : colorScheme.onPrimary,
             fontWeight: FontWeight.bold,
+            fontSize: 8.sp,
           ),
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: 2.h),
         Text(
           label,
-          style: textTheme.labelMedium?.copyWith(
+          style: textTheme.labelSmall?.copyWith(
             color: isDark
                 ? colorScheme.onSurfaceVariant
                 : colorScheme.onPrimary.withValues(alpha: 0.8),
+            fontSize: 6.sp,
           ),
         ),
       ],

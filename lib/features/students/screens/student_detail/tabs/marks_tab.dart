@@ -37,10 +37,14 @@ class MarksTab extends StatelessWidget {
                 onTap: () async {
                   final examId = m['exam_id'] as int?;
                   if (examId != null) {
-                    await context.router.push(MarkEntryRoute(id: examId, studentId: studentId));
+                    await context.router.push(
+                      MarkEntryRoute(id: examId, studentId: studentId),
+                    );
                     if (context.mounted) {
                       // Reload student marks
-                      await context.read<ExamCubit>().loadStudentMarks(studentId);
+                      await context.read<ExamCubit>().loadStudentMarks(
+                        studentId,
+                      );
                       // Reload general student profile data (average score, etc.)
                       onRefresh?.call();
                     }

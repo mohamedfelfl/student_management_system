@@ -54,7 +54,9 @@ class _NoteDialogState extends State<NoteDialog> {
     final isEditing = widget.note != null;
 
     return AlertDialog(
-      title: Text(isEditing ? LocaleKeys.edit_note.tr() : LocaleKeys.add_note.tr()),
+      title: Text(
+        isEditing ? LocaleKeys.edit_note.tr() : LocaleKeys.add_note.tr(),
+      ),
       content: Form(
         key: _formKey,
         child: Column(
@@ -78,7 +80,9 @@ class _NoteDialogState extends State<NoteDialog> {
                 border: const OutlineInputBorder(),
                 prefixText: '${LocaleKeys.currency_symbol.tr()} ',
               ),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               validator: (v) {
                 if (v == null || v.trim().isEmpty) {
                   return LocaleKeys.required_field.tr();
@@ -97,10 +101,7 @@ class _NoteDialogState extends State<NoteDialog> {
           onPressed: () => Navigator.pop(context),
           child: Text(LocaleKeys.cancel.tr()),
         ),
-        FilledButton(
-          onPressed: _submit,
-          child: Text(LocaleKeys.save.tr()),
-        ),
+        FilledButton(onPressed: _submit, child: Text(LocaleKeys.save.tr())),
       ],
     );
   }

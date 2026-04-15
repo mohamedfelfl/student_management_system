@@ -35,12 +35,7 @@ class NotesScreen extends StatelessWidget {
             ],
           ),
         ),
-        body: const TabBarView(
-          children: [
-            NotesCrudTab(),
-            NotesDeliveryTab(),
-          ],
-        ),
+        body: const TabBarView(children: [NotesCrudTab(), NotesDeliveryTab()]),
       ),
     );
   }

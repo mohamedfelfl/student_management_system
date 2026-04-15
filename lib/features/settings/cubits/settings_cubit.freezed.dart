@@ -16,7 +16,7 @@ mixin _$SettingsState {
 
 // General
  String get themeMode; String get language;// Security
- int get sessionTimeoutMinutes;// Backup
+// Backup
  bool get autoBackupEnabled; String get autoBackupSchedule; int get maxBackups;// Device Binding
  DeviceBindingStatus get deviceBindingStatus; String get deviceName; String get deviceFingerprint; String get osInfo;// Database Info
  int get databaseSize; Map<String, int> get recordCounts; String get integrityStatus;// Backup Info
@@ -32,16 +32,16 @@ $SettingsStateCopyWith<SettingsState> get copyWith => _$SettingsStateCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SettingsState&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.language, language) || other.language == language)&&(identical(other.sessionTimeoutMinutes, sessionTimeoutMinutes) || other.sessionTimeoutMinutes == sessionTimeoutMinutes)&&(identical(other.autoBackupEnabled, autoBackupEnabled) || other.autoBackupEnabled == autoBackupEnabled)&&(identical(other.autoBackupSchedule, autoBackupSchedule) || other.autoBackupSchedule == autoBackupSchedule)&&(identical(other.maxBackups, maxBackups) || other.maxBackups == maxBackups)&&(identical(other.deviceBindingStatus, deviceBindingStatus) || other.deviceBindingStatus == deviceBindingStatus)&&(identical(other.deviceName, deviceName) || other.deviceName == deviceName)&&(identical(other.deviceFingerprint, deviceFingerprint) || other.deviceFingerprint == deviceFingerprint)&&(identical(other.osInfo, osInfo) || other.osInfo == osInfo)&&(identical(other.databaseSize, databaseSize) || other.databaseSize == databaseSize)&&const DeepCollectionEquality().equals(other.recordCounts, recordCounts)&&(identical(other.integrityStatus, integrityStatus) || other.integrityStatus == integrityStatus)&&const DeepCollectionEquality().equals(other.backups, backups)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.isSaving, isSaving) || other.isSaving == isSaving)&&(identical(other.successMessage, successMessage) || other.successMessage == successMessage)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SettingsState&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.language, language) || other.language == language)&&(identical(other.autoBackupEnabled, autoBackupEnabled) || other.autoBackupEnabled == autoBackupEnabled)&&(identical(other.autoBackupSchedule, autoBackupSchedule) || other.autoBackupSchedule == autoBackupSchedule)&&(identical(other.maxBackups, maxBackups) || other.maxBackups == maxBackups)&&(identical(other.deviceBindingStatus, deviceBindingStatus) || other.deviceBindingStatus == deviceBindingStatus)&&(identical(other.deviceName, deviceName) || other.deviceName == deviceName)&&(identical(other.deviceFingerprint, deviceFingerprint) || other.deviceFingerprint == deviceFingerprint)&&(identical(other.osInfo, osInfo) || other.osInfo == osInfo)&&(identical(other.databaseSize, databaseSize) || other.databaseSize == databaseSize)&&const DeepCollectionEquality().equals(other.recordCounts, recordCounts)&&(identical(other.integrityStatus, integrityStatus) || other.integrityStatus == integrityStatus)&&const DeepCollectionEquality().equals(other.backups, backups)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.isSaving, isSaving) || other.isSaving == isSaving)&&(identical(other.successMessage, successMessage) || other.successMessage == successMessage)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,themeMode,language,sessionTimeoutMinutes,autoBackupEnabled,autoBackupSchedule,maxBackups,deviceBindingStatus,deviceName,deviceFingerprint,osInfo,databaseSize,const DeepCollectionEquality().hash(recordCounts),integrityStatus,const DeepCollectionEquality().hash(backups),isLoading,isSaving,successMessage,errorMessage);
+int get hashCode => Object.hash(runtimeType,themeMode,language,autoBackupEnabled,autoBackupSchedule,maxBackups,deviceBindingStatus,deviceName,deviceFingerprint,osInfo,databaseSize,const DeepCollectionEquality().hash(recordCounts),integrityStatus,const DeepCollectionEquality().hash(backups),isLoading,isSaving,successMessage,errorMessage);
 
 @override
 String toString() {
-  return 'SettingsState(themeMode: $themeMode, language: $language, sessionTimeoutMinutes: $sessionTimeoutMinutes, autoBackupEnabled: $autoBackupEnabled, autoBackupSchedule: $autoBackupSchedule, maxBackups: $maxBackups, deviceBindingStatus: $deviceBindingStatus, deviceName: $deviceName, deviceFingerprint: $deviceFingerprint, osInfo: $osInfo, databaseSize: $databaseSize, recordCounts: $recordCounts, integrityStatus: $integrityStatus, backups: $backups, isLoading: $isLoading, isSaving: $isSaving, successMessage: $successMessage, errorMessage: $errorMessage)';
+  return 'SettingsState(themeMode: $themeMode, language: $language, autoBackupEnabled: $autoBackupEnabled, autoBackupSchedule: $autoBackupSchedule, maxBackups: $maxBackups, deviceBindingStatus: $deviceBindingStatus, deviceName: $deviceName, deviceFingerprint: $deviceFingerprint, osInfo: $osInfo, databaseSize: $databaseSize, recordCounts: $recordCounts, integrityStatus: $integrityStatus, backups: $backups, isLoading: $isLoading, isSaving: $isSaving, successMessage: $successMessage, errorMessage: $errorMessage)';
 }
 
 
@@ -52,7 +52,7 @@ abstract mixin class $SettingsStateCopyWith<$Res>  {
   factory $SettingsStateCopyWith(SettingsState value, $Res Function(SettingsState) _then) = _$SettingsStateCopyWithImpl;
 @useResult
 $Res call({
- String themeMode, String language, int sessionTimeoutMinutes, bool autoBackupEnabled, String autoBackupSchedule, int maxBackups, DeviceBindingStatus deviceBindingStatus, String deviceName, String deviceFingerprint, String osInfo, int databaseSize, Map<String, int> recordCounts, String integrityStatus, List<BackupInfo> backups, bool isLoading, bool isSaving, String? successMessage, String? errorMessage
+ String themeMode, String language, bool autoBackupEnabled, String autoBackupSchedule, int maxBackups, DeviceBindingStatus deviceBindingStatus, String deviceName, String deviceFingerprint, String osInfo, int databaseSize, Map<String, int> recordCounts, String integrityStatus, List<BackupInfo> backups, bool isLoading, bool isSaving, String? successMessage, String? errorMessage
 });
 
 
@@ -69,12 +69,11 @@ class _$SettingsStateCopyWithImpl<$Res>
 
 /// Create a copy of SettingsState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? themeMode = null,Object? language = null,Object? sessionTimeoutMinutes = null,Object? autoBackupEnabled = null,Object? autoBackupSchedule = null,Object? maxBackups = null,Object? deviceBindingStatus = null,Object? deviceName = null,Object? deviceFingerprint = null,Object? osInfo = null,Object? databaseSize = null,Object? recordCounts = null,Object? integrityStatus = null,Object? backups = null,Object? isLoading = null,Object? isSaving = null,Object? successMessage = freezed,Object? errorMessage = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? themeMode = null,Object? language = null,Object? autoBackupEnabled = null,Object? autoBackupSchedule = null,Object? maxBackups = null,Object? deviceBindingStatus = null,Object? deviceName = null,Object? deviceFingerprint = null,Object? osInfo = null,Object? databaseSize = null,Object? recordCounts = null,Object? integrityStatus = null,Object? backups = null,Object? isLoading = null,Object? isSaving = null,Object? successMessage = freezed,Object? errorMessage = freezed,}) {
   return _then(_self.copyWith(
 themeMode: null == themeMode ? _self.themeMode : themeMode // ignore: cast_nullable_to_non_nullable
 as String,language: null == language ? _self.language : language // ignore: cast_nullable_to_non_nullable
-as String,sessionTimeoutMinutes: null == sessionTimeoutMinutes ? _self.sessionTimeoutMinutes : sessionTimeoutMinutes // ignore: cast_nullable_to_non_nullable
-as int,autoBackupEnabled: null == autoBackupEnabled ? _self.autoBackupEnabled : autoBackupEnabled // ignore: cast_nullable_to_non_nullable
+as String,autoBackupEnabled: null == autoBackupEnabled ? _self.autoBackupEnabled : autoBackupEnabled // ignore: cast_nullable_to_non_nullable
 as bool,autoBackupSchedule: null == autoBackupSchedule ? _self.autoBackupSchedule : autoBackupSchedule // ignore: cast_nullable_to_non_nullable
 as String,maxBackups: null == maxBackups ? _self.maxBackups : maxBackups // ignore: cast_nullable_to_non_nullable
 as int,deviceBindingStatus: null == deviceBindingStatus ? _self.deviceBindingStatus : deviceBindingStatus // ignore: cast_nullable_to_non_nullable
@@ -174,10 +173,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String themeMode,  String language,  int sessionTimeoutMinutes,  bool autoBackupEnabled,  String autoBackupSchedule,  int maxBackups,  DeviceBindingStatus deviceBindingStatus,  String deviceName,  String deviceFingerprint,  String osInfo,  int databaseSize,  Map<String, int> recordCounts,  String integrityStatus,  List<BackupInfo> backups,  bool isLoading,  bool isSaving,  String? successMessage,  String? errorMessage)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String themeMode,  String language,  bool autoBackupEnabled,  String autoBackupSchedule,  int maxBackups,  DeviceBindingStatus deviceBindingStatus,  String deviceName,  String deviceFingerprint,  String osInfo,  int databaseSize,  Map<String, int> recordCounts,  String integrityStatus,  List<BackupInfo> backups,  bool isLoading,  bool isSaving,  String? successMessage,  String? errorMessage)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SettingsState() when $default != null:
-return $default(_that.themeMode,_that.language,_that.sessionTimeoutMinutes,_that.autoBackupEnabled,_that.autoBackupSchedule,_that.maxBackups,_that.deviceBindingStatus,_that.deviceName,_that.deviceFingerprint,_that.osInfo,_that.databaseSize,_that.recordCounts,_that.integrityStatus,_that.backups,_that.isLoading,_that.isSaving,_that.successMessage,_that.errorMessage);case _:
+return $default(_that.themeMode,_that.language,_that.autoBackupEnabled,_that.autoBackupSchedule,_that.maxBackups,_that.deviceBindingStatus,_that.deviceName,_that.deviceFingerprint,_that.osInfo,_that.databaseSize,_that.recordCounts,_that.integrityStatus,_that.backups,_that.isLoading,_that.isSaving,_that.successMessage,_that.errorMessage);case _:
   return orElse();
 
 }
@@ -195,10 +194,10 @@ return $default(_that.themeMode,_that.language,_that.sessionTimeoutMinutes,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String themeMode,  String language,  int sessionTimeoutMinutes,  bool autoBackupEnabled,  String autoBackupSchedule,  int maxBackups,  DeviceBindingStatus deviceBindingStatus,  String deviceName,  String deviceFingerprint,  String osInfo,  int databaseSize,  Map<String, int> recordCounts,  String integrityStatus,  List<BackupInfo> backups,  bool isLoading,  bool isSaving,  String? successMessage,  String? errorMessage)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String themeMode,  String language,  bool autoBackupEnabled,  String autoBackupSchedule,  int maxBackups,  DeviceBindingStatus deviceBindingStatus,  String deviceName,  String deviceFingerprint,  String osInfo,  int databaseSize,  Map<String, int> recordCounts,  String integrityStatus,  List<BackupInfo> backups,  bool isLoading,  bool isSaving,  String? successMessage,  String? errorMessage)  $default,) {final _that = this;
 switch (_that) {
 case _SettingsState():
-return $default(_that.themeMode,_that.language,_that.sessionTimeoutMinutes,_that.autoBackupEnabled,_that.autoBackupSchedule,_that.maxBackups,_that.deviceBindingStatus,_that.deviceName,_that.deviceFingerprint,_that.osInfo,_that.databaseSize,_that.recordCounts,_that.integrityStatus,_that.backups,_that.isLoading,_that.isSaving,_that.successMessage,_that.errorMessage);case _:
+return $default(_that.themeMode,_that.language,_that.autoBackupEnabled,_that.autoBackupSchedule,_that.maxBackups,_that.deviceBindingStatus,_that.deviceName,_that.deviceFingerprint,_that.osInfo,_that.databaseSize,_that.recordCounts,_that.integrityStatus,_that.backups,_that.isLoading,_that.isSaving,_that.successMessage,_that.errorMessage);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -215,10 +214,10 @@ return $default(_that.themeMode,_that.language,_that.sessionTimeoutMinutes,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String themeMode,  String language,  int sessionTimeoutMinutes,  bool autoBackupEnabled,  String autoBackupSchedule,  int maxBackups,  DeviceBindingStatus deviceBindingStatus,  String deviceName,  String deviceFingerprint,  String osInfo,  int databaseSize,  Map<String, int> recordCounts,  String integrityStatus,  List<BackupInfo> backups,  bool isLoading,  bool isSaving,  String? successMessage,  String? errorMessage)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String themeMode,  String language,  bool autoBackupEnabled,  String autoBackupSchedule,  int maxBackups,  DeviceBindingStatus deviceBindingStatus,  String deviceName,  String deviceFingerprint,  String osInfo,  int databaseSize,  Map<String, int> recordCounts,  String integrityStatus,  List<BackupInfo> backups,  bool isLoading,  bool isSaving,  String? successMessage,  String? errorMessage)?  $default,) {final _that = this;
 switch (_that) {
 case _SettingsState() when $default != null:
-return $default(_that.themeMode,_that.language,_that.sessionTimeoutMinutes,_that.autoBackupEnabled,_that.autoBackupSchedule,_that.maxBackups,_that.deviceBindingStatus,_that.deviceName,_that.deviceFingerprint,_that.osInfo,_that.databaseSize,_that.recordCounts,_that.integrityStatus,_that.backups,_that.isLoading,_that.isSaving,_that.successMessage,_that.errorMessage);case _:
+return $default(_that.themeMode,_that.language,_that.autoBackupEnabled,_that.autoBackupSchedule,_that.maxBackups,_that.deviceBindingStatus,_that.deviceName,_that.deviceFingerprint,_that.osInfo,_that.databaseSize,_that.recordCounts,_that.integrityStatus,_that.backups,_that.isLoading,_that.isSaving,_that.successMessage,_that.errorMessage);case _:
   return null;
 
 }
@@ -230,14 +229,13 @@ return $default(_that.themeMode,_that.language,_that.sessionTimeoutMinutes,_that
 
 
 class _SettingsState implements SettingsState {
-  const _SettingsState({this.themeMode = 'system', this.language = 'ar', this.sessionTimeoutMinutes = 30, this.autoBackupEnabled = false, this.autoBackupSchedule = 'weekly', this.maxBackups = 5, this.deviceBindingStatus = DeviceBindingStatus.unbound, this.deviceName = '', this.deviceFingerprint = '', this.osInfo = '', this.databaseSize = 0, final  Map<String, int> recordCounts = const {}, this.integrityStatus = '', final  List<BackupInfo> backups = const [], this.isLoading = false, this.isSaving = false, this.successMessage, this.errorMessage}): _recordCounts = recordCounts,_backups = backups;
+  const _SettingsState({this.themeMode = 'system', this.language = 'ar', this.autoBackupEnabled = false, this.autoBackupSchedule = 'weekly', this.maxBackups = 5, this.deviceBindingStatus = DeviceBindingStatus.unbound, this.deviceName = '', this.deviceFingerprint = '', this.osInfo = '', this.databaseSize = 0, final  Map<String, int> recordCounts = const {}, this.integrityStatus = '', final  List<BackupInfo> backups = const [], this.isLoading = false, this.isSaving = false, this.successMessage, this.errorMessage}): _recordCounts = recordCounts,_backups = backups;
   
 
 // General
 @override@JsonKey() final  String themeMode;
 @override@JsonKey() final  String language;
 // Security
-@override@JsonKey() final  int sessionTimeoutMinutes;
 // Backup
 @override@JsonKey() final  bool autoBackupEnabled;
 @override@JsonKey() final  String autoBackupSchedule;
@@ -282,16 +280,16 @@ _$SettingsStateCopyWith<_SettingsState> get copyWith => __$SettingsStateCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SettingsState&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.language, language) || other.language == language)&&(identical(other.sessionTimeoutMinutes, sessionTimeoutMinutes) || other.sessionTimeoutMinutes == sessionTimeoutMinutes)&&(identical(other.autoBackupEnabled, autoBackupEnabled) || other.autoBackupEnabled == autoBackupEnabled)&&(identical(other.autoBackupSchedule, autoBackupSchedule) || other.autoBackupSchedule == autoBackupSchedule)&&(identical(other.maxBackups, maxBackups) || other.maxBackups == maxBackups)&&(identical(other.deviceBindingStatus, deviceBindingStatus) || other.deviceBindingStatus == deviceBindingStatus)&&(identical(other.deviceName, deviceName) || other.deviceName == deviceName)&&(identical(other.deviceFingerprint, deviceFingerprint) || other.deviceFingerprint == deviceFingerprint)&&(identical(other.osInfo, osInfo) || other.osInfo == osInfo)&&(identical(other.databaseSize, databaseSize) || other.databaseSize == databaseSize)&&const DeepCollectionEquality().equals(other._recordCounts, _recordCounts)&&(identical(other.integrityStatus, integrityStatus) || other.integrityStatus == integrityStatus)&&const DeepCollectionEquality().equals(other._backups, _backups)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.isSaving, isSaving) || other.isSaving == isSaving)&&(identical(other.successMessage, successMessage) || other.successMessage == successMessage)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SettingsState&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.language, language) || other.language == language)&&(identical(other.autoBackupEnabled, autoBackupEnabled) || other.autoBackupEnabled == autoBackupEnabled)&&(identical(other.autoBackupSchedule, autoBackupSchedule) || other.autoBackupSchedule == autoBackupSchedule)&&(identical(other.maxBackups, maxBackups) || other.maxBackups == maxBackups)&&(identical(other.deviceBindingStatus, deviceBindingStatus) || other.deviceBindingStatus == deviceBindingStatus)&&(identical(other.deviceName, deviceName) || other.deviceName == deviceName)&&(identical(other.deviceFingerprint, deviceFingerprint) || other.deviceFingerprint == deviceFingerprint)&&(identical(other.osInfo, osInfo) || other.osInfo == osInfo)&&(identical(other.databaseSize, databaseSize) || other.databaseSize == databaseSize)&&const DeepCollectionEquality().equals(other._recordCounts, _recordCounts)&&(identical(other.integrityStatus, integrityStatus) || other.integrityStatus == integrityStatus)&&const DeepCollectionEquality().equals(other._backups, _backups)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.isSaving, isSaving) || other.isSaving == isSaving)&&(identical(other.successMessage, successMessage) || other.successMessage == successMessage)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,themeMode,language,sessionTimeoutMinutes,autoBackupEnabled,autoBackupSchedule,maxBackups,deviceBindingStatus,deviceName,deviceFingerprint,osInfo,databaseSize,const DeepCollectionEquality().hash(_recordCounts),integrityStatus,const DeepCollectionEquality().hash(_backups),isLoading,isSaving,successMessage,errorMessage);
+int get hashCode => Object.hash(runtimeType,themeMode,language,autoBackupEnabled,autoBackupSchedule,maxBackups,deviceBindingStatus,deviceName,deviceFingerprint,osInfo,databaseSize,const DeepCollectionEquality().hash(_recordCounts),integrityStatus,const DeepCollectionEquality().hash(_backups),isLoading,isSaving,successMessage,errorMessage);
 
 @override
 String toString() {
-  return 'SettingsState(themeMode: $themeMode, language: $language, sessionTimeoutMinutes: $sessionTimeoutMinutes, autoBackupEnabled: $autoBackupEnabled, autoBackupSchedule: $autoBackupSchedule, maxBackups: $maxBackups, deviceBindingStatus: $deviceBindingStatus, deviceName: $deviceName, deviceFingerprint: $deviceFingerprint, osInfo: $osInfo, databaseSize: $databaseSize, recordCounts: $recordCounts, integrityStatus: $integrityStatus, backups: $backups, isLoading: $isLoading, isSaving: $isSaving, successMessage: $successMessage, errorMessage: $errorMessage)';
+  return 'SettingsState(themeMode: $themeMode, language: $language, autoBackupEnabled: $autoBackupEnabled, autoBackupSchedule: $autoBackupSchedule, maxBackups: $maxBackups, deviceBindingStatus: $deviceBindingStatus, deviceName: $deviceName, deviceFingerprint: $deviceFingerprint, osInfo: $osInfo, databaseSize: $databaseSize, recordCounts: $recordCounts, integrityStatus: $integrityStatus, backups: $backups, isLoading: $isLoading, isSaving: $isSaving, successMessage: $successMessage, errorMessage: $errorMessage)';
 }
 
 
@@ -302,7 +300,7 @@ abstract mixin class _$SettingsStateCopyWith<$Res> implements $SettingsStateCopy
   factory _$SettingsStateCopyWith(_SettingsState value, $Res Function(_SettingsState) _then) = __$SettingsStateCopyWithImpl;
 @override @useResult
 $Res call({
- String themeMode, String language, int sessionTimeoutMinutes, bool autoBackupEnabled, String autoBackupSchedule, int maxBackups, DeviceBindingStatus deviceBindingStatus, String deviceName, String deviceFingerprint, String osInfo, int databaseSize, Map<String, int> recordCounts, String integrityStatus, List<BackupInfo> backups, bool isLoading, bool isSaving, String? successMessage, String? errorMessage
+ String themeMode, String language, bool autoBackupEnabled, String autoBackupSchedule, int maxBackups, DeviceBindingStatus deviceBindingStatus, String deviceName, String deviceFingerprint, String osInfo, int databaseSize, Map<String, int> recordCounts, String integrityStatus, List<BackupInfo> backups, bool isLoading, bool isSaving, String? successMessage, String? errorMessage
 });
 
 
@@ -319,12 +317,11 @@ class __$SettingsStateCopyWithImpl<$Res>
 
 /// Create a copy of SettingsState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? themeMode = null,Object? language = null,Object? sessionTimeoutMinutes = null,Object? autoBackupEnabled = null,Object? autoBackupSchedule = null,Object? maxBackups = null,Object? deviceBindingStatus = null,Object? deviceName = null,Object? deviceFingerprint = null,Object? osInfo = null,Object? databaseSize = null,Object? recordCounts = null,Object? integrityStatus = null,Object? backups = null,Object? isLoading = null,Object? isSaving = null,Object? successMessage = freezed,Object? errorMessage = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? themeMode = null,Object? language = null,Object? autoBackupEnabled = null,Object? autoBackupSchedule = null,Object? maxBackups = null,Object? deviceBindingStatus = null,Object? deviceName = null,Object? deviceFingerprint = null,Object? osInfo = null,Object? databaseSize = null,Object? recordCounts = null,Object? integrityStatus = null,Object? backups = null,Object? isLoading = null,Object? isSaving = null,Object? successMessage = freezed,Object? errorMessage = freezed,}) {
   return _then(_SettingsState(
 themeMode: null == themeMode ? _self.themeMode : themeMode // ignore: cast_nullable_to_non_nullable
 as String,language: null == language ? _self.language : language // ignore: cast_nullable_to_non_nullable
-as String,sessionTimeoutMinutes: null == sessionTimeoutMinutes ? _self.sessionTimeoutMinutes : sessionTimeoutMinutes // ignore: cast_nullable_to_non_nullable
-as int,autoBackupEnabled: null == autoBackupEnabled ? _self.autoBackupEnabled : autoBackupEnabled // ignore: cast_nullable_to_non_nullable
+as String,autoBackupEnabled: null == autoBackupEnabled ? _self.autoBackupEnabled : autoBackupEnabled // ignore: cast_nullable_to_non_nullable
 as bool,autoBackupSchedule: null == autoBackupSchedule ? _self.autoBackupSchedule : autoBackupSchedule // ignore: cast_nullable_to_non_nullable
 as String,maxBackups: null == maxBackups ? _self.maxBackups : maxBackups // ignore: cast_nullable_to_non_nullable
 as int,deviceBindingStatus: null == deviceBindingStatus ? _self.deviceBindingStatus : deviceBindingStatus // ignore: cast_nullable_to_non_nullable

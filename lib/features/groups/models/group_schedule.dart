@@ -12,5 +12,6 @@ abstract class GroupSchedule with _$GroupSchedule {
     required String time,
   }) = _GroupSchedule;
 
-  factory GroupSchedule.fromJson(Map<String, dynamic> json) => _$GroupScheduleFromJson(json);
+  factory GroupSchedule.fromJson(Map<String, dynamic> json) =>
+      _$GroupScheduleFromJson(json);
 }

@@ -23,8 +23,8 @@ class StudentCubit extends Cubit<StudentState> {
   final DatabaseService _databaseService;
 
   StudentCubit({required DatabaseService databaseService})
-      : _databaseService = databaseService,
-        super(const StudentState());
+    : _databaseService = databaseService,
+      super(const StudentState());
 
   Future<void> loadStudents() async {
     emit(state.copyWith(isLoading: true, error: null));
@@ -32,31 +32,37 @@ class StudentCubit extends Cubit<StudentState> {
       final Database db = await _databaseService.database;
 
       // Always fetch total count (unfiltered)
-      final List<Map<String, Object?>> countResult =
-          await db.rawQuery('SELECT COUNT(*) as cnt FROM students');
+      final List<Map<String, Object?>> countResult = await db.rawQuery(
+        'SELECT COUNT(*) as cnt FROM students',
+      );
       final int total = (countResult.first['cnt'] as int?) ?? 0;
 
       // Fetch filtered results
-      final String query = '''
+      final String query =
+          '''
         SELECT s.*, g.name as group_name 
         FROM students s 
         LEFT JOIN groups g ON s.group_id = g.id
         ${_buildWhereClause()}
         ORDER BY s.name ASC
       ''';
-      final List<Map<String, Object?>> results =
-          await db.rawQuery(query, _buildWhereArgs());
+      final List<Map<String, Object?>> results = await db.rawQuery(
+        query,
+        _buildWhereArgs(),
+      );
 
       // Prune selectedIds to only include IDs still in the result set
       final resultIds = results.map((s) => s['id'] as int).toSet();
       final pruned = state.selectedIds.intersection(resultIds);
 
-      emit(state.copyWith(
-        students: results,
-        totalCount: total,
-        selectedIds: pruned,
-        isLoading: false,
-      ));
+      emit(
+        state.copyWith(
+          students: results,
+          totalCount: total,
+          selectedIds: pruned,
+          isLoading: false,
+        ),
+      );
     } catch (e) {
       emit(state.copyWith(error: e.toString(), isLoading: false));
     }
@@ -114,7 +120,12 @@ class StudentCubit extends Cubit<StudentState> {
   Future<void> updateStudent(int id, Map<String, dynamic> data) async {
     try {
       final Database db = await _databaseService.database;
-      await db.update('students', data, where: 'id = ?', whereArgs: <Object?>[id]);
+      await db.update(
+        'students',
+        data,
+        where: 'id = ?',
+        whereArgs: <Object?>[id],
+      );
       await loadStudents();
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
@@ -150,12 +161,15 @@ class StudentCubit extends Cubit<StudentState> {
   Future<Map<String, dynamic>?> getStudentById(int id) async {
     try {
       final Database db = await _databaseService.database;
-      final List<Map<String, Object?>> results = await db.rawQuery('''
+      final List<Map<String, Object?>> results = await db.rawQuery(
+        '''
         SELECT s.*, g.name as group_name
         FROM students s
         LEFT JOIN groups g ON s.group_id = g.id
         WHERE s.id = ?
-      ''', <Object?>[id]);
+      ''',
+        <Object?>[id],
+      );
       return results.isNotEmpty ? results.first : null;
     } catch (e) {
       return null;
@@ -165,12 +179,15 @@ class StudentCubit extends Cubit<StudentState> {
   Future<Map<String, dynamic>?> getStudentBySerial(String serial) async {
     try {
       final Database db = await _databaseService.database;
-      final List<Map<String, Object?>> results = await db.rawQuery('''
+      final List<Map<String, Object?>> results = await db.rawQuery(
+        '''
         SELECT s.*, g.name as group_name
         FROM students s
         LEFT JOIN groups g ON s.group_id = g.id
         WHERE s.serial_number = ?
-      ''', <Object?>[serial]);
+      ''',
+        <Object?>[serial],
+      );
       return results.isNotEmpty ? results.first : null;
     } catch (e) {
       return null;
@@ -180,7 +197,9 @@ class StudentCubit extends Cubit<StudentState> {
   String _buildWhereClause() {
     final List<String> conditions = <String>[];
     if (state.searchQuery.isNotEmpty) {
-      conditions.add('(s.name LIKE ? OR s.serial_number LIKE ? OR s.phone1 LIKE ?)');
+      conditions.add(
+        '(s.name LIKE ? OR s.serial_number LIKE ? OR s.phone1 LIKE ?)',
+      );
     }
     if (state.selectedGroupId != null) {
       conditions.add('s.group_id = ?');
