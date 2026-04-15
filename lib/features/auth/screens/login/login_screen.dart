@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../generated/locale_keys.g.dart';
+import '../../../../app/router/app_router.gr.dart';
 
 import '../../cubits/auth_cubit.dart';
 
@@ -20,6 +21,20 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkFirstLaunch();
+  }
+
+  Future<void> _checkFirstLaunch() async {
+    final authCubit = context.read<AuthCubit>();
+    final hasUsers = await authCubit.hasAnyUser();
+    if (!hasUsers && mounted) {
+      context.router.replaceAll([const SetupWizardRoute()]);
+    }
+  }
 
   @override
   void dispose() {

@@ -16,8 +16,6 @@ import '../widgets/responsive_layout.dart';
 class ShellScreen extends StatelessWidget {
   const ShellScreen({super.key});
 
-
-
   @override
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
@@ -126,6 +124,14 @@ class ShellScreen extends StatelessWidget {
                 label: Text(LocaleKeys.assistants_directory.tr()),
               ),
             ),
+          (
+            route: const SettingsRoute(),
+            destination: const NavigationRailDestination(
+              icon: Icon(Icons.settings_outlined),
+              selectedIcon: Icon(Icons.settings),
+              label: Text('Settings'),
+            ),
+          ),
         ];
 
         final List<PageRouteInfo> filteredRoutes = menuItems
@@ -325,8 +331,11 @@ class ShellScreen extends StatelessWidget {
                     const SizedBox(width: 4),
                     Switch(
                       value: isDark,
-                      onChanged: (_) =>
-                          context.read<LocaleCubit>().toggleDarkMode(),
+                      onChanged: (_) {
+                        context.read<LocaleCubit>().setThemeMode(
+                              isDark ? ThemeMode.light : ThemeMode.dark,
+                            );
+                      },
                     ),
                   ],
                 ),

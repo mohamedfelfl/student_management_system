@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$LocaleState {
 
- String get languageCode; bool get isDarkMode;
+ String get languageCode; ThemeMode get themeMode;
 /// Create a copy of LocaleState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $LocaleStateCopyWith<LocaleState> get copyWith => _$LocaleStateCopyWithImpl<Loca
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LocaleState&&(identical(other.languageCode, languageCode) || other.languageCode == languageCode)&&(identical(other.isDarkMode, isDarkMode) || other.isDarkMode == isDarkMode));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LocaleState&&(identical(other.languageCode, languageCode) || other.languageCode == languageCode)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,languageCode,isDarkMode);
+int get hashCode => Object.hash(runtimeType,languageCode,themeMode);
 
 @override
 String toString() {
-  return 'LocaleState(languageCode: $languageCode, isDarkMode: $isDarkMode)';
+  return 'LocaleState(languageCode: $languageCode, themeMode: $themeMode)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $LocaleStateCopyWith<$Res>  {
   factory $LocaleStateCopyWith(LocaleState value, $Res Function(LocaleState) _then) = _$LocaleStateCopyWithImpl;
 @useResult
 $Res call({
- String languageCode, bool isDarkMode
+ String languageCode, ThemeMode themeMode
 });
 
 
@@ -62,11 +62,11 @@ class _$LocaleStateCopyWithImpl<$Res>
 
 /// Create a copy of LocaleState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? languageCode = null,Object? isDarkMode = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? languageCode = null,Object? themeMode = null,}) {
   return _then(_self.copyWith(
 languageCode: null == languageCode ? _self.languageCode : languageCode // ignore: cast_nullable_to_non_nullable
-as String,isDarkMode: null == isDarkMode ? _self.isDarkMode : isDarkMode // ignore: cast_nullable_to_non_nullable
-as bool,
+as String,themeMode: null == themeMode ? _self.themeMode : themeMode // ignore: cast_nullable_to_non_nullable
+as ThemeMode,
   ));
 }
 
@@ -151,10 +151,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String languageCode,  bool isDarkMode)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String languageCode,  ThemeMode themeMode)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _LocaleState() when $default != null:
-return $default(_that.languageCode,_that.isDarkMode);case _:
+return $default(_that.languageCode,_that.themeMode);case _:
   return orElse();
 
 }
@@ -172,10 +172,10 @@ return $default(_that.languageCode,_that.isDarkMode);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String languageCode,  bool isDarkMode)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String languageCode,  ThemeMode themeMode)  $default,) {final _that = this;
 switch (_that) {
 case _LocaleState():
-return $default(_that.languageCode,_that.isDarkMode);case _:
+return $default(_that.languageCode,_that.themeMode);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -192,10 +192,10 @@ return $default(_that.languageCode,_that.isDarkMode);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String languageCode,  bool isDarkMode)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String languageCode,  ThemeMode themeMode)?  $default,) {final _that = this;
 switch (_that) {
 case _LocaleState() when $default != null:
-return $default(_that.languageCode,_that.isDarkMode);case _:
+return $default(_that.languageCode,_that.themeMode);case _:
   return null;
 
 }
@@ -207,11 +207,11 @@ return $default(_that.languageCode,_that.isDarkMode);case _:
 
 
 class _LocaleState implements LocaleState {
-  const _LocaleState({this.languageCode = 'en', this.isDarkMode = false});
+  const _LocaleState({this.languageCode = 'en', this.themeMode = ThemeMode.system});
   
 
 @override@JsonKey() final  String languageCode;
-@override@JsonKey() final  bool isDarkMode;
+@override@JsonKey() final  ThemeMode themeMode;
 
 /// Create a copy of LocaleState
 /// with the given fields replaced by the non-null parameter values.
@@ -223,16 +223,16 @@ _$LocaleStateCopyWith<_LocaleState> get copyWith => __$LocaleStateCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LocaleState&&(identical(other.languageCode, languageCode) || other.languageCode == languageCode)&&(identical(other.isDarkMode, isDarkMode) || other.isDarkMode == isDarkMode));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LocaleState&&(identical(other.languageCode, languageCode) || other.languageCode == languageCode)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,languageCode,isDarkMode);
+int get hashCode => Object.hash(runtimeType,languageCode,themeMode);
 
 @override
 String toString() {
-  return 'LocaleState(languageCode: $languageCode, isDarkMode: $isDarkMode)';
+  return 'LocaleState(languageCode: $languageCode, themeMode: $themeMode)';
 }
 
 
@@ -243,7 +243,7 @@ abstract mixin class _$LocaleStateCopyWith<$Res> implements $LocaleStateCopyWith
   factory _$LocaleStateCopyWith(_LocaleState value, $Res Function(_LocaleState) _then) = __$LocaleStateCopyWithImpl;
 @override @useResult
 $Res call({
- String languageCode, bool isDarkMode
+ String languageCode, ThemeMode themeMode
 });
 
 
@@ -260,11 +260,11 @@ class __$LocaleStateCopyWithImpl<$Res>
 
 /// Create a copy of LocaleState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? languageCode = null,Object? isDarkMode = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? languageCode = null,Object? themeMode = null,}) {
   return _then(_LocaleState(
 languageCode: null == languageCode ? _self.languageCode : languageCode // ignore: cast_nullable_to_non_nullable
-as String,isDarkMode: null == isDarkMode ? _self.isDarkMode : isDarkMode // ignore: cast_nullable_to_non_nullable
-as bool,
+as String,themeMode: null == themeMode ? _self.themeMode : themeMode // ignore: cast_nullable_to_non_nullable
+as ThemeMode,
   ));
 }
 

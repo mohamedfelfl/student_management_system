@@ -9,6 +9,7 @@ class AppRouter extends RootStackRouter {
   @override
   List<AutoRoute> get routes => [
         AutoRoute(page: LoginRoute.page, initial: true),
+        AutoRoute(page: SetupWizardRoute.page),
         AutoRoute(
           path: '/',
           page: ShellRoute.page,
@@ -23,6 +24,7 @@ class AppRouter extends RootStackRouter {
             AutoRoute(page: ReportRoute.page),
             AutoRoute(page: AssistantListRoute.page),
             AutoRoute(page: NotesRoute.page),
+            AutoRoute(page: SettingsRoute.page),
           ],
         ),
         AutoRoute(page: UserFormRoute.page),

@@ -1,8 +1,10 @@
+import 'dart:ui';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../features/settings/services/settings_service.dart';
 import 'cubits/locale_cubit.dart';
 import 'di/injection.dart';
 import 'router/app_router.dart';
@@ -21,6 +23,10 @@ import '../features/reports/cubits/report_cubit.dart';
 import '../features/assistants/cubits/assistant_cubit.dart';
 import '../features/assistants/cubits/assistant_attendance_cubit.dart';
 import '../features/notes/cubits/notes_cubit.dart';
+import '../features/settings/cubits/settings_cubit.dart';
+import '../features/settings/services/audit_service.dart';
+import '../features/settings/services/backup_service.dart';
+import '../features/settings/services/device_binding_service.dart';
 
 class StudentsManagementApp extends StatefulWidget {
   const StudentsManagementApp({super.key});
@@ -29,8 +35,55 @@ class StudentsManagementApp extends StatefulWidget {
   State<StudentsManagementApp> createState() => _StudentsManagementAppState();
 }
 
-class _StudentsManagementAppState extends State<StudentsManagementApp> {
+class _StudentsManagementAppState extends State<StudentsManagementApp> with WidgetsBindingObserver {
   final _appRouter = AppRouter();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.detached) {
+      _handleAutoBackupOnClose();
+    }
+  }
+
+  @override
+  Future<AppExitResponse> didRequestAppExit() async {
+    await _handleAutoBackupOnClose();
+    return AppExitResponse.exit;
+  }
+
+  Future<void> _handleAutoBackupOnClose() async {
+    try {
+      final settingsService = getIt<SettingsService>();
+      final isAutoBackupEnabled =
+          await settingsService.getBool(SettingsKeys.autoBackupEnabled);
+
+      if (isAutoBackupEnabled) {
+        final backupService = getIt<BackupService>();
+        final maxBackups =
+            await settingsService.getInt(SettingsKeys.maxBackups, defaultValue: 5);
+
+        // This is a fire-and-forget but since it's "detached",
+        // we hope it completes or we might need to use a more robust way
+        // for background tasks if available.
+        await backupService.createBackup(customName: 'auto_backup');
+        await backupService.pruneBackups(maxBackups);
+      }
+    } catch (e) {
+      debugPrint('Auto-backup on close failed: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,8 +91,13 @@ class _StudentsManagementAppState extends State<StudentsManagementApp> {
 
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => LocaleCubit()),
-        BlocProvider(create: (_) => AuthCubit(databaseService: dbService)),
+        BlocProvider(create: (_) => LocaleCubit(
+          settingsService: getIt<SettingsService>(),
+        )..loadInitialSettings()),
+        BlocProvider(create: (_) => AuthCubit(
+          databaseService: dbService,
+          auditService: getIt<AuditService>(),
+        )),
         BlocProvider(create: (_) => AdminCubit(databaseService: dbService)),
         BlocProvider(create: (_) => DashboardCubit(databaseService: dbService)),
         BlocProvider(create: (_) => StudentCubit(databaseService: dbService)),
@@ -51,6 +109,11 @@ class _StudentsManagementAppState extends State<StudentsManagementApp> {
         BlocProvider(create: (_) => AssistantCubit(databaseService: dbService)),
         BlocProvider(create: (_) => AssistantAttendanceCubit(databaseService: dbService)),
         BlocProvider(create: (_) => NotesCubit(databaseService: dbService)),
+        BlocProvider(create: (_) => SettingsCubit(
+          settingsService: getIt<SettingsService>(),
+          backupService: getIt<BackupService>(),
+          deviceBindingService: getIt<DeviceBindingService>(),
+        )),
       ],
       child: BlocBuilder<LocaleCubit, LocaleState>(
         builder: (context, localeState) {
@@ -72,8 +135,7 @@ class _StudentsManagementAppState extends State<StudentsManagementApp> {
                   debugShowCheckedModeBanner: false,
                   theme: AppTheme.lightTheme,
                   darkTheme: AppTheme.darkTheme,
-                  themeMode:
-                      localeState.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+                  themeMode: localeState.themeMode,
                   locale: context.locale,
                   supportedLocales: context.supportedLocales,
                   localizationsDelegates: context.localizationDelegates,

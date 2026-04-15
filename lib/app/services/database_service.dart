@@ -17,7 +17,7 @@ import 'encryption_service.dart';
 /// The database is encrypted using a passphrase stored in secure storage.
 class DatabaseService {
   static Database? _database;
-  static const int _dbVersion = 13;
+  static const int _dbVersion = 14;
   static const String _dbName = 'student_management.db';
 
   // ignore: unused_field
@@ -92,12 +92,6 @@ class DatabaseService {
             await db.execute("PRAGMA key = '$password'");
             await db.execute('PRAGMA foreign_keys = ON');
           },
-          onOpen: (db) async {
-            await db.execute('''
-              INSERT OR REPLACE INTO users (username, password_hash, role, permissions)
-              VALUES ('admin', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', 'admin', '["manageStudents","manageGroups","managePayments","manageAttendance","manageExams","viewReports","manageUsers","manageNotes"]')
-            ''');
-          },
         ),
       );
     } else {
@@ -109,12 +103,6 @@ class DatabaseService {
         onUpgrade: _onUpgrade,
         onConfigure: (db) async {
           await db.execute('PRAGMA foreign_keys = ON');
-        },
-        onOpen: (db) async {
-          await db.execute('''
-            INSERT OR REPLACE INTO users (username, password_hash, role, permissions)
-            VALUES ('admin', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', 'admin', '["manageStudents","manageGroups","managePayments","manageAttendance","manageExams","viewReports","manageUsers","manageNotes"]')
-          ''');
         },
       );
     }
@@ -141,8 +129,10 @@ class DatabaseService {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT NOT NULL UNIQUE,
         password_hash TEXT NOT NULL,
+        salt TEXT,
         role TEXT NOT NULL DEFAULT 'user',
         permissions TEXT NOT NULL DEFAULT '[]',
+        must_change_password INTEGER NOT NULL DEFAULT 0,
         created_at TEXT NOT NULL DEFAULT (datetime('now'))
       )
     ''');
@@ -272,11 +262,7 @@ class DatabaseService {
       )
     ''');
 
-    // Create default admin user (username: admin, password: 123)
-    batch.execute('''
-      INSERT OR REPLACE INTO users (username, password_hash, role, permissions)
-      VALUES ('admin', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', 'admin', '["manageStudents","manageGroups","managePayments","manageAttendance","manageExams","viewReports","manageUsers"]')
-    ''');
+    // No default admin user — created via first-launch setup wizard
 
     await batch.commit(noResult: true);
 
@@ -578,6 +564,86 @@ class DatabaseService {
         )
       ''');
       await batch.commit(noResult: true);
+    }
+
+    if (oldVersion < 14) {
+      if (kDebugMode) {
+        print('Database Version < 14: Adding settings, audit, device binding tables...');
+      }
+      final Batch batch = db.batch();
+
+      // App Settings (key-value store)
+      batch.execute('''
+        CREATE TABLE app_settings (
+          key TEXT PRIMARY KEY,
+          value TEXT NOT NULL,
+          updated_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+        )
+      ''');
+
+      // Audit Log
+      batch.execute('''
+        CREATE TABLE audit_log (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER NOT NULL,
+          action TEXT NOT NULL,
+          entity_type TEXT NOT NULL,
+          entity_id INTEGER,
+          details TEXT,
+          created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+          FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+      ''');
+
+      // Device Binding
+      batch.execute('''
+        CREATE TABLE device_binding (
+          id INTEGER PRIMARY KEY,
+          device_fingerprint TEXT NOT NULL,
+          device_name TEXT,
+          os_info TEXT,
+          bound_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+        )
+      ''');
+
+      // Login Attempts
+      batch.execute('''
+        CREATE TABLE login_attempts (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          username TEXT NOT NULL,
+          success INTEGER NOT NULL DEFAULT 0,
+          attempted_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+        )
+      ''');
+
+      await batch.commit(noResult: true);
+
+      // Add salt column to users table
+      try {
+        await db.execute('ALTER TABLE users ADD COLUMN salt TEXT');
+      } catch (_) {
+        // Column may already exist
+      }
+
+      // Add must_change_password column to users table
+      try {
+        await db.execute(
+          'ALTER TABLE users ADD COLUMN must_change_password INTEGER NOT NULL DEFAULT 0',
+        );
+      } catch (_) {
+        // Column may already exist
+      }
+
+      // Create indexes for performance
+      await db.execute(
+        'CREATE INDEX idx_audit_log_user ON audit_log(user_id)',
+      );
+      await db.execute(
+        'CREATE INDEX idx_audit_log_created ON audit_log(created_at)',
+      );
+      await db.execute(
+        'CREATE INDEX idx_login_attempts_username ON login_attempts(username)',
+      );
     }
   }
 

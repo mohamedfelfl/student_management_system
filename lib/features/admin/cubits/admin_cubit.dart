@@ -1,10 +1,10 @@
 import 'dart:convert';
 
-import 'package:crypto/crypto.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
+import '../../auth/cubits/auth_cubit.dart';
 import '../../auth/models/user.dart';
 import '../../../app/services/database_service.dart';
 
@@ -59,10 +59,14 @@ class AdminCubit extends Cubit<AdminState> {
   }) async {
     try {
       final Database db = await _databaseService.database;
-      final String passwordHash = sha256.convert(utf8.encode(password)).toString();
+
+      // Use salted password hashing
+      final (hash, salt) = AuthCubit.hashPasswordWithSalt(password);
+
       await db.insert('users', <String, Object?>{
         'username': username,
-        'password_hash': passwordHash,
+        'password_hash': hash,
+        'salt': salt,
         'role': role.name,
         'permissions': jsonEncode(permissions.map((p) => p.name).toList()),
       });
@@ -84,7 +88,10 @@ class AdminCubit extends Cubit<AdminState> {
       final Map<String, Object?> updates = <String, Object?>{};
       if (username != null) updates['username'] = username;
       if (password != null) {
-        updates['password_hash'] = sha256.convert(utf8.encode(password)).toString();
+        // Use salted password hashing
+        final (hash, salt) = AuthCubit.hashPasswordWithSalt(password);
+        updates['password_hash'] = hash;
+        updates['salt'] = salt;
       }
       if (role != null) updates['role'] = role.name;
       if (permissions != null) {
