@@ -72,12 +72,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
         );
 
         return Scaffold(
-          appBar: ResponsiveLayout.isMobile(context)
+          appBar: ResponsiveLayout.isMobile(context) || context.router.canPop()
               ? AppBar(
-                  leading: IconButton(
-                    icon: const Icon(Icons.menu),
-                    onPressed: () => Scaffold.of(context).openDrawer(),
-                  ),
+                  leading: context.router.canPop()
+                      ? const BackButton()
+                      : IconButton(
+                          icon: const Icon(Icons.menu),
+                          onPressed: () => Scaffold.of(context).openDrawer(),
+                        ),
                   title: Text(LocaleKeys.settings.tr()),
                   centerTitle: true,
                 )

@@ -49,12 +49,14 @@ class _StudentListScreenState extends State<StudentListScreen> {
           style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
         ),
         centerTitle: true,
-        leading: ResponsiveLayout.isMobile(context)
-            ? IconButton(
-                icon: const Icon(Icons.menu),
-                onPressed: () => Scaffold.of(context).openDrawer(),
-              )
-            : null,
+        leading: context.router.canPop()
+            ? const BackButton()
+            : ResponsiveLayout.isMobile(context)
+                ? IconButton(
+                    icon: const Icon(Icons.menu),
+                    onPressed: () => Scaffold.of(context).openDrawer(),
+                  )
+                : null,
       ),
       body: BlocBuilder<StudentCubit, StudentState>(
         builder: (BuildContext context, StudentState state) {

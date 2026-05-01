@@ -363,8 +363,9 @@ class _MarkEntryScreenState extends State<MarkEntryScreen> {
                                                                     widget.id,
                                                               )
                                                               .firstOrNull;
-                                                          if (exam == null)
+                                                          if (exam == null) {
                                                             return;
+                                                          }
                                                           final fullMark =
                                                               (exam['full_mark']
                                                                       as num)

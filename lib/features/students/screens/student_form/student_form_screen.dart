@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../app/shared/widgets/responsive_layout.dart';
@@ -123,15 +124,14 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
           style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
         ),
         centerTitle: true,
-        leading: ResponsiveLayout.isMobile(context)
-            ? IconButton(
-                icon: const Icon(Icons.menu),
-                onPressed: () => Scaffold.of(context).openDrawer(),
-              )
-            : IconButton(
-                onPressed: () => context.router.maybePop(),
-                icon: const Icon(Icons.arrow_back),
-              ),
+        leading: context.router.canPop()
+            ? const BackButton()
+            : ResponsiveLayout.isMobile(context)
+                ? IconButton(
+                    icon: const Icon(Icons.menu),
+                    onPressed: () => Scaffold.of(context).openDrawer(),
+                  )
+                : null,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -188,6 +188,10 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
                       Expanded(
                         child: TextFormField(
                           controller: _phone1Controller,
+                          keyboardType: TextInputType.phone,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(RegExp(r'[0-9+]')),
+                          ],
                           decoration: InputDecoration(
                             labelText: LocaleKeys.phone1.tr(),
                             prefixIcon: const Icon(Icons.phone),
@@ -198,6 +202,10 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
                       Expanded(
                         child: TextFormField(
                           controller: _phone2Controller,
+                          keyboardType: TextInputType.phone,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(RegExp(r'[0-9+]')),
+                          ],
                           decoration: InputDecoration(
                             labelText: LocaleKeys.phone2.tr(),
                             prefixIcon: const Icon(Icons.phone),

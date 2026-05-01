@@ -19,17 +19,19 @@ class NotesDeliveryTab extends StatefulWidget {
 
 class _NotesDeliveryTabState extends State<NotesDeliveryTab> {
   int? _selectedGroupId;
+  late final NotesCubit _notesCubit;
 
   @override
   void initState() {
     super.initState();
+    _notesCubit = context.read<NotesCubit>();
     context.read<GroupCubit>().loadGroups();
     context.read<StudentCubit>().loadStudents();
   }
 
   @override
   void dispose() {
-    context.read<NotesCubit>().clearPendingDeliveries();
+    _notesCubit.clearPendingDeliveries();
     super.dispose();
   }
 

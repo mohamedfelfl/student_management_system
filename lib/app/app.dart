@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:easy_localization/easy_localization.dart';
+import '../generated/locale_keys.g.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -25,7 +26,6 @@ import '../features/assistants/cubits/assistant_cubit.dart';
 import '../features/assistants/cubits/assistant_attendance_cubit.dart';
 import '../features/notes/cubits/notes_cubit.dart';
 import '../features/settings/cubits/settings_cubit.dart';
-import '../features/settings/services/audit_service.dart';
 import '../features/settings/services/backup_service.dart';
 import '../features/settings/services/device_binding_service.dart';
 
@@ -104,7 +104,6 @@ class _StudentsManagementAppState extends State<StudentsManagementApp>
         BlocProvider(
           create: (_) => AuthCubit(
             databaseService: dbService,
-            auditService: getIt<AuditService>(),
           ),
         ),
         BlocProvider(create: (_) => AdminCubit(databaseService: dbService)),
@@ -148,7 +147,7 @@ class _StudentsManagementAppState extends State<StudentsManagementApp>
                   );
                 },
                 child: MaterialApp.router(
-                  title: 'Student Management System',
+                  title: LocaleKeys.app_title.tr(),
                   debugShowCheckedModeBanner: false,
                   theme: AppTheme.lightTheme,
                   darkTheme: AppTheme.darkTheme,

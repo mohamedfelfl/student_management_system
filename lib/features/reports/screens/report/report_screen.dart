@@ -10,6 +10,7 @@ import '../../../../app/shared/widgets/responsive_layout.dart';
 import '../../../assistants/cubits/assistant_cubit.dart';
 import '../../../groups/cubits/group_cubit.dart';
 import '../../../notes/cubits/notes_cubit.dart';
+import '../../../notes/cubits/notes_state.dart';
 import '../../../students/cubits/student_cubit.dart';
 import '../../../exams/cubits/exam_cubit.dart';
 import '../../cubits/report_cubit.dart';
@@ -37,6 +38,7 @@ class _ReportScreenState extends State<ReportScreen> {
   int? _selectedAssistantId;
   int? _selectedNoteStudentId;
   int? _selectedNoteGroupId;
+  int? _selectedNoteId;
   NotesReportMode _notesReportMode = NotesReportMode.all;
 
   // Highest Marks specific
@@ -66,19 +68,39 @@ class _ReportScreenState extends State<ReportScreen> {
           // Show PDF preview
           showDialog(
             context: context,
-            builder: (_) => Dialog(
+            builder: (dialogContext) => Dialog(
+              clipBehavior: Clip.hardEdge,
               child: SizedBox(
                 width: 800.w,
                 height: 600.h,
-                child: PdfPreview(
-                  build: (format) => state.pdfDocument!.save(),
-                  canChangeOrientation: false,
-                  canChangePageFormat: false,
-                  canDebug: false,
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => Navigator.of(dialogContext).pop(),
+                        ),
+                      ],
+                    ),
+                    Expanded(
+                      child: PdfPreview(
+                        build: (format) => state.pdfDocument!.save(),
+                        canChangeOrientation: false,
+                        canChangePageFormat: false,
+                        canDebug: false,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-          );
+          ).then((_) {
+            if (context.mounted) {
+              context.read<ReportCubit>().resetState();
+            }
+          });
         }
         if (state.error != null) {
           ScaffoldMessenger.of(
@@ -93,12 +115,14 @@ class _ReportScreenState extends State<ReportScreen> {
             style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
           ),
           centerTitle: true,
-          leading: ResponsiveLayout.isMobile(context)
-              ? IconButton(
-                  icon: const Icon(Icons.menu),
-                  onPressed: () => Scaffold.of(context).openDrawer(),
-                )
-              : null,
+          leading: context.router.canPop()
+              ? const BackButton()
+              : ResponsiveLayout.isMobile(context)
+                  ? IconButton(
+                      icon: const Icon(Icons.menu),
+                      onPressed: () => Scaffold.of(context).openDrawer(),
+                    )
+                  : null,
         ),
         body: Padding(
           padding: EdgeInsets.all(24.r),
@@ -882,13 +906,45 @@ class _ReportScreenState extends State<ReportScreen> {
           SizedBox(height: 16.h),
         ],
 
+        // Note Unit selector
+        BlocBuilder<NotesCubit, NotesState>(
+          builder: (context, state) {
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                return DropdownMenu<int?>(
+                  width: constraints.maxWidth,
+                  initialSelection: _selectedNoteId,
+                  label: Text(LocaleKeys.notes.tr()),
+                  leadingIcon: const Icon(Icons.book),
+                  enableSearch: true,
+                  enableFilter: true,
+                  dropdownMenuEntries: [
+                    ...state.notes.map(
+                      (n) => DropdownMenuEntry<int?>(
+                        value: n.id,
+                        label: n.name,
+                      ),
+                    ),
+                  ],
+                  onSelected: (v) {
+                    setState(() {
+                      _selectedNoteId = v;
+                    });
+                  },
+                );
+              },
+            );
+          },
+        ),
+        SizedBox(height: 16.h),
+
         BlocBuilder<ReportCubit, ReportState>(
           builder: (context, state) {
             return SizedBox(
               width: double.infinity,
               height: 52.h,
               child: ElevatedButton.icon(
-                onPressed: state.isLoading
+                onPressed: state.isLoading || _selectedNoteId == null
                     ? null
                     : () {
                         String? groupName;
@@ -904,6 +960,7 @@ class _ReportScreenState extends State<ReportScreen> {
                           studentId: _selectedNoteStudentId,
                           groupId: _selectedNoteGroupId,
                           groupName: groupName,
+                          noteId: _selectedNoteId,
                         );
                       },
                 icon: state.isLoading

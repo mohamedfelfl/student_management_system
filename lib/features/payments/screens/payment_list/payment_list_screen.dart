@@ -70,12 +70,14 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
           ),
         ),
         centerTitle: true,
-        leading: ResponsiveLayout.isMobile(context)
-            ? IconButton(
-                icon: const Icon(Icons.menu),
-                onPressed: () => Scaffold.of(context).openDrawer(),
-              )
-            : null,
+          leading: context.router.canPop()
+              ? const BackButton()
+              : ResponsiveLayout.isMobile(context)
+                  ? IconButton(
+                      icon: const Icon(Icons.menu),
+                      onPressed: () => Scaffold.of(context).openDrawer(),
+                    )
+                  : null,
         backgroundColor: Colors.transparent,
       ),
       body: SafeArea(
@@ -282,8 +284,8 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                                   ),
                                 ),
                                 SizedBox(height: 16.h),
-                              ],
-
+                              ] else ...[
+                              
                               // Bento Grid Style
                               LayoutBuilder(
                                 builder: (context, constraints) {
@@ -484,9 +486,25 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                                                         ),
                                                       ),
                                                       Expanded(
-                                                        flex: 3,
+                                                        flex: 2,
                                                         child: Text(
                                                           'الوصف',
+                                                          style: textTheme
+                                                              .titleSmall
+                                                              ?.copyWith(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                color: colorScheme
+                                                                    .onSurfaceVariant,
+                                                              ),
+                                                        ),
+                                                      ),
+                                                      SizedBox(width: 16.w),
+                                                      Expanded(
+                                                        flex: 2,
+                                                        child: Text(
+                                                          LocaleKeys.total_amount.tr(),
                                                           style: textTheme
                                                               .titleSmall
                                                               ?.copyWith(
@@ -501,7 +519,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                                                       Expanded(
                                                         flex: 2,
                                                         child: Text(
-                                                          'المبلغ',
+                                                          LocaleKeys.paid_amount.tr(),
                                                           style: textTheme
                                                               .titleSmall
                                                               ?.copyWith(
@@ -594,6 +612,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                                   ],
                                 ),
                               ),
+                              ],
                               SizedBox(height: 48.h),
                             ],
                           ),
@@ -781,7 +800,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
 
                     // Body
                     Padding(
-                      padding: EdgeInsets.all(40.r),
+                      padding: EdgeInsets.all(20.r),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1403,7 +1422,18 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                                         0;
 
                                     if (total > 0 && paid >= 0) {
-                                      if (paid > total) {
+                                      final payments = context.read<PaymentCubit>().state.payments;
+                                      final month = payment['month'];
+                                      final year = payment['year'];
+                                      final monthlyPayments = payments.where((p) => p['month'] == month && p['year'] == year).toList();
+                                      final double existingPaid = monthlyPayments.fold(
+                                        0.0,
+                                        (sum, p) => sum + (p['paid_amount'] as num).toDouble(),
+                                      );
+                                      final double currentPaymentPaid = (payment['paid_amount'] as num).toDouble();
+                                      final double otherPaid = existingPaid - currentPaymentPaid;
+
+                                      if ((otherPaid + paid) > total) {
                                         setDialogState(() {
                                           errorMessage = LocaleKeys
                                               .cannot_pay_more_than_total

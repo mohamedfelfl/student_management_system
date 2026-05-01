@@ -24,6 +24,8 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
   final List<String> _selectedDays = [];
   final Map<String, TimeOfDay> _dayTimes = {};
   bool _isEditing = false;
+  final List<int> _selectedStudentIds = [];
+  final List<Map<String, dynamic>> _selectedStudentsData = []; // To show chips with names
 
   final List<String> _days = <String>[
     'Saturday',
@@ -43,8 +45,8 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
       _loadGroup();
       // Load linked students for this group
       context.read<GroupCubit>().loadGroupStudents(widget.id!);
-      context.read<GroupCubit>().loadAvailableStudents();
     }
+    context.read<GroupCubit>().loadAvailableStudents();
   }
 
   void _loadGroup() {
@@ -176,15 +178,14 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        leading: ResponsiveLayout.isMobile(context)
-            ? IconButton(
-                icon: const Icon(Icons.menu),
-                onPressed: () => Scaffold.of(context).openDrawer(),
-              )
-            : IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () => context.router.maybePop(),
-              ),
+        leading: context.router.canPop()
+            ? const BackButton()
+            : ResponsiveLayout.isMobile(context)
+                ? IconButton(
+                    icon: const Icon(Icons.menu),
+                    onPressed: () => Scaffold.of(context).openDrawer(),
+                  )
+                : null,
         title: Text(
           _isEditing ? LocaleKeys.edit_group.tr() : LocaleKeys.add_group.tr(),
           style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
@@ -345,13 +346,11 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
                     ),
                   ),
 
-                  // ── Student Linking Section (edit mode only) ──
-                  if (_isEditing) ...[
-                    SizedBox(height: 40.h),
-                    const Divider(),
-                    SizedBox(height: 16.h),
-                    _buildStudentLinkingSection(textTheme, colorScheme),
-                  ],
+                  // ── Student Linking Section ──
+                  SizedBox(height: 40.h),
+                  const Divider(),
+                  SizedBox(height: 16.h),
+                  _buildStudentLinkingSection(textTheme, colorScheme),
                 ],
               ),
             ),
@@ -367,7 +366,8 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
   ) {
     return BlocBuilder<GroupCubit, GroupState>(
       builder: (context, state) {
-        final students = state.groupStudents;
+        final List<Map<String, dynamic>> students =
+            _isEditing ? state.groupStudents : _selectedStudentsData;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -442,13 +442,22 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
                       style: textTheme.bodyLarge,
                     ),
                     deleteIcon: const Icon(Icons.close, size: 18),
-                    deleteButtonTooltipMessage: LocaleKeys.remove_from_group
-                        .tr(),
+                    deleteButtonTooltipMessage:
+                        LocaleKeys.remove_from_group.tr(),
                     onDeleted: () {
-                      context.read<GroupCubit>().unlinkStudentFromGroup(
-                        s['id'] as int,
-                        widget.id!,
-                      );
+                      if (_isEditing) {
+                        context.read<GroupCubit>().unlinkStudentFromGroup(
+                          s['id'] as int,
+                          widget.id!,
+                        );
+                      } else {
+                        setState(() {
+                          _selectedStudentIds.remove(s['id'] as int);
+                          _selectedStudentsData.removeWhere(
+                            (item) => item['id'] == s['id'],
+                          );
+                        });
+                      }
                     },
                     onPressed: () {
                       context.router.push(
@@ -474,7 +483,7 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
         final searchController = TextEditingController();
 
         return StatefulBuilder(
-          builder: (context, setDialogState) {
+          builder: (builderContext, setDialogState) {
             return AlertDialog(
               title: Text(LocaleKeys.add_students_to_group.tr()),
               content: SizedBox(
@@ -490,7 +499,7 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
                         border: const OutlineInputBorder(),
                       ),
                       onChanged: (query) {
-                        this.context.read<GroupCubit>().loadAvailableStudents(
+                        context.read<GroupCubit>().loadAvailableStudents(
                           search: query,
                         );
                       },
@@ -498,8 +507,8 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
                     SizedBox(height: 12.h),
                     Expanded(
                       child: BlocBuilder<GroupCubit, GroupState>(
-                        bloc: this.context.read<GroupCubit>(),
-                        builder: (context, state) {
+                        bloc: context.read<GroupCubit>(),
+                        builder: (blocContext, state) {
                           final available = state.availableStudents;
                           if (available.isEmpty) {
                             return Center(
@@ -544,12 +553,24 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
                                     color: colorScheme.primary,
                                   ),
                                   onPressed: () {
-                                    this.context
-                                        .read<GroupCubit>()
-                                        .linkStudentToGroup(
-                                          s['id'] as int,
-                                          widget.id!,
-                                        );
+                                    if (_isEditing) {
+                                      context.read<GroupCubit>().linkStudentToGroup(
+                                            s['id'] as int,
+                                            widget.id!,
+                                          );
+                                    } else {
+                                      if (!_selectedStudentIds.contains(
+                                        s['id'] as int,
+                                      )) {
+                                        setState(() {
+                                          _selectedStudentIds.add(
+                                            s['id'] as int,
+                                          );
+                                          _selectedStudentsData.add(s);
+                                        });
+                                        setDialogState(() {});
+                                      }
+                                    }
                                   },
                                 ),
                               );
@@ -596,6 +617,7 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
     final Map<String, Object?> data = {
       'name': _nameController.text.trim(),
       'schedules': schedules,
+      if (!_isEditing) 'studentIds': _selectedStudentIds,
     };
 
     final GroupCubit cubit = context.read<GroupCubit>();

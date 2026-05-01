@@ -132,10 +132,6 @@ abstract class SettingsKeys {
   static const screenLockOnMinimize = 'screen_lock_on_minimize';
   static const dataMasking = 'data_masking';
 
-  // Audit
-  static const auditEnabled = 'audit_enabled';
-  static const auditRetentionDays = 'audit_retention_days';
-
   // Device
   static const deviceBound = 'device_bound';
 

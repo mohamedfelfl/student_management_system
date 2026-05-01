@@ -3,7 +3,6 @@ import 'package:get_it/get_it.dart';
 import '../services/database_service.dart';
 import '../services/encryption_service.dart';
 import '../../features/settings/services/settings_service.dart';
-import '../../features/settings/services/audit_service.dart';
 import '../../features/settings/services/backup_service.dart';
 import '../../features/settings/services/device_binding_service.dart';
 
@@ -22,11 +21,6 @@ Future<void> configureDependencies() async {
   // Settings
   getIt.registerLazySingleton<SettingsService>(
     () => SettingsService(databaseService: getIt<DatabaseService>()),
-  );
-
-  // Audit
-  getIt.registerLazySingleton<AuditService>(
-    () => AuditService(databaseService: getIt<DatabaseService>()),
   );
 
   // Backup

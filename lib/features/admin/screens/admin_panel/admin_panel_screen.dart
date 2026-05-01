@@ -34,12 +34,14 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     return BlocBuilder<AdminCubit, AdminState>(
       builder: (BuildContext context, AdminState state) {
         return Scaffold(
-          appBar: ResponsiveLayout.isMobile(context)
+          appBar: ResponsiveLayout.isMobile(context) || context.router.canPop()
               ? AppBar(
-                  leading: IconButton(
-                    icon: const Icon(Icons.menu),
-                    onPressed: () => Scaffold.of(context).openDrawer(),
-                  ),
+                  leading: context.router.canPop()
+                      ? const BackButton()
+                      : IconButton(
+                          icon: const Icon(Icons.menu),
+                          onPressed: () => Scaffold.of(context).openDrawer(),
+                        ),
                   title: Text(LocaleKeys.admin_panel.tr()),
                   centerTitle: true,
                 )

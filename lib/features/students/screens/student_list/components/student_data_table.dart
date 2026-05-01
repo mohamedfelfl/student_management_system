@@ -240,7 +240,9 @@ class _StudentDataSource extends DataTableSource {
               children: [
                 Text(
                   '${s['school']?.toString() ?? LocaleKeys.na.tr()} (${_getGradeLabel(s['grade']?.toString())})',
-                  style: textTheme.bodyLarge?.copyWith(fontSize: 16.sp),
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -258,6 +260,7 @@ class _StudentDataSource extends DataTableSource {
         ),
         DataCell(
           Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
@@ -265,7 +268,7 @@ class _StudentDataSource extends DataTableSource {
                 constraints: const BoxConstraints(),
                 icon: Icon(
                   Icons.edit_outlined,
-                  size: 20,
+                  size: 20.r,
                   color: colorScheme.onSurfaceVariant,
                 ),
                 tooltip: LocaleKeys.edit.tr(),
@@ -277,7 +280,7 @@ class _StudentDataSource extends DataTableSource {
                 constraints: const BoxConstraints(),
                 icon: Icon(
                   Icons.delete_outline,
-                  size: 20,
+                  size: 20.r,
                   color: colorScheme.error,
                 ),
                 tooltip: LocaleKeys.delete.tr(),

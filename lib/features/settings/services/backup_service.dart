@@ -201,7 +201,6 @@ class BackupService {
       'notes',
       'student_notes',
       'users',
-      'audit_log',
       'login_attempts',
     ];
 
@@ -404,7 +403,7 @@ class BackupService {
       await txn.delete('group_schedules');
       await txn.delete('groups');
       await txn.delete('exams');
-      // Keep users, audit_log, login_attempts, device_binding, app_settings
+      // Keep users, login_attempts, device_binding, app_settings
     });
   }
 }

@@ -8,7 +8,6 @@ import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import '../models/user.dart';
 import '../../../app/services/database_service.dart';
-import '../../settings/services/audit_service.dart';
 
 part 'auth_cubit.freezed.dart';
 
@@ -22,13 +21,10 @@ abstract class AuthState with _$AuthState {
 
 class AuthCubit extends Cubit<AuthState> {
   final DatabaseService _databaseService;
-  final AuditService? _auditService;
 
   AuthCubit({
     required DatabaseService databaseService,
-    AuditService? auditService,
   }) : _databaseService = databaseService,
-       _auditService = auditService,
        super(const AuthState.initial());
 
   Future<void> login(String username, String password) async {
@@ -44,8 +40,6 @@ class AuthCubit extends Cubit<AuthState> {
       );
 
       if (results.isEmpty) {
-        // Log failed login attempt
-        await _auditService?.logLogin(username: username, success: false);
         emit(const AuthState.error('Invalid username or password'));
         return;
       }
@@ -58,8 +52,6 @@ class AuthCubit extends Cubit<AuthState> {
       final String passwordHash = _hashPassword(password, salt: salt);
 
       if (passwordHash != storedHash) {
-        // Log failed login attempt
-        await _auditService?.logLogin(username: username, success: false);
         emit(const AuthState.error('Invalid username or password'));
         return;
       }
@@ -84,9 +76,6 @@ class AuthCubit extends Cubit<AuthState> {
       if (salt == null && user.id != null) {
         await _migrateToCryptedPassword(db, user.id!, password);
       }
-
-      // Log successful login
-      await _auditService?.logLogin(username: username, success: true);
 
       emit(AuthState.authenticated(user));
     } catch (e) {

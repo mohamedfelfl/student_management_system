@@ -64,6 +64,9 @@ class GroupCubit extends Cubit<GroupState> {
     try {
       final List<Map<String, dynamic>> schedules =
           List<Map<String, dynamic>>.from(data.remove('schedules') ?? []);
+      final List<int> studentIds = List<int>.from(
+        data.remove('studentIds') ?? [],
+      );
 
       final db = await _databaseService.database;
       await db.transaction((txn) async {
@@ -74,6 +77,16 @@ class GroupCubit extends Cubit<GroupState> {
             ...schedule,
             'group_id': groupId,
           });
+        }
+
+        // Link students to the new group
+        for (final studentId in studentIds) {
+          await txn.update(
+            'students',
+            {'group_id': groupId},
+            where: 'id = ?',
+            whereArgs: [studentId],
+          );
         }
       });
 

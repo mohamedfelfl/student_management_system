@@ -15,8 +15,9 @@ class AttendanceTab extends StatelessWidget {
 
     return BlocBuilder<AttendanceCubit, AttendanceState>(
       builder: (context, state) {
-        if (state.isLoading)
+        if (state.isLoading) {
           return const Center(child: CircularProgressIndicator());
+        }
         if (state.records.isEmpty) {
           return Center(child: Text(LocaleKeys.no_attendance_records.tr()));
         }

@@ -35,17 +35,23 @@ class _NoteDialogState extends State<NoteDialog> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (_formKey.currentState?.validate() ?? false) {
       final name = _nameController.text.trim();
       final price = double.tryParse(_priceController.text) ?? 0.0;
 
       if (widget.note == null) {
-        context.read<NotesCubit>().addNote(name, price);
+        await context.read<NotesCubit>().addNote(name, price);
       } else {
-        context.read<NotesCubit>().updateNote(widget.note!.id!, name, price);
+        await context.read<NotesCubit>().updateNote(
+          widget.note!.id!,
+          name,
+          price,
+        );
       }
-      Navigator.pop(context);
+      if (mounted) {
+        Navigator.pop(context);
+      }
     }
   }
 

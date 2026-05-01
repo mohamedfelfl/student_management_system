@@ -72,7 +72,7 @@ class TransactionTile extends StatelessWidget {
 
             // 2. Description
             Expanded(
-              flex: 3,
+              flex: 2,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -94,8 +94,21 @@ class TransactionTile extends StatelessWidget {
                 ],
               ),
             ),
+            SizedBox(width: 16.w),
 
-            // 3. Amount
+            // 3. Total Amount
+            Expanded(
+              flex: 2,
+              child: Text(
+                '${LocaleKeys.currency_symbol.tr()} ${NumberFormat('#,##0.00').format((payment['total_amount'] as num).toDouble())}',
+                style: textTheme.titleMedium?.copyWith(
+                  color: colorScheme.onSurface,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+
+            // 4. Paid Amount
             Expanded(
               flex: 2,
               child: Text(

@@ -68,12 +68,14 @@ class _HonoredStudentsScreenState extends State<HonoredStudentsScreen> {
           ),
         ),
         centerTitle: true,
-        leading: ResponsiveLayout.isMobile(context)
-            ? IconButton(
-                icon: const Icon(Icons.menu),
-                onPressed: () => Scaffold.of(context).openDrawer(),
-              )
-            : const SizedBox.shrink(),
+        leading: context.router.canPop()
+            ? const BackButton()
+            : ResponsiveLayout.isMobile(context)
+                ? IconButton(
+                    icon: const Icon(Icons.menu),
+                    onPressed: () => Scaffold.of(context).openDrawer(),
+                  )
+                : const SizedBox.shrink(),
       ),
       body: BlocBuilder<ExamCubit, ExamState>(
         builder: (context, state) {

@@ -40,6 +40,10 @@ class ReportCubit extends Cubit<ReportState> {
     : _databaseService = databaseService,
       super(const ReportState());
 
+  void resetState() {
+    emit(const ReportState());
+  }
+
   /// Generate a full report for a single student.
   Future<void> generateStudentReport(int studentId) async {
     emit(const ReportState(isLoading: true));
@@ -792,13 +796,20 @@ class ReportCubit extends Cubit<ReportState> {
     int? studentId,
     int? groupId,
     String? groupName,
+    int? noteId,
   }) async {
     emit(const ReportState(isLoading: true));
     try {
       final db = await _databaseService.database;
 
-      // Get all notes
-      final notes = await db.query('notes', orderBy: 'id ASC');
+      // Get notes
+      final notes = await db.query(
+        'notes',
+        orderBy: 'id ASC',
+        where: noteId != null ? 'id = ?' : null,
+        whereArgs: noteId != null ? [noteId] : null,
+      );
+      
       if (notes.isEmpty) {
         emit(const ReportState(error: 'No notes found'));
         return;
@@ -888,7 +899,7 @@ class ReportCubit extends Cubit<ReportState> {
                   ...notes.map((n) {
                     final nId = n['id'] as int;
                     final key = '${sId}_$nId';
-                    return deliverySet.contains(key) ? '✓' : '✗';
+                    return deliverySet.contains(key) ? 'نعم' : 'لا';
                   }),
                 ];
               }).toList(),

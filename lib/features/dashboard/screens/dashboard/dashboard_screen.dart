@@ -3,7 +3,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
 import '../../../../app/router/app_router.gr.dart';
 import '../../../../app/shared/widgets/responsive_layout.dart';
 import '../../../../generated/locale_keys.g.dart';
@@ -26,6 +25,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     context.read<DashboardCubit>().loadDashboard();
+  }
+
+  void _navigateAndRefresh(PageRouteInfo route) {
+    context.router.push(route).then((_) {
+      if (mounted) {
+        context.read<DashboardCubit>().loadDashboard();
+      }
+    });
   }
 
   @override
@@ -55,12 +62,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
             centerTitle: true,
-            leading: ResponsiveLayout.isMobile(context)
-                ? IconButton(
-                    icon: Icon(Icons.menu, color: colorScheme.onSurface),
-                    onPressed: () => Scaffold.of(context).openDrawer(),
-                  )
-                : null,
+            leading: context.router.canPop()
+                ? const BackButton()
+                : ResponsiveLayout.isMobile(context)
+                    ? IconButton(
+                        icon: Icon(Icons.menu, color: colorScheme.onSurface),
+                        onPressed: () => Scaffold.of(context).openDrawer(),
+                      )
+                    : null,
             actions: [
               IconButton(
                 icon: const Icon(Icons.language),
@@ -180,7 +189,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 icon: Icons.person_add_rounded,
                                 label: LocaleKeys.new_student.tr(),
                                 onTap: () =>
-                                    context.router.push(StudentFormRoute()),
+                                    _navigateAndRefresh(StudentFormRoute()),
                                 color: const Color(0xFF6750A4),
                               ),
                             if (user?.can(UserPermission.manageAttendance) ??
@@ -189,7 +198,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 icon: Icons.qr_code_scanner_rounded,
                                 label: LocaleKeys.scan_qr.tr(),
                                 onTap: () =>
-                                    context.router.push(QrScannerRoute()),
+                                    _navigateAndRefresh(QrScannerRoute()),
                                 color: const Color(0xFFE91E63),
                               ),
                             if (user?.can(UserPermission.managePayments) ??
@@ -198,7 +207,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 icon: Icons.payments_rounded,
                                 label: LocaleKeys.add_payment.tr(),
                                 onTap: () =>
-                                    context.router.push(PaymentListRoute()),
+                                    _navigateAndRefresh(PaymentListRoute()),
                                 color: const Color(0xFF4CAF50),
                               ),
                             if (user?.can(UserPermission.manageExams) ?? false)
@@ -206,14 +215,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 icon: Icons.quiz_rounded,
                                 label: LocaleKeys.exams.tr(),
                                 onTap: () =>
-                                    context.router.push(ExamFormRoute()),
+                                    _navigateAndRefresh(ExamFormRoute()),
                                 color: const Color(0xFFFF9800),
                               ),
                             if (user?.can(UserPermission.viewReports) ?? false)
                               ActionCard(
                                 icon: Icons.analytics_rounded,
                                 label: LocaleKeys.reports.tr(),
-                                onTap: () => context.router.push(ReportRoute()),
+                                onTap: () => _navigateAndRefresh(ReportRoute()),
                                 color: const Color(0xFF2196F3),
                               ),
                             if (user?.can(UserPermission.manageGroups) ?? false)
@@ -221,14 +230,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 icon: Icons.groups_rounded,
                                 label: LocaleKeys.groups.tr(),
                                 onTap: () =>
-                                    context.router.push(GroupListRoute()),
+                                    _navigateAndRefresh(GroupListRoute()),
                                 color: const Color(0xFF9C27B0),
                               ),
                             if (user?.can(UserPermission.manageNotes) ?? false)
                               ActionCard(
                                 icon: Icons.menu_book_rounded,
                                 label: LocaleKeys.notes.tr(),
-                                onTap: () => context.router.push(NotesRoute()),
+                                onTap: () => _navigateAndRefresh(NotesRoute()),
                                 color: const Color(0xFF00897B),
                               ),
                             if (user?.can(UserPermission.manageAssistants) ??
@@ -237,7 +246,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 icon: Icons.support_agent_rounded,
                                 label: LocaleKeys.assistants_directory.tr(),
                                 onTap: () =>
-                                    context.router.push(const AssistantListRoute()),
+                                    _navigateAndRefresh(const AssistantListRoute()),
                                 color: const Color(0xFF795548),
                               ),
                             if (user?.role == UserRole.admin ||
@@ -247,7 +256,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 icon: Icons.admin_panel_settings_rounded,
                                 label: LocaleKeys.admin_panel.tr(),
                                 onTap: () =>
-                                    context.router.push(const AdminPanelRoute()),
+                                    _navigateAndRefresh(const AdminPanelRoute()),
                                 color: const Color(0xFF3F51B5),
                               ),
                             if (user?.can(UserPermission.viewReports) ?? false)
@@ -255,14 +264,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 icon: Icons.emoji_events_rounded,
                                 label: LocaleKeys.honor_board.tr(),
                                 onTap: () =>
-                                    context.router.push(const HonoredStudentsRoute()),
+                                    _navigateAndRefresh(const HonoredStudentsRoute()),
                                 color: const Color(0xFFFFC107),
                               ),
                             ActionCard(
                               icon: Icons.settings_rounded,
                               label: LocaleKeys.settings.tr(),
                               onTap: () =>
-                                  context.router.push(const SettingsRoute()),
+                                  _navigateAndRefresh(const SettingsRoute()),
                               color: const Color(0xFF607D8B),
                             ),
                             ActionCard(
