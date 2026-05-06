@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../../../app/constants/dimens.dart';
 
 class BannerStat extends StatelessWidget {
   final String label;
@@ -29,7 +30,7 @@ class BannerStat extends StatelessWidget {
             fontSize: 8.sp,
           ),
         ),
-        SizedBox(height: 2.h),
+        SizedBox(height: AppDimens.h4),
         Text(
           label,
           style: textTheme.labelSmall?.copyWith(

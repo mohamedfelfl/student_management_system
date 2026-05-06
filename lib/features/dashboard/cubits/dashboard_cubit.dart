@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
+import '../../../app/constants/db_queries.dart';
 import '../../../app/services/database_service.dart';
 
 part 'dashboard_cubit.freezed.dart';
@@ -38,28 +39,28 @@ class DashboardCubit extends Cubit<DashboardState> {
       // Total students
       final studentCount =
           Sqflite.firstIntValue(
-            await db.rawQuery('SELECT COUNT(*) FROM students'),
+            await db.rawQuery(DBQueries.countStudents),
           ) ??
           0;
 
       // Total groups
       final groupCount =
           Sqflite.firstIntValue(
-            await db.rawQuery('SELECT COUNT(*) FROM groups'),
+            await db.rawQuery(DBQueries.countGroups),
           ) ??
           0;
 
       // Total assistants
       final assistantCount =
           Sqflite.firstIntValue(
-            await db.rawQuery('SELECT COUNT(*) FROM assistants'),
+            await db.rawQuery(DBQueries.countAssistants),
           ) ??
           0;
 
       // Total exams
       final examCount =
           Sqflite.firstIntValue(
-            await db.rawQuery('SELECT COUNT(*) FROM exams'),
+            await db.rawQuery(DBQueries.countExams),
           ) ??
           0;
 
@@ -67,13 +68,7 @@ class DashboardCubit extends Cubit<DashboardState> {
       final today = DateTime.now();
       final thirtyDaysAgo = today.subtract(const Duration(days: 30));
       final attendanceStats = await db.rawQuery(
-        '''
-        SELECT 
-          COUNT(*) as total,
-          SUM(CASE WHEN status = 'attended' THEN 1 ELSE 0 END) as attended
-        FROM attendance
-        WHERE date >= ?
-      ''',
+        DBQueries.dashboardAttendanceStats,
         [thirtyDaysAgo.toIso8601String().split('T').first],
       );
 
@@ -87,13 +82,7 @@ class DashboardCubit extends Cubit<DashboardState> {
 
       // Payment collection rate (current month)
       final paymentStats = await db.rawQuery(
-        '''
-        SELECT 
-          SUM(total_amount) as total_due,
-          SUM(paid_amount) as total_paid
-        FROM payments
-        WHERE month = ? AND year = ?
-      ''',
+        DBQueries.dashboardPaymentStats,
         [today.month, today.year],
       );
 
@@ -109,29 +98,17 @@ class DashboardCubit extends Cubit<DashboardState> {
       // Upcoming exams
       final upcomingExamCount =
           Sqflite.firstIntValue(
-            await db.rawQuery('SELECT COUNT(*) FROM exams WHERE date >= ?', [
+            await db.rawQuery(DBQueries.dashboardUpcomingExams, [
               today.toIso8601String().split('T').first,
             ]),
           ) ??
           0;
 
       // Recent attendance (last 5)
-      final recentAttendance = await db.rawQuery('''
-        SELECT a.*, s.name as student_name
-        FROM attendance a
-        JOIN students s ON a.student_id = s.id
-        ORDER BY a.date DESC, a.id DESC
-        LIMIT 5
-      ''');
+      final recentAttendance = await db.rawQuery(DBQueries.dashboardRecentAttendance);
 
       // Recent payments (last 5)
-      final recentPayments = await db.rawQuery('''
-        SELECT p.*, s.name as student_name
-        FROM payments p
-        JOIN students s ON p.student_id = s.id
-        ORDER BY p.paid_date DESC
-        LIMIT 5
-      ''');
+      final recentPayments = await db.rawQuery(DBQueries.dashboardRecentPayments);
 
       emit(
         state.copyWith(

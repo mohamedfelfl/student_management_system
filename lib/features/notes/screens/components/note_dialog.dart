@@ -40,17 +40,36 @@ class _NoteDialogState extends State<NoteDialog> {
       final name = _nameController.text.trim();
       final price = double.tryParse(_priceController.text) ?? 0.0;
 
-      if (widget.note == null) {
-        await context.read<NotesCubit>().addNote(name, price);
-      } else {
-        await context.read<NotesCubit>().updateNote(
-          widget.note!.id!,
-          name,
-          price,
-        );
-      }
-      if (mounted) {
-        Navigator.pop(context);
+      try {
+        if (widget.note == null) {
+          await context.read<NotesCubit>().addNote(name, price);
+        } else {
+          await context.read<NotesCubit>().updateNote(
+            widget.note!.id!,
+            name,
+            price,
+          );
+        }
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(LocaleKeys.success.tr()),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          Navigator.pop(context);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString()),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
       }
     }
   }

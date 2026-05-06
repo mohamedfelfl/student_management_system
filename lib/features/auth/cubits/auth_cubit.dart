@@ -8,6 +8,10 @@ import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import '../models/user.dart';
 import '../../../app/services/database_service.dart';
+import '../../../app/constants/db_queries.dart';
+import '../../../app/constants/app_constants.dart';
+import '../../../generated/locale_keys.g.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 part 'auth_cubit.freezed.dart';
 
@@ -33,14 +37,13 @@ class AuthCubit extends Cubit<AuthState> {
       final Database db = await _databaseService.database;
 
       // First, find the user by username only
-      final List<Map<String, Object?>> results = await db.query(
-        'users',
-        where: 'username = ?',
-        whereArgs: [username],
+      final List<Map<String, Object?>> results = await db.rawQuery(
+        DBQueries.getUserByUsername,
+        [username],
       );
-
+ 
       if (results.isEmpty) {
-        emit(const AuthState.error('Invalid username or password'));
+        emit(AuthState.error(LocaleKeys.invalid_credentials.tr()));
         return;
       }
 
@@ -52,7 +55,7 @@ class AuthCubit extends Cubit<AuthState> {
       final String passwordHash = _hashPassword(password, salt: salt);
 
       if (passwordHash != storedHash) {
-        emit(const AuthState.error('Invalid username or password'));
+        emit(AuthState.error(LocaleKeys.invalid_credentials.tr()));
         return;
       }
 
@@ -60,7 +63,7 @@ class AuthCubit extends Cubit<AuthState> {
         id: row['id'] as int,
         username: row['username'] as String,
         passwordHash: row['password_hash'] as String,
-        role: row['role'] == 'admin' ? UserRole.admin : UserRole.user,
+        role: row['role'] == AppConstants.adminRole ? UserRole.admin : UserRole.user,
         permissions: (jsonDecode(row['permissions'] as String) as List)
             .map(
               (p) => UserPermission.values.firstWhere(
@@ -116,18 +119,16 @@ class AuthCubit extends Cubit<AuthState> {
   ) async {
     final salt = generateSalt();
     final newHash = _hashPassword(plainPassword, salt: salt);
-    await db.update(
-      'users',
-      {'password_hash': newHash, 'salt': salt},
-      where: 'id = ?',
-      whereArgs: [userId],
+    await db.rawUpdate(
+      DBQueries.updateUserAuth,
+      [newHash, salt, userId],
     );
   }
 
   /// Check if any admin user exists (for first-launch detection).
   Future<bool> hasAnyUser() async {
     final Database db = await _databaseService.database;
-    final result = await db.rawQuery('SELECT COUNT(*) as count FROM users');
+    final result = await db.rawQuery(DBQueries.countUsers);
     final count = result.first['count'] as int;
     return count > 0;
   }

@@ -1,7 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
-import '../../../../app/services/database_service.dart';
+import '../../../app/constants/db_queries.dart';
+import '../../../app/services/database_service.dart';
 import '../models/note.dart';
 import 'notes_state.dart';
 
@@ -19,7 +20,7 @@ class NotesCubit extends Cubit<NotesState> {
     try {
       final db = await _databaseService.database;
       final List<Map<String, dynamic>> maps = await db.query(
-        'notes',
+        DBQueries.tableNotes,
         orderBy: 'id DESC',
       );
 
@@ -34,10 +35,11 @@ class NotesCubit extends Cubit<NotesState> {
     emit(state.copyWith(isLoading: true, error: null));
     try {
       final db = await _databaseService.database;
-      await db.insert('notes', {'name': name, 'price': price});
+      await db.insert(DBQueries.tableNotes, {'name': name, 'price': price});
       await loadNotes();
     } catch (e) {
       emit(state.copyWith(isLoading: false, error: e.toString()));
+      rethrow;
     }
   }
 
@@ -46,7 +48,7 @@ class NotesCubit extends Cubit<NotesState> {
     try {
       final db = await _databaseService.database;
       await db.update(
-        'notes',
+        DBQueries.tableNotes,
         {'name': name, 'price': price},
         where: 'id = ?',
         whereArgs: [id],
@@ -54,6 +56,7 @@ class NotesCubit extends Cubit<NotesState> {
       await loadNotes();
     } catch (e) {
       emit(state.copyWith(isLoading: false, error: e.toString()));
+      rethrow;
     }
   }
 
@@ -61,10 +64,11 @@ class NotesCubit extends Cubit<NotesState> {
     emit(state.copyWith(isLoading: true, error: null));
     try {
       final db = await _databaseService.database;
-      await db.delete('notes', where: 'id = ?', whereArgs: [id]);
+      await db.delete(DBQueries.tableNotes, where: 'id = ?', whereArgs: [id]);
       await loadNotes();
     } catch (e) {
       emit(state.copyWith(isLoading: false, error: e.toString()));
+      rethrow;
     }
   }
 
@@ -86,7 +90,7 @@ class NotesCubit extends Cubit<NotesState> {
     try {
       final db = await _databaseService.database;
       final List<Map<String, dynamic>> maps = await db.query(
-        'student_notes',
+        DBQueries.tableStudentNotes,
         where: 'note_id = ?',
         whereArgs: [noteId],
       );
@@ -113,10 +117,12 @@ class NotesCubit extends Cubit<NotesState> {
     if (noteId == null) return;
 
     final newPending = Map<int, bool>.from(state.pendingDeliveries);
-    if (delivered) {
-      newPending[studentId] = true;
-    } else {
+    final isCurrentlyDelivered = state.currentDeliveries[studentId] == true;
+
+    if (delivered == isCurrentlyDelivered) {
       newPending.remove(studentId);
+    } else {
+      newPending[studentId] = delivered;
     }
     emit(state.copyWith(pendingDeliveries: newPending));
   }
@@ -127,10 +133,11 @@ class NotesCubit extends Cubit<NotesState> {
 
     final newPending = Map<int, bool>.from(state.pendingDeliveries);
     for (final id in studentIds) {
-      if (delivered) {
-        newPending[id] = true;
-      } else {
+      final isCurrentlyDelivered = state.currentDeliveries[id] == true;
+      if (delivered == isCurrentlyDelivered) {
         newPending.remove(id);
+      } else {
+        newPending[id] = delivered;
       }
     }
     emit(state.copyWith(pendingDeliveries: newPending));
@@ -148,23 +155,26 @@ class NotesCubit extends Cubit<NotesState> {
 
       await db.transaction((txn) async {
         final now = DateTime.now().toIso8601String();
-        for (final id in state.pendingDeliveries.keys) {
-          if (state.currentDeliveries[id] == true) {
-            // Toggle: Already delivered -> Remove
+        for (final entry in state.pendingDeliveries.entries) {
+          final id = entry.key;
+          final targetDelivered = entry.value;
+
+          if (targetDelivered) {
+            // Target: Delivered -> Add to DB
+            await txn.insert(
+              DBQueries.tableStudentNotes,
+              {'student_id': id, 'note_id': noteId, 'delivered_date': now},
+              conflictAlgorithm: ConflictAlgorithm.ignore,
+            );
+            newCurrent[id] = true;
+          } else {
+            // Target: Not Delivered -> Remove from DB
             await txn.delete(
-              'student_notes',
+              DBQueries.tableStudentNotes,
               where: 'student_id = ? AND note_id = ?',
               whereArgs: [id, noteId],
             );
             newCurrent.remove(id);
-          } else {
-            // Toggle: Not delivered -> Add
-            await txn.insert('student_notes', {
-              'student_id': id,
-              'note_id': noteId,
-              'delivered_date': now,
-            }, conflictAlgorithm: ConflictAlgorithm.ignore);
-            newCurrent[id] = true;
           }
         }
       });
@@ -179,6 +189,7 @@ class NotesCubit extends Cubit<NotesState> {
       );
     } catch (e) {
       emit(state.copyWith(isLoading: false, error: e.toString()));
+      rethrow;
     }
   }
 

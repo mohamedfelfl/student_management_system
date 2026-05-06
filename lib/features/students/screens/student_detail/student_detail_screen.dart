@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../app/constants/dimens.dart';
 import '../../../../app/router/app_router.gr.dart';
 import '../../../../generated/locale_keys.g.dart';
 import '../../cubits/student_cubit.dart';
@@ -69,7 +70,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen>
         children: [
           // Header
           Container(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.all(AppDimens.p24),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
@@ -104,14 +105,14 @@ class _StudentDetailScreenState extends State<StudentDetailScreen>
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: AppDimens.h8),
                   Text(
                     _student!['name']?.toString() ?? '',
                     style: textTheme.headlineMedium?.copyWith(
                       color: colorScheme.onPrimary,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: AppDimens.h4),
                   Text(
                     '${LocaleKeys.serial.tr(args: [_student!['serial_number'].toString()])} • ${_student!['group_name'] ?? LocaleKeys.unassigned.tr()}',
                     style: textTheme.bodyMedium?.copyWith(

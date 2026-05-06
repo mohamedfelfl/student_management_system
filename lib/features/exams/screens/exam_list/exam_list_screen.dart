@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../app/router/app_router.gr.dart';
 import '../../../../app/shared/widgets/responsive_layout.dart';
+import '../../../../app/theme/app_colors.dart';
 import '../../../../generated/locale_keys.g.dart';
 import '../../cubits/exam_cubit.dart';
 
@@ -374,15 +375,15 @@ class _ExamListScreenState extends State<ExamListScreen> {
                                 height: 48.r,
                                 decoration: BoxDecoration(
                                   color: isMath
-                                      ? const Color(0xFFD3BBFF)
-                                      : const Color(0xFFFFD8E4),
+                                      ? AppColors.examTabActive
+                                      : AppColors.examTabInactive,
                                   borderRadius: BorderRadius.circular(12.r),
                                 ),
                                 child: Icon(
                                   isMath ? Icons.functions : Icons.science,
                                   color: isMath
-                                      ? const Color(0xFF4F378A)
-                                      : const Color(0xFF633B48),
+                                      ? AppColors.examTabActiveText
+                                      : AppColors.examTabInactiveText,
                                 ),
                               ),
                               title: Text(

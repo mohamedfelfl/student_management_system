@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../app/router/app_router.gr.dart';
+import '../../../../app/theme/app_colors.dart';
+import '../../../../generated/locale_keys.g.dart';
 import '../../cubits/exam_cubit.dart';
 import 'components/action_card.dart';
 
@@ -47,7 +49,7 @@ class ExamDetailScreen extends StatelessWidget {
         if (exam.isEmpty) {
           return Scaffold(
             appBar: AppBar(),
-            body: Center(child: Text('no_exams'.tr())),
+            body: Center(child: Text(LocaleKeys.no_exams.tr())),
           );
         }
 
@@ -58,7 +60,7 @@ class ExamDetailScreen extends StatelessWidget {
         return Scaffold(
           backgroundColor: colorScheme.surface,
           appBar: AppBar(
-            title: Text('exam_details'.tr()),
+            title: Text(LocaleKeys.exam_details.tr()),
             elevation: 0,
             backgroundColor: Colors.transparent,
             foregroundColor: colorScheme.onSurface,
@@ -122,7 +124,7 @@ class ExamDetailScreen extends StatelessWidget {
                           ),
                           SizedBox(width: 8.w),
                           Text(
-                            "${'full_mark'.tr()}: $fullMark",
+                            "${LocaleKeys.full_mark.tr()}: $fullMark",
                             style: textTheme.bodyMedium?.copyWith(
                               color: colorScheme.onPrimary.withValues(
                                 alpha: 0.8,
@@ -137,7 +139,7 @@ class ExamDetailScreen extends StatelessWidget {
                 SizedBox(height: 32.h),
 
                 Text(
-                  'quick_actions'.tr(),
+                  LocaleKeys.quick_actions.tr(),
                   style: textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -146,19 +148,19 @@ class ExamDetailScreen extends StatelessWidget {
 
                 // Action Cards
                 ActionCard(
-                  title: 'modify_exam_info'.tr(),
-                  subtitle: 'modify_exam_desc'.tr(),
+                  title: LocaleKeys.modify_exam_info.tr(),
+                  subtitle: LocaleKeys.modify_exam_desc.tr(),
                   icon: Icons.edit_note_rounded,
-                  color: const Color(0xFF4F378A),
+                  color: AppColors.examTabActiveText,
                   onTap: () =>
                       context.router.push(ExamFormRoute(examId: examId)),
                 ),
                 SizedBox(height: 16.h),
                 ActionCard(
-                  title: 'enter_marks_info'.tr(),
-                  subtitle: 'enter_marks_desc'.tr(),
+                  title: LocaleKeys.enter_marks_info.tr(),
+                  subtitle: LocaleKeys.enter_marks_desc.tr(),
                   icon: Icons.grade_rounded,
-                  color: const Color(0xFF633B48),
+                  color: AppColors.examTabInactiveText,
                   onTap: () async {
                     await context.router.push(MarkEntryRoute(id: examId));
                     if (context.mounted) {

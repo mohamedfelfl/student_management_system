@@ -1,13 +1,15 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../app/constants/dimens.dart';
 import '../../../../app/shared/widgets/responsive_layout.dart';
 import '../../../../generated/locale_keys.g.dart';
 import '../../../groups/cubits/group_cubit.dart';
 import '../../cubits/student_cubit.dart';
+import 'components/student_academic_section.dart';
+import 'components/student_info_section.dart';
 
 @RoutePage()
 class StudentFormScreen extends StatefulWidget {
@@ -34,6 +36,7 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
   String _selectedStatus = 'normal';
   String? _selectedAttendanceDay;
   bool _isEditing = false;
+  bool _isSubmitting = false;
 
   @override
   void initState() {
@@ -62,7 +65,6 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
       _selectedGroupId = student['group_id'] as int?;
 
       final String? gradeValue = student['grade']?.toString();
-      // Ensure the grade exists in our predefined keys to avoid DropdownButton assertion failure
       const List<String> validGrades = [
         'primary_1',
         'primary_2',
@@ -82,7 +84,6 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
       _selectedStatus = student['student_status']?.toString() ?? 'normal';
 
       final String? dayValue = student['attendance_day']?.toString();
-      // Ensure the day exists in our predefined keys to avoid DropdownButton assertion failure
       const List<String> validDays = [
         'Monday',
         'Tuesday',
@@ -127,304 +128,71 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
         leading: context.router.canPop()
             ? const BackButton()
             : ResponsiveLayout.isMobile(context)
-                ? IconButton(
-                    icon: const Icon(Icons.menu),
-                    onPressed: () => Scaffold.of(context).openDrawer(),
-                  )
-                : null,
+            ? IconButton(
+                icon: const Icon(Icons.menu),
+                onPressed: () => Scaffold.of(context).openDrawer(),
+              )
+            : null,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 700),
+            constraints: BoxConstraints(maxWidth: AppDimens.maxFormWidth),
             child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 12),
-                  const SizedBox(height: 28),
+                  SizedBox(height: AppDimens.h12),
+                  SizedBox(height: AppDimens.h24),
 
-                  // Serial Number
-                  TextFormField(
-                    controller: _serialController,
-                    decoration: InputDecoration(
-                      labelText: LocaleKeys.serial_number.tr(),
-                      prefixIcon: const Icon(Icons.tag),
-                    ),
-                    validator: (v) => v == null || v.isEmpty
-                        ? LocaleKeys.required_field.tr()
-                        : null,
+                  StudentInfoSection(
+                    serialController: _serialController,
+                    nameController: _nameController,
+                    addressController: _addressController,
+                    phone1Controller: _phone1Controller,
+                    phone2Controller: _phone2Controller,
+                    fatherJobController: _fatherJobController,
+                    schoolController: _schoolController,
+                    previousTeacherController: _previousTeacherController,
                   ),
-                  const SizedBox(height: 24),
 
-                  // Name
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: InputDecoration(
-                      labelText: LocaleKeys.name.tr(),
-                      prefixIcon: const Icon(Icons.person_outline),
-                    ),
-                    validator: (v) => v == null || v.isEmpty
-                        ? LocaleKeys.required_field.tr()
-                        : null,
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Address
-                  TextFormField(
-                    controller: _addressController,
-                    decoration: InputDecoration(
-                      labelText: LocaleKeys.address.tr(),
-                      prefixIcon: const Icon(Icons.location_on_outlined),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Phones
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: _phone1Controller,
-                          keyboardType: TextInputType.phone,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.allow(RegExp(r'[0-9+]')),
-                          ],
-                          decoration: InputDecoration(
-                            labelText: LocaleKeys.phone1.tr(),
-                            prefixIcon: const Icon(Icons.phone),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: TextFormField(
-                          controller: _phone2Controller,
-                          keyboardType: TextInputType.phone,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.allow(RegExp(r'[0-9+]')),
-                          ],
-                          decoration: InputDecoration(
-                            labelText: LocaleKeys.phone2.tr(),
-                            prefixIcon: const Icon(Icons.phone),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Father's Job
-                  TextFormField(
-                    controller: _fatherJobController,
-                    decoration: InputDecoration(
-                      labelText: LocaleKeys.father_job.tr(),
-                      prefixIcon: const Icon(Icons.work_outline),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // School
-                  TextFormField(
-                    controller: _schoolController,
-                    decoration: InputDecoration(
-                      labelText: LocaleKeys.school.tr(),
-                      prefixIcon: const Icon(Icons.school_outlined),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Previous Teacher
-                  TextFormField(
-                    controller: _previousTeacherController,
-                    decoration: InputDecoration(
-                      labelText: LocaleKeys.previous_teacher.tr(),
-                      prefixIcon: const Icon(Icons.person_search_outlined),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Grade Dropdown
-                  DropdownButtonFormField<String?>(
-                    initialValue: _selectedGrade,
-                    decoration: InputDecoration(
-                      labelText: LocaleKeys.grade.tr(),
-                      prefixIcon: const Icon(Icons.school),
-                    ),
-                    items: [
-                      DropdownMenuItem<String?>(
-                        value: null,
-                        child: Text(LocaleKeys.not_specified.tr()),
-                      ),
-                      DropdownMenuItem<String?>(
-                        value: 'primary_1',
-                        child: Text(LocaleKeys.primary_1.tr()),
-                      ),
-                      DropdownMenuItem<String?>(
-                        value: 'primary_2',
-                        child: Text(LocaleKeys.primary_2.tr()),
-                      ),
-                      DropdownMenuItem<String?>(
-                        value: 'primary_3',
-                        child: Text(LocaleKeys.primary_3.tr()),
-                      ),
-                      DropdownMenuItem<String?>(
-                        value: 'primary_4',
-                        child: Text(LocaleKeys.primary_4.tr()),
-                      ),
-                      DropdownMenuItem<String?>(
-                        value: 'primary_5',
-                        child: Text(LocaleKeys.primary_5.tr()),
-                      ),
-                      DropdownMenuItem<String?>(
-                        value: 'primary_6',
-                        child: Text(LocaleKeys.primary_6.tr()),
-                      ),
-                      DropdownMenuItem<String?>(
-                        value: 'prep_1',
-                        child: Text(LocaleKeys.prep_1.tr()),
-                      ),
-                      DropdownMenuItem<String?>(
-                        value: 'prep_2',
-                        child: Text(LocaleKeys.prep_2.tr()),
-                      ),
-                      DropdownMenuItem<String?>(
-                        value: 'prep_3',
-                        child: Text(LocaleKeys.prep_3.tr()),
-                      ),
-                      DropdownMenuItem<String?>(
-                        value: 'sec_1',
-                        child: Text(LocaleKeys.sec_1.tr()),
-                      ),
-                      DropdownMenuItem<String?>(
-                        value: 'sec_2',
-                        child: Text(LocaleKeys.sec_2.tr()),
-                      ),
-                      DropdownMenuItem<String?>(
-                        value: 'sec_3',
-                        child: Text(LocaleKeys.sec_3.tr()),
-                      ),
-                    ],
-                    onChanged: (v) => setState(() => _selectedGrade = v),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Student Status Dropdown
-                  DropdownButtonFormField<String>(
-                    initialValue: _selectedStatus,
-                    decoration: InputDecoration(
-                      labelText: LocaleKeys.student_status.tr(),
-                      prefixIcon: const Icon(Icons.verified_user_outlined),
-                    ),
-                    items: [
-                      DropdownMenuItem<String>(
-                        value: 'normal',
-                        child: Text(LocaleKeys.normal.tr()),
-                      ),
-                      DropdownMenuItem<String>(
-                        value: 'free',
-                        child: Text(LocaleKeys.free.tr()),
-                      ),
-                    ],
-                    onChanged: (v) => setState(() => _selectedStatus = v!),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Group Dropdown
-                  BlocBuilder<GroupCubit, GroupState>(
-                    builder: (BuildContext context, GroupState groupState) {
-                      final bool valueExists = groupState.groups.any(
-                        (g) => g['id'] == _selectedGroupId,
-                      );
-
-                      return DropdownButtonFormField<int?>(
-                        initialValue: valueExists ? _selectedGroupId : null,
-                        decoration: InputDecoration(
-                          labelText: LocaleKeys.groups.tr(),
-                          prefixIcon: const Icon(Icons.groups_outlined),
-                        ),
-                        items: [
-                          DropdownMenuItem<int?>(
-                            value: null,
-                            child: Text(LocaleKeys.no_group.tr()),
-                          ),
-                          ...groupState.groups.map(
-                            (Map<String, Object?> g) => DropdownMenuItem<int?>(
-                              value: g['id'] as int,
-                              child: Text(g['name']?.toString() ?? ''),
-                            ),
-                          ),
-                        ],
-                        onChanged: (v) => setState(() => _selectedGroupId = v),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Attendance Day Dropdown
-                  DropdownButtonFormField<String?>(
-                    initialValue: _selectedAttendanceDay,
-                    decoration: InputDecoration(
-                      labelText: LocaleKeys.attendance_day.tr(),
-                      prefixIcon: const Icon(Icons.calendar_today_outlined),
-                    ),
-                    items: [
-                      DropdownMenuItem<String?>(
-                        value: null,
-                        child: Text(LocaleKeys.not_specified.tr()),
-                      ),
-                      DropdownMenuItem<String?>(
-                        value: 'Monday',
-                        child: Text(LocaleKeys.monday.tr()),
-                      ),
-                      DropdownMenuItem<String?>(
-                        value: 'Tuesday',
-                        child: Text(LocaleKeys.tuesday.tr()),
-                      ),
-                      DropdownMenuItem<String?>(
-                        value: 'Wednesday',
-                        child: Text(LocaleKeys.wednesday.tr()),
-                      ),
-                      DropdownMenuItem<String?>(
-                        value: 'Thursday',
-                        child: Text(LocaleKeys.thursday.tr()),
-                      ),
-                      DropdownMenuItem<String?>(
-                        value: 'Friday',
-                        child: Text(LocaleKeys.friday.tr()),
-                      ),
-                      DropdownMenuItem<String?>(
-                        value: 'Saturday',
-                        child: Text(LocaleKeys.saturday.tr()),
-                      ),
-                      DropdownMenuItem<String?>(
-                        value: 'Sunday',
-                        child: Text(LocaleKeys.sunday.tr()),
-                      ),
-                    ],
-                    onChanged: (v) =>
+                  StudentAcademicSection(
+                    selectedGrade: _selectedGrade,
+                    selectedStatus: _selectedStatus,
+                    selectedGroupId: _selectedGroupId,
+                    selectedAttendanceDay: _selectedAttendanceDay,
+                    onGradeChanged: (v) => setState(() => _selectedGrade = v),
+                    onStatusChanged: (v) => setState(() => _selectedStatus = v),
+                    onGroupChanged: (v) => setState(() => _selectedGroupId = v),
+                    onAttendanceDayChanged: (v) =>
                         setState(() => _selectedAttendanceDay = v),
                   ),
-                  const SizedBox(height: 32),
 
+                  // Submit Button
                   SizedBox(
                     width: double.infinity,
-                    height: 60,
+                    height: AppDimens.buttonHeight,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        textStyle: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        textStyle: textTheme.titleLarge,
                       ),
-                      onPressed: _submit,
-                      child: Text(
-                        _isEditing
-                            ? LocaleKeys.update.tr()
-                            : LocaleKeys.create.tr(),
-                      ),
+                      onPressed: _isSubmitting ? null : _submit,
+                      child: _isSubmitting
+                          ? SizedBox(
+                              width: AppDimens.p24,
+                              height: AppDimens.p24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Theme.of(context).colorScheme.onPrimary,
+                              ),
+                            )
+                          : Text(
+                              _isEditing
+                                  ? LocaleKeys.update.tr()
+                                  : LocaleKeys.create.tr(),
+                            ),
                     ),
                   ),
                 ],
@@ -437,7 +205,10 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
   }
 
   Future<void> _submit() async {
+    if (_isSubmitting) return;
     if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    setState(() => _isSubmitting = true);
 
     final Map<String, Object?> data = {
       'serial_number': _serialController.text.trim(),
@@ -455,14 +226,44 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
     };
 
     final StudentCubit cubit = context.read<StudentCubit>();
-    if (_isEditing) {
-      await cubit.updateStudent(widget.id!, data);
-    } else {
-      await cubit.createStudent(data);
-    }
+    try {
+      if (_isEditing) {
+        await cubit.updateStudent(widget.id!, data);
+      } else {
+        await cubit.createStudent(data);
+      }
 
-    if (mounted) {
-      context.router.maybePop();
+      if (mounted) {
+        final messenger = ScaffoldMessenger.of(context);
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(LocaleKeys.success.tr()),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        context.router.maybePop();
+      }
+    } catch (e) {
+      if (mounted) {
+        String errorMessage = e.toString();
+        if (errorMessage.contains('UNIQUE constraint failed')) {
+          errorMessage =
+              'This serial number is already in use by another student.';
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
     }
   }
 }

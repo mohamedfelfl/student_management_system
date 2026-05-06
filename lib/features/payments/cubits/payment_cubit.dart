@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
-
+import '../../../app/constants/db_queries.dart';
 import '../../../app/services/database_service.dart';
 
 part 'payment_cubit.freezed.dart';
@@ -30,7 +30,7 @@ class PaymentCubit extends Cubit<PaymentState> {
     try {
       final Database db = await _databaseService.database;
       final List<Map<String, Object?>> results = await db.query(
-        'payments',
+        DBQueries.tablePayments,
         where: 'student_id = ?',
         whereArgs: <Object?>[studentId],
         orderBy: 'year DESC, month DESC',
@@ -62,7 +62,7 @@ class PaymentCubit extends Cubit<PaymentState> {
     try {
       final Database db = await _databaseService.database;
 
-      await db.insert('payments', <String, Object?>{
+      await db.insert(DBQueries.tablePayments, <String, Object?>{
         'student_id': studentId,
         'month': month,
         'year': year,
@@ -84,13 +84,7 @@ class PaymentCubit extends Cubit<PaymentState> {
       final String dateStr = date.toIso8601String().split('T')[0];
 
       final List<Map<String, Object?>> results = await db.rawQuery(
-        '''
-        SELECT p.*, s.name as student_name
-        FROM payments p
-        JOIN students s ON p.student_id = s.id
-        WHERE p.paid_date LIKE ?
-        ORDER BY p.paid_date DESC
-      ''',
+        DBQueries.loadDailyPaymentsBase,
         ['$dateStr%'],
       );
 
@@ -104,7 +98,7 @@ class PaymentCubit extends Cubit<PaymentState> {
     try {
       final Database db = await _databaseService.database;
       await db.update(
-        'payments',
+        DBQueries.tablePayments,
         data,
         where: 'id = ?',
         whereArgs: <Object?>[id],
@@ -121,7 +115,7 @@ class PaymentCubit extends Cubit<PaymentState> {
   Future<void> deletePayment(int id, int studentId) async {
     try {
       final Database db = await _databaseService.database;
-      await db.delete('payments', where: 'id = ?', whereArgs: <Object?>[id]);
+      await db.delete(DBQueries.tablePayments, where: 'id = ?', whereArgs: <Object?>[id]);
       await loadPayments(studentId);
     } catch (e) {
       emit(state.copyWith(error: e.toString()));

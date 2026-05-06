@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-
+import '../../../app/constants/db_queries.dart';
 import '../../../app/services/database_service.dart';
 
 part 'group_cubit.freezed.dart';
@@ -29,13 +29,7 @@ class GroupCubit extends Cubit<GroupState> {
       final db = await _databaseService.database;
 
       // Load groups with student count
-      final groupResults = await db.rawQuery('''
-        SELECT g.*, COUNT(s.id) as student_count
-        FROM groups g
-        LEFT JOIN students s ON s.group_id = g.id
-        GROUP BY g.id
-        ORDER BY g.name ASC
-      ''');
+      final groupResults = await db.rawQuery(DBQueries.loadGroupsWithStudentCount);
 
       final List<Map<String, dynamic>> groupsWithSchedules = [];
 
@@ -44,10 +38,9 @@ class GroupCubit extends Cubit<GroupState> {
         final groupId = g['id'];
 
         // Load schedules for this group
-        final scheduleResults = await db.query(
-          'group_schedules',
-          where: 'group_id = ?',
-          whereArgs: [groupId],
+        final scheduleResults = await db.rawQuery(
+          DBQueries.getGroupSchedulesByGroupId,
+          [groupId],
         );
 
         mutableGroup['schedules'] = scheduleResults;
@@ -70,19 +63,19 @@ class GroupCubit extends Cubit<GroupState> {
 
       final db = await _databaseService.database;
       await db.transaction((txn) async {
-        final groupId = await txn.insert('groups', data);
-
+        final groupId = await txn.insert(DBQueries.tableGroups, data);
+ 
         for (final schedule in schedules) {
-          await txn.insert('group_schedules', {
+          await txn.insert(DBQueries.tableGroupSchedules, {
             ...schedule,
             'group_id': groupId,
           });
         }
-
+ 
         // Link students to the new group
         for (final studentId in studentIds) {
           await txn.update(
-            'students',
+            DBQueries.tableStudents,
             {'group_id': groupId},
             where: 'id = ?',
             whereArgs: [studentId],
@@ -103,17 +96,16 @@ class GroupCubit extends Cubit<GroupState> {
 
       final db = await _databaseService.database;
       await db.transaction((txn) async {
-        await txn.update('groups', data, where: 'id = ?', whereArgs: [id]);
-
+        await txn.update(DBQueries.tableGroups, data, where: 'id = ?', whereArgs: [id]);
+ 
         // Refresh schedules: delete and re-insert
-        await txn.delete(
-          'group_schedules',
-          where: 'group_id = ?',
-          whereArgs: [id],
+        await txn.rawDelete(
+          DBQueries.deleteGroupSchedulesByGroupId,
+          [id],
         );
-
+ 
         for (final schedule in schedules) {
-          await txn.insert('group_schedules', {...schedule, 'group_id': id});
+          await txn.insert(DBQueries.tableGroupSchedules, {...schedule, 'group_id': id});
         }
       });
 
@@ -126,7 +118,7 @@ class GroupCubit extends Cubit<GroupState> {
   Future<void> deleteGroup(int id) async {
     try {
       final db = await _databaseService.database;
-      await db.delete('groups', where: 'id = ?', whereArgs: [id]);
+      await db.delete(DBQueries.tableGroups, where: 'id = ?', whereArgs: [id]);
       await loadGroups();
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
@@ -140,7 +132,7 @@ class GroupCubit extends Cubit<GroupState> {
     try {
       final db = await _databaseService.database;
       final results = await db.query(
-        'students',
+        DBQueries.tableStudents,
         where: 'group_id = ?',
         whereArgs: [groupId],
         orderBy: 'name ASC',
@@ -155,10 +147,10 @@ class GroupCubit extends Cubit<GroupState> {
   Future<void> loadAvailableStudents({String search = ''}) async {
     try {
       final db = await _databaseService.database;
-      String query = 'SELECT * FROM students WHERE group_id IS NULL';
+      String query = DBQueries.loadAvailableStudentsBase;
       final List<Object?> args = <Object?>[];
       if (search.isNotEmpty) {
-        query += ' AND (name LIKE ? OR serial_number LIKE ?)';
+        query += DBQueries.availableStudentsSearchCondition;
         args.add('%$search%');
         args.add('%$search%');
       }
@@ -175,7 +167,7 @@ class GroupCubit extends Cubit<GroupState> {
     try {
       final db = await _databaseService.database;
       await db.update(
-        'students',
+        DBQueries.tableStudents,
         {'group_id': groupId},
         where: 'id = ?',
         whereArgs: [studentId],
@@ -193,7 +185,7 @@ class GroupCubit extends Cubit<GroupState> {
     try {
       final db = await _databaseService.database;
       await db.update(
-        'students',
+        DBQueries.tableStudents,
         {'group_id': null},
         where: 'id = ?',
         whereArgs: [studentId],

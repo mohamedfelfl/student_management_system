@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import '../../../../generated/locale_keys.g.dart';
 
+import '../../../app/constants/db_queries.dart';
 import '../../../app/services/database_service.dart';
 import '../models/attendance.dart';
 
@@ -33,13 +34,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
     try {
       final Database db = await _databaseService.database;
       final List<Map<String, Object?>> results = await db.rawQuery(
-        '''
-        SELECT a.*, s.name as student_name 
-        FROM attendance a
-        JOIN students s ON a.student_id = s.id
-        WHERE a.student_id = ?
-        ORDER BY a.date DESC, a.id DESC
-      ''',
+        DBQueries.loadStudentAttendance,
         [studentId],
       );
       emit(state.copyWith(records: results, isLoading: false));
@@ -53,12 +48,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
     emit(state.copyWith(isLoading: true, error: null));
     try {
       final Database db = await _databaseService.database;
-      final List<Map<String, Object?>> results = await db.rawQuery('''
-        SELECT a.*, s.name as student_name 
-        FROM attendance a
-        JOIN students s ON a.student_id = s.id
-        ORDER BY a.date DESC, a.id DESC
-      ''');
+      final List<Map<String, Object?>> results = await db.rawQuery(DBQueries.loadAllAttendance);
       emit(state.copyWith(records: results, isLoading: false));
     } catch (e) {
       emit(state.copyWith(error: e.toString(), isLoading: false));
@@ -69,12 +59,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
   Future<void> loadRecentScans() async {
     try {
       final Database db = await _databaseService.database;
-      final List<Map<String, Object?>> latestRecords = await db.rawQuery('''
-        SELECT a.*, s.name as student_name 
-        FROM attendance a
-        JOIN students s ON a.student_id = s.id
-        ORDER BY a.id DESC LIMIT 5
-      ''');
+      final List<Map<String, Object?>> latestRecords = await db.rawQuery(DBQueries.loadRecentScans);
       emit(state.copyWith(records: latestRecords));
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
@@ -93,7 +78,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
 
       // Find student by serial number
       final List<Map<String, Object?>> students = await db.query(
-        'students',
+        DBQueries.tableStudents,
         where: 'serial_number = ?',
         whereArgs: <Object?>[serialNumber],
       );
@@ -101,7 +86,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
       if (students.isEmpty) {
         emit(
           state.copyWith(
-            error: 'Student not found with serial: $serialNumber',
+            error: LocaleKeys.student_not_found_with_serial.tr(args: [serialNumber]),
             scanSuccess: false,
           ),
         );
@@ -127,7 +112,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
       if (groupId != null) {
         // Get the student's own group schedule days
         final List<Map<String, Object?>> groupSchedules = await db.query(
-          'group_schedules',
+          DBQueries.tableGroupSchedules,
           where: 'group_id = ?',
           whereArgs: [groupId],
         );
@@ -149,12 +134,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
           // → Find which group meets today closest to current time
           finalStatus = AttendanceStatus.otherLesson;
           final List<Map<String, Object?>> otherGroupsToday = await db.rawQuery(
-            '''
-            SELECT g.name, gs.time 
-            FROM group_schedules gs
-            JOIN groups g ON gs.group_id = g.id
-            WHERE gs.day_of_week IN (?, ?, ?)
-          ''',
+            DBQueries.getGroupsToday,
             [currentDayName, currentDayNameAr, currentDayNameArAlt],
           );
 
@@ -173,12 +153,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
       } else {
         // No group assigned to student — check if any group meets today
         final List<Map<String, Object?>> anyGroupsToday = await db.rawQuery(
-          '''
-          SELECT g.name, gs.time
-          FROM group_schedules gs
-          JOIN groups g ON gs.group_id = g.id
-          WHERE gs.day_of_week IN (?, ?, ?)
-        ''',
+          DBQueries.getGroupsToday,
           [currentDayName, currentDayNameAr, currentDayNameArAlt],
         );
 
@@ -193,7 +168,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
 
       // Check if already recorded today
       final List<Map<String, Object?>> existing = await db.query(
-        'attendance',
+        DBQueries.tableAttendance,
         where: 'student_id = ? AND date = ?',
         whereArgs: <Object?>[studentId, today],
       );
@@ -201,14 +176,14 @@ class AttendanceCubit extends Cubit<AttendanceState> {
       if (existing.isNotEmpty) {
         emit(
           state.copyWith(
-            error: 'Attendance already recorded for $studentName today',
+            error: LocaleKeys.attendance_already_recorded_today.tr(args: [studentName]),
             scanSuccess: false,
           ),
         );
         return;
       }
 
-      await db.insert('attendance', <String, Object?>{
+      await db.insert(DBQueries.tableAttendance, <String, Object?>{
         'student_id': studentId,
         'date': today,
         'status': finalStatus.name,
@@ -216,12 +191,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
       });
 
       // Reload attendance history so UI gets the latest
-      final List<Map<String, Object?>> latestRecords = await db.rawQuery('''
-        SELECT a.*, s.name as student_name 
-        FROM attendance a
-        JOIN students s ON a.student_id = s.id
-        ORDER BY a.id DESC LIMIT 5
-      ''');
+      final List<Map<String, Object?>> latestRecords = await db.rawQuery(DBQueries.loadRecentScans);
 
       emit(
         state.copyWith(
@@ -245,7 +215,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
   }) async {
     try {
       final Database db = await _databaseService.database;
-      await db.insert('attendance', <String, Object?>{
+      await db.insert(DBQueries.tableAttendance, <String, Object?>{
         'student_id': studentId,
         'date': date.toIso8601String().split('T').first,
         'status': status.name,
@@ -271,7 +241,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
       if (notes != null) updates['notes'] = notes;
 
       await db.update(
-        'attendance',
+        DBQueries.tableAttendance,
         updates,
         where: 'id = ?',
         whereArgs: <Object?>[id],
@@ -284,7 +254,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
   Future<void> deleteAttendance(int id, {int? studentId}) async {
     try {
       final Database db = await _databaseService.database;
-      await db.delete('attendance', where: 'id = ?', whereArgs: <Object?>[id]);
+      await db.delete(DBQueries.tableAttendance, where: 'id = ?', whereArgs: <Object?>[id]);
       if (studentId != null) {
         await loadAttendance(studentId);
       } else {

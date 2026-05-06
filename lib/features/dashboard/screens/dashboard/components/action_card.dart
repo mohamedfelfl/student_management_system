@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+import '../../../../../app/constants/dimens.dart';
 
 class ActionCard extends StatelessWidget {
   final IconData icon;
@@ -24,18 +25,18 @@ class ActionCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(24.r),
+        borderRadius: BorderRadius.circular(AppDimens.r24),
         child: Ink(
           decoration: BoxDecoration(
             color: isDark
                 ? colorScheme.surfaceContainerHigh
                 : colorScheme.surfaceContainerLowest,
-            borderRadius: BorderRadius.circular(24.r),
+            borderRadius: BorderRadius.circular(AppDimens.r24),
             boxShadow: [
               if (!isDark)
                 BoxShadow(
                   color: colorScheme.outlineVariant.withValues(alpha: 0.1),
-                  blurRadius: 12.r,
+                  blurRadius: AppDimens.r12,
                   offset: const Offset(0, 4),
                 ),
             ],
@@ -44,14 +45,14 @@ class ActionCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: EdgeInsets.all(AppDimens.p12),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(icon, size: 28, color: color),
+                child: Icon(icon, size: AppDimens.iconSize28, color: color),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: AppDimens.h12),
               Text(
                 label,
                 style: Theme.of(

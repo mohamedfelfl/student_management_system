@@ -1,11 +1,11 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/services.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../../generated/locale_keys.g.dart';
+import '../../../../app/constants/dimens.dart';
+import '../../../../generated/locale_keys.g.dart';
 import '../../cubits/exam_cubit.dart';
 
 @RoutePage()
@@ -23,10 +23,12 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
   final _fullMarkController = TextEditingController();
   DateTime _selectedDate = DateTime.now();
   final List<int> _selectedGroupIds = [];
+  bool _isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
+    context.read<ExamCubit>().loadGroups();
     if (widget.examId != null) {
       final examState = context.read<ExamCubit>().state;
       final exam = examState.exams.firstWhere(
@@ -87,19 +89,22 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
       ),
       body: Center(
         child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 32.h),
+          padding: EdgeInsets.symmetric(
+            horizontal: AppDimens.p24,
+            vertical: AppDimens.p32,
+          ),
           child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: 800.w),
+            constraints: BoxConstraints(maxWidth: AppDimens.maxFormWidth),
             child: Card(
               elevation: 0,
               color: Theme.of(
                 context,
               ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24.r),
+                borderRadius: BorderRadius.circular(AppDimens.r24),
               ),
               child: Padding(
-                padding: EdgeInsets.all(32.r),
+                padding: EdgeInsets.all(AppDimens.p32),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -111,7 +116,7 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
                             : LocaleKeys.add_exam.tr(),
                         style: textTheme.headlineLarge,
                       ),
-                      SizedBox(height: 32.h),
+                      SizedBox(height: AppDimens.h32),
                       TextFormField(
                         controller: _nameController,
                         decoration: InputDecoration(
@@ -122,7 +127,7 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
                             ? LocaleKeys.required_field.tr()
                             : null,
                       ),
-                      SizedBox(height: 20.h),
+                      SizedBox(height: AppDimens.h20),
                       TextFormField(
                         controller: _fullMarkController,
                         decoration: InputDecoration(
@@ -137,7 +142,7 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
                             ? LocaleKeys.required_field.tr()
                             : null,
                       ),
-                      SizedBox(height: 20.h),
+                      SizedBox(height: AppDimens.h20),
                       InkWell(
                         onTap: () async {
                           final DateTime? picked = await showDatePicker(
@@ -150,7 +155,7 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
                             setState(() => _selectedDate = picked);
                           }
                         },
-                        borderRadius: BorderRadius.circular(12.r),
+                        borderRadius: BorderRadius.circular(AppDimens.r12),
                         child: InputDecorator(
                           decoration: InputDecoration(
                             labelText: LocaleKeys.exam_date.tr(),
@@ -159,22 +164,22 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
                           child: Text(DateFormat.yMMMd().format(_selectedDate)),
                         ),
                       ),
-                      SizedBox(height: 32.h),
+                      SizedBox(height: AppDimens.h32),
                       Text(
                         LocaleKeys.link_to_groups.tr(),
                         style: textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: 12.h),
+                      SizedBox(height: AppDimens.h12),
                       BlocBuilder<ExamCubit, ExamState>(
                         builder: (context, state) {
                           if (state.groups.isEmpty) {
                             return Text(LocaleKeys.no_groups_yet.tr());
                           }
                           return Wrap(
-                            spacing: 8.w,
-                            runSpacing: 8.h,
+                            spacing: AppDimens.w8,
+                            runSpacing: AppDimens.h8,
                             children: state.groups.map((group) {
                               final int groupId = group['id'] as int;
                               final bool isSelected = _selectedGroupIds
@@ -196,26 +201,37 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
                           );
                         },
                       ),
-                      SizedBox(height: 48.h),
+                      SizedBox(height: AppDimens.h48),
                       SizedBox(
                         width: double.infinity,
-                        height: 56.h,
+                        height: AppDimens.buttonHeight,
                         child: ElevatedButton(
-                          onPressed: _submit,
+                          onPressed: _isSubmitting ? null : _submit,
                           style: ElevatedButton.styleFrom(
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16.r),
+                              borderRadius: BorderRadius.circular(
+                                AppDimens.r16,
+                              ),
                             ),
                           ),
-                          child: Text(
-                            widget.examId != null
-                                ? LocaleKeys.update.tr()
-                                : LocaleKeys.create_exam.tr(),
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          child: _isSubmitting
+                              ? SizedBox(
+                                  width: AppDimens.iconSize24,
+                                  height: AppDimens.iconSize24,
+                                  child: const CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Text(
+                                  widget.examId != null
+                                      ? LocaleKeys.update.tr()
+                                      : LocaleKeys.create_exam.tr(),
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                         ),
                       ),
                     ],
@@ -230,7 +246,10 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
   }
 
   Future<void> _submit() async {
+    if (_isSubmitting) return;
     if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    setState(() => _isSubmitting = true);
 
     final examData = {
       'name': _nameController.text.trim(),
@@ -238,21 +257,42 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
       'date': _selectedDate.toIso8601String().split('T').first,
     };
 
-    if (widget.examId != null) {
-      await context.read<ExamCubit>().updateExam(
-        widget.examId!,
-        examData,
-        groupIds: _selectedGroupIds,
-      );
-    } else {
-      await context.read<ExamCubit>().createExam(
-        examData,
-        groupIds: _selectedGroupIds,
-      );
-    }
+    final ExamCubit cubit = context.read<ExamCubit>();
+    try {
+      if (widget.examId != null) {
+        await cubit.updateExam(
+          widget.examId!,
+          examData,
+          groupIds: _selectedGroupIds,
+        );
+      } else {
+        await cubit.createExam(examData, groupIds: _selectedGroupIds);
+      }
 
-    if (mounted) {
-      context.router.maybePop();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(LocaleKeys.success.tr()),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        context.router.popForced();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
     }
   }
 }

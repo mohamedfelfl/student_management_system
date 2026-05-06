@@ -3,6 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import '../../../app/services/database_service.dart';
+import '../../../app/constants/db_queries.dart';
 
 part 'student_cubit.freezed.dart';
 
@@ -33,16 +34,14 @@ class StudentCubit extends Cubit<StudentState> {
 
       // Always fetch total count (unfiltered)
       final List<Map<String, Object?>> countResult = await db.rawQuery(
-        'SELECT COUNT(*) as cnt FROM students',
+        DBQueries.countStudents,
       );
       final int total = (countResult.first['cnt'] as int?) ?? 0;
 
       // Fetch filtered results
       final String query =
           '''
-        SELECT s.*, g.name as group_name 
-        FROM students s 
-        LEFT JOIN groups g ON s.group_id = g.id
+        ${DBQueries.getStudentsBase}
         ${_buildWhereClause()}
         ORDER BY s.name ASC
       ''';
@@ -110,10 +109,11 @@ class StudentCubit extends Cubit<StudentState> {
   Future<void> createStudent(Map<String, dynamic> data) async {
     try {
       final Database db = await _databaseService.database;
-      await db.insert('students', data);
+      await db.insert(DBQueries.tableStudents, data);
       await loadStudents();
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
+      rethrow;
     }
   }
 
@@ -121,7 +121,7 @@ class StudentCubit extends Cubit<StudentState> {
     try {
       final Database db = await _databaseService.database;
       await db.update(
-        'students',
+        DBQueries.tableStudents,
         data,
         where: 'id = ?',
         whereArgs: <Object?>[id],
@@ -129,13 +129,18 @@ class StudentCubit extends Cubit<StudentState> {
       await loadStudents();
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
+      rethrow;
     }
   }
 
   Future<void> deleteStudent(int id) async {
     try {
       final Database db = await _databaseService.database;
-      await db.delete('students', where: 'id = ?', whereArgs: <Object?>[id]);
+      await db.delete(
+        DBQueries.tableStudents,
+        where: 'id = ?',
+        whereArgs: <Object?>[id],
+      );
       await loadStudents();
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
@@ -148,7 +153,7 @@ class StudentCubit extends Cubit<StudentState> {
       final Database db = await _databaseService.database;
       final placeholders = List.filled(ids.length, '?').join(',');
       await db.rawDelete(
-        'DELETE FROM students WHERE id IN ($placeholders)',
+        '${DBQueries.deleteMultipleStudentsBase} ($placeholders)',
         ids.toList(),
       );
       emit(state.copyWith(selectedIds: const {}));
@@ -162,12 +167,7 @@ class StudentCubit extends Cubit<StudentState> {
     try {
       final Database db = await _databaseService.database;
       final List<Map<String, Object?>> results = await db.rawQuery(
-        '''
-        SELECT s.*, g.name as group_name
-        FROM students s
-        LEFT JOIN groups g ON s.group_id = g.id
-        WHERE s.id = ?
-      ''',
+        DBQueries.getStudentById,
         <Object?>[id],
       );
       return results.isNotEmpty ? results.first : null;
@@ -180,12 +180,7 @@ class StudentCubit extends Cubit<StudentState> {
     try {
       final Database db = await _databaseService.database;
       final List<Map<String, Object?>> results = await db.rawQuery(
-        '''
-        SELECT s.*, g.name as group_name
-        FROM students s
-        LEFT JOIN groups g ON s.group_id = g.id
-        WHERE s.serial_number = ?
-      ''',
+        DBQueries.getStudentBySerial,
         <Object?>[serial],
       );
       return results.isNotEmpty ? results.first : null;
@@ -197,12 +192,10 @@ class StudentCubit extends Cubit<StudentState> {
   String _buildWhereClause() {
     final List<String> conditions = <String>[];
     if (state.searchQuery.isNotEmpty) {
-      conditions.add(
-        '(s.name LIKE ? OR s.serial_number LIKE ? OR s.phone1 LIKE ?)',
-      );
+      conditions.add(DBQueries.studentSearchCondition);
     }
     if (state.selectedGroupId != null) {
-      conditions.add('s.group_id = ?');
+      conditions.add(DBQueries.studentGroupCondition);
     }
     return conditions.isEmpty ? '' : 'WHERE ${conditions.join(' AND ')}';
   }

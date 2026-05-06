@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../models/student_exam_result.dart'; // Verify correct path
+
+import '../../../../../app/theme/app_colors.dart';
+import '../../../models/student_exam_result.dart';
 
 class HonorCard extends StatelessWidget {
   final StudentExamResult result;
@@ -22,11 +24,11 @@ class HonorCard extends StatelessWidget {
   Widget build(BuildContext context) {
     Color rankColor;
     if (rank == 1) {
-      rankColor = const Color(0xFF4F378A);
+      rankColor = AppColors.rankFirst;
     } else if (rank == 2) {
-      rankColor = const Color(0xFF79747E);
+      rankColor = AppColors.rankSecond;
     } else {
-      rankColor = const Color(0xFF8D6E63);
+      rankColor = AppColors.rankThird;
     }
 
     return Container(

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
+import '../../../app/constants/db_queries.dart';
 import '../../../app/services/database_service.dart';
 
 /// Reads and writes app settings from the `app_settings` key-value table.
@@ -15,7 +16,7 @@ class SettingsService {
     try {
       final Database db = await _databaseService.database;
       final results = await db.query(
-        'app_settings',
+        DBQueries.tableAppSettings,
         where: 'key = ?',
         whereArgs: [key],
       );
@@ -54,7 +55,7 @@ class SettingsService {
   Future<void> set(String key, String value) async {
     try {
       final Database db = await _databaseService.database;
-      await db.insert('app_settings', {
+      await db.insert(DBQueries.tableAppSettings, {
         'key': key,
         'value': value,
         'updated_at': DateTime.now().toIso8601String(),
@@ -80,7 +81,7 @@ class SettingsService {
   Future<Map<String, String>> getAll() async {
     try {
       final Database db = await _databaseService.database;
-      final results = await db.query('app_settings');
+      final results = await db.query(DBQueries.tableAppSettings);
       return Map.fromEntries(
         results.map(
           (row) => MapEntry(row['key'] as String, row['value'] as String),
@@ -98,7 +99,7 @@ class SettingsService {
   Future<void> delete(String key) async {
     try {
       final Database db = await _databaseService.database;
-      await db.delete('app_settings', where: 'key = ?', whereArgs: [key]);
+      await db.delete(DBQueries.tableAppSettings, where: 'key = ?', whereArgs: [key]);
     } catch (e) {
       if (kDebugMode) {
         print('SettingsService: Error deleting setting "$key": $e');

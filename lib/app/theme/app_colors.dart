@@ -95,6 +95,37 @@ class AppColors {
   static const missedChip = Color(0xFFEF5350);
   static const otherLessonChip = Color(0xFFFF9800);
 
+  // ─── ACTION CARD COLORS (Dashboard Quick Actions) ───
+
+  static const actionStudent = Color(0xFF6750A4);
+  static const actionQrScanner = Color(0xFFE91E63);
+  static const actionAssistant = Color(0xFF607D8B);
+  static const actionAssistantDir = Color(0xFF795548);
+  static const actionPayment = Color(0xFF4CAF50);
+  static const actionExam = Color(0xFFFF9800);
+  static const actionReport = Color(0xFF2196F3);
+  static const actionGroup = Color(0xFF9C27B0);
+  static const actionNotes = Color(0xFF00897B);
+  static const actionAdmin = Color(0xFF3F51B5);
+  static const actionHonor = Color(0xFFFFC107);
+  static const actionSettings = Color(0xFF607D8B);
+
+  // ─── RANK COLORS (Honor Board & Exams) ───
+
+  static const rankGold = Color(0xFFFFD700);
+  static const rankSilver = Color(0xFFC0C0C0);
+  static const rankBronze = Color(0xFFCD7F32);
+  static const rankFirst = Color(0xFF4F378A);
+  static const rankSecond = Color(0xFF79747E);
+  static const rankThird = Color(0xFF8D6E63);
+
+  // ─── EXAM TAB COLORS ───
+
+  static const examTabActive = Color(0xFFD3BBFF);
+  static const examTabInactive = Color(0xFFFFD8E4);
+  static const examTabActiveText = Color(0xFF4F378A);
+  static const examTabInactiveText = Color(0xFF633B48);
+
   // ─── GLASSMORPHISM HELPERS ───
 
   /// Light mode glass opacity (85%)

@@ -336,7 +336,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               const SizedBox(height: 24),
                               Text(
-                                'DEVELOPED BY',
+                                LocaleKeys.developed_by.tr().toUpperCase(),
                                 style: textTheme.labelSmall?.copyWith(
                                   color: colorScheme.outline,
                                   letterSpacing: 2,

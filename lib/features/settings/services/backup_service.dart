@@ -5,6 +5,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
+import '../../../app/constants/db_queries.dart';
 import '../../../app/services/database_service.dart';
 
 /// Manages database backup and restore operations.
@@ -190,26 +191,24 @@ class BackupService {
   Future<Map<String, int>> getRecordCounts() async {
     final Database db = await _databaseService.database;
     final tables = [
-      'students',
-      'groups',
-      'payments',
-      'attendance',
-      'exams',
-      'marks',
-      'assistants',
-      'assistant_attendance',
-      'notes',
-      'student_notes',
-      'users',
-      'login_attempts',
+      DBQueries.tableStudents,
+      DBQueries.tableGroups,
+      DBQueries.tablePayments,
+      DBQueries.tableAttendance,
+      DBQueries.tableExams,
+      DBQueries.tableMarks,
+      DBQueries.tableAssistants,
+      DBQueries.tableAssistantAttendance,
+      DBQueries.tableNotes,
+      DBQueries.tableStudentNotes,
+      DBQueries.tableUsers,
+      DBQueries.tableLoginAttempts,
     ];
 
     final counts = <String, int>{};
     for (final table in tables) {
       try {
-        final result = await db.rawQuery(
-          'SELECT COUNT(*) as count FROM $table',
-        );
+        final result = await db.query(table, columns: ['COUNT(*) as count']);
         counts[table] = result.first['count'] as int;
       } catch (_) {
         counts[table] = 0;
@@ -235,12 +234,7 @@ class BackupService {
   /// Export data as CSV (students).
   Future<String> exportStudentsCsv() async {
     final Database db = await _databaseService.database;
-    final rows = await db.rawQuery('''
-      SELECT s.*, g.name as group_name 
-      FROM students s 
-      LEFT JOIN groups g ON s.group_id = g.id 
-      ORDER BY s.name
-    ''');
+    final rows = await db.rawQuery(DBQueries.exportStudentsCsv);
 
     final buffer = StringBuffer();
     buffer.writeln(
@@ -270,12 +264,7 @@ class BackupService {
   /// Export data as CSV (payments).
   Future<String> exportPaymentsCsv() async {
     final Database db = await _databaseService.database;
-    final rows = await db.rawQuery('''
-      SELECT p.*, s.name as student_name, s.serial_number 
-      FROM payments p 
-      JOIN students s ON p.student_id = s.id 
-      ORDER BY p.year DESC, p.month DESC
-    ''');
+    final rows = await db.rawQuery(DBQueries.exportPaymentsCsv);
 
     final buffer = StringBuffer();
     buffer.writeln(
@@ -300,12 +289,7 @@ class BackupService {
   /// Export data as CSV (attendance).
   Future<String> exportAttendanceCsv() async {
     final Database db = await _databaseService.database;
-    final rows = await db.rawQuery('''
-      SELECT a.*, s.name as student_name, s.serial_number 
-      FROM attendance a 
-      JOIN students s ON a.student_id = s.id 
-      ORDER BY a.date DESC
-    ''');
+    final rows = await db.rawQuery(DBQueries.exportAttendanceCsv);
 
     final buffer = StringBuffer();
     buffer.writeln('Student Name,Serial Number,Date,Status,Notes');
@@ -326,13 +310,7 @@ class BackupService {
   /// Export data as CSV (marks/grades).
   Future<String> exportMarksCsv() async {
     final Database db = await _databaseService.database;
-    final rows = await db.rawQuery('''
-      SELECT m.*, s.name as student_name, s.serial_number, e.name as exam_name, e.full_mark 
-      FROM marks m 
-      JOIN students s ON m.student_id = s.id 
-      JOIN exams e ON m.exam_id = e.id 
-      ORDER BY e.date DESC
-    ''');
+    final rows = await db.rawQuery(DBQueries.exportMarksCsv);
 
     final buffer = StringBuffer();
     buffer.writeln('Student Name,Serial Number,Exam Name,Score,Full Mark');
@@ -373,13 +351,13 @@ class BackupService {
     final counts = <String, int>{};
 
     counts['attendance'] = await db.delete(
-      'attendance',
+      DBQueries.tableAttendance,
       where: 'date < ?',
       whereArgs: [cutoff],
     );
 
     counts['payments'] = await db.delete(
-      'payments',
+      DBQueries.tablePayments,
       where: 'paid_date < ?',
       whereArgs: [cutoff],
     );
@@ -391,18 +369,18 @@ class BackupService {
   Future<void> resetAllData() async {
     final Database db = await _databaseService.database;
     await db.transaction((txn) async {
-      await txn.delete('student_notes');
-      await txn.delete('notes');
-      await txn.delete('marks');
-      await txn.delete('exam_groups');
-      await txn.delete('assistant_attendance');
-      await txn.delete('assistants');
-      await txn.delete('attendance');
-      await txn.delete('payments');
-      await txn.delete('students');
-      await txn.delete('group_schedules');
-      await txn.delete('groups');
-      await txn.delete('exams');
+      await txn.delete(DBQueries.tableStudentNotes);
+      await txn.delete(DBQueries.tableNotes);
+      await txn.delete(DBQueries.tableMarks);
+      await txn.delete(DBQueries.tableExamGroups);
+      await txn.delete(DBQueries.tableAssistantAttendance);
+      await txn.delete(DBQueries.tableAssistants);
+      await txn.delete(DBQueries.tableAttendance);
+      await txn.delete(DBQueries.tablePayments);
+      await txn.delete(DBQueries.tableStudents);
+      await txn.delete(DBQueries.tableGroupSchedules);
+      await txn.delete(DBQueries.tableGroups);
+      await txn.delete(DBQueries.tableExams);
       // Keep users, login_attempts, device_binding, app_settings
     });
   }

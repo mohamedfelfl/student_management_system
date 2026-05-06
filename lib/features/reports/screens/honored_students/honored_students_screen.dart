@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../app/shared/widgets/responsive_layout.dart';
+import '../../../../app/theme/app_colors.dart';
 import '../../../../generated/locale_keys.g.dart';
 import '../../../exams/cubits/exam_cubit.dart';
 import '../../../exams/models/student_exam_result.dart';
@@ -24,27 +25,33 @@ class _HonoredStudentsScreenState extends State<HonoredStudentsScreen> {
   int? _selectedExamId;
   int? _selectedGroupId;
   int _limit = 10;
+  late ExamCubit _examCubit;
 
   final List<int> _limitOptions = [3, 5, 10, 20, 50, 100];
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _examCubit = context.read<ExamCubit>();
+  }
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final cubit = context.read<ExamCubit>();
-      if (cubit.state.exams.isEmpty) await cubit.loadExams();
-      if (cubit.state.groups.isEmpty) await cubit.loadGroups();
+      if (_examCubit.state.exams.isEmpty) await _examCubit.loadExams();
+      if (_examCubit.state.groups.isEmpty) await _examCubit.loadGroups();
     });
   }
 
   @override
   void dispose() {
-    context.read<ExamCubit>().resetTopStudents();
+    _examCubit.resetTopStudents();
     super.dispose();
   }
 
   void _fetchData() {
-    context.read<ExamCubit>().getTopStudents(
+    _examCubit.getTopStudents(
       examId: _selectedExamId,
       groupId: _selectedGroupId,
       limit: _limit,
@@ -270,7 +277,7 @@ class _HonoredStudentsScreenState extends State<HonoredStudentsScreen> {
               icon: Icons.groups,
             ),
           _buildDropdown<int>(
-            label: 'Top N', // Custom or localized label
+            label: LocaleKeys.top_n.tr(args: ['']), // Or just use a generic 'Top' if preferred
             value: _limit,
             items: _limitOptions
                 .map(
@@ -343,7 +350,7 @@ class _HonoredStudentsScreenState extends State<HonoredStudentsScreen> {
                 _buildPodiumCard(
                   student: students[1],
                   rank: 2,
-                  color: const Color(0xFFC0C0C0), // Silver
+                  color: AppColors.rankSilver,
                   height: podiumHeight * 0.75,
                   textTheme: textTheme,
                   isDark: isDark,
@@ -353,7 +360,7 @@ class _HonoredStudentsScreenState extends State<HonoredStudentsScreen> {
               _buildPodiumCard(
                 student: students[0],
                 rank: 1,
-                color: const Color(0xFFFFD700), // Gold
+                color: AppColors.rankGold,
                 height: podiumHeight,
                 textTheme: textTheme,
                 isDark: isDark,
@@ -364,7 +371,7 @@ class _HonoredStudentsScreenState extends State<HonoredStudentsScreen> {
                 _buildPodiumCard(
                   student: students[2],
                   rank: 3,
-                  color: const Color(0xFFCD7F32), // Bronze
+                  color: AppColors.rankBronze,
                   height: podiumHeight * 0.6,
                   textTheme: textTheme,
                   isDark: isDark,

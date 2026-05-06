@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
+import '../../../app/constants/db_queries.dart';
 import '../../../app/services/database_service.dart';
 
 part 'assistant_cubit.freezed.dart';
@@ -31,14 +32,13 @@ class AssistantCubit extends Cubit<AssistantState> {
       final Database db = await _databaseService.database;
 
       final List<Map<String, Object?>> countResult = await db.rawQuery(
-        'SELECT COUNT(*) as cnt FROM assistants',
+        DBQueries.countAssistants,
       );
       final int total = (countResult.first['cnt'] as int?) ?? 0;
 
       final String query =
           '''
-        SELECT *
-        FROM assistants
+        ${DBQueries.getAssistantsBase}
         ${_buildWhereClause()}
         ORDER BY name ASC
       ''';
@@ -94,10 +94,11 @@ class AssistantCubit extends Cubit<AssistantState> {
   Future<void> createAssistant(Map<String, dynamic> data) async {
     try {
       final Database db = await _databaseService.database;
-      await db.insert('assistants', data);
+      await db.insert(DBQueries.tableAssistants, data);
       await loadAssistants();
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
+      rethrow;
     }
   }
 
@@ -105,7 +106,7 @@ class AssistantCubit extends Cubit<AssistantState> {
     try {
       final Database db = await _databaseService.database;
       await db.update(
-        'assistants',
+        DBQueries.tableAssistants,
         data,
         where: 'id = ?',
         whereArgs: <Object?>[id],
@@ -113,16 +114,18 @@ class AssistantCubit extends Cubit<AssistantState> {
       await loadAssistants();
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
+      rethrow;
     }
   }
 
   Future<void> deleteAssistant(int id) async {
     try {
       final Database db = await _databaseService.database;
-      await db.delete('assistants', where: 'id = ?', whereArgs: <Object?>[id]);
+      await db.delete(DBQueries.tableAssistants, where: 'id = ?', whereArgs: <Object?>[id]);
       await loadAssistants();
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
+      rethrow;
     }
   }
 
@@ -132,13 +135,14 @@ class AssistantCubit extends Cubit<AssistantState> {
       final Database db = await _databaseService.database;
       final placeholders = List.filled(ids.length, '?').join(',');
       await db.rawDelete(
-        'DELETE FROM assistants WHERE id IN ($placeholders)',
+        '${DBQueries.deleteMultipleAssistantsBase} ($placeholders)',
         ids.toList(),
       );
       emit(state.copyWith(selectedIds: const {}));
       await loadAssistants();
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
+      rethrow;
     }
   }
 
@@ -146,7 +150,7 @@ class AssistantCubit extends Cubit<AssistantState> {
     try {
       final Database db = await _databaseService.database;
       final List<Map<String, Object?>> results = await db.query(
-        'assistants',
+        DBQueries.tableAssistants,
         where: 'id = ?',
         whereArgs: <Object?>[id],
       );

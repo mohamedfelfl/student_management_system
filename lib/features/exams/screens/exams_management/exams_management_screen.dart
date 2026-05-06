@@ -97,7 +97,7 @@ class _ExamsManagementScreenState extends State<ExamsManagementScreen> {
                         controller: _searchController,
                         onChanged: (value) => setState(() {}),
                         decoration: InputDecoration(
-                          hintText: 'search'.tr(),
+                          hintText: LocaleKeys.search_hint.tr(),
                           prefixIcon: const Icon(Icons.search),
                           filled: true,
                           fillColor: Theme.of(
@@ -226,12 +226,12 @@ class _ExamsManagementScreenState extends State<ExamsManagementScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('delete_exam'.tr()),
-        content: Text('delete_exam_confirm'.tr()),
+        title: Text(LocaleKeys.delete_exam.tr()),
+        content: Text(LocaleKeys.delete_exam_confirm.tr()),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('cancel'.tr()),
+            child: Text(LocaleKeys.cancel.tr()),
           ),
           TextButton(
             onPressed: () {
@@ -239,7 +239,7 @@ class _ExamsManagementScreenState extends State<ExamsManagementScreen> {
               Navigator.pop(context);
             },
             child: Text(
-              'delete'.tr(),
+              LocaleKeys.delete.tr(),
               style: const TextStyle(color: Colors.red),
             ),
           ),

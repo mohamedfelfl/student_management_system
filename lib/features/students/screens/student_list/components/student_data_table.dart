@@ -104,14 +104,17 @@ class _StudentDataTableState extends State<StudentDataTable> {
           renderEmptyRowsInTheEnd: false,
           columns: [
             DataColumn2(
-              label: Checkbox(
-                value:
-                    widget.students.isNotEmpty &&
-                    widget.selectedIds.length == widget.students.length,
-                tristate: true,
-                onChanged: (_) => widget.onToggleAll(),
+              label: Transform.scale(
+                scale: 1.4,
+                child: Checkbox(
+                  value:
+                      widget.students.isNotEmpty &&
+                      widget.selectedIds.length == widget.students.length,
+                  tristate: true,
+                  onChanged: (_) => widget.onToggleAll(),
+                ),
               ),
-              fixedWidth: 50,
+              fixedWidth: 60,
             ),
             DataColumn2(
               label: Text(
@@ -191,7 +194,13 @@ class _StudentDataSource extends DataTableSource {
       onTap: () => context.router.push(StudentDetailRoute(id: id)),
       cells: [
         DataCell(
-          Checkbox(value: isSelected, onChanged: (_) => onToggleSelection(id)),
+          Transform.scale(
+            scale: 1.4,
+            child: Checkbox(
+              value: isSelected,
+              onChanged: (_) => onToggleSelection(id),
+            ),
+          ),
         ),
         DataCell(
           Text(

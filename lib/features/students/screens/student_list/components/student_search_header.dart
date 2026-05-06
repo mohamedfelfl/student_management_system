@@ -39,7 +39,10 @@ class StudentSearchHeader extends StatelessWidget {
             decoration: InputDecoration(
               hintText: LocaleKeys.search_hint.tr(),
               prefixIcon: const Icon(Icons.search),
-              contentPadding: const EdgeInsets.symmetric(vertical: 0),
+              contentPadding: EdgeInsets.symmetric(
+                vertical: 20.h,
+                horizontal: 16.w,
+              ),
             ),
           ),
         ),
@@ -47,26 +50,33 @@ class StudentSearchHeader extends StatelessWidget {
         // ── Rows Per Page Dropdown ──
         Container(
           height: 60.h,
-          padding: EdgeInsets.symmetric(horizontal: 16.w),
+          width: 60.w,
           decoration: BoxDecoration(
             color: colorScheme.surfaceContainerLow,
             borderRadius: BorderRadius.circular(12.r),
             border: Border.all(color: colorScheme.outlineVariant),
           ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<int>(
-              value: rowsPerPage,
-              items: [10, 20, 50, 100].map((int value) {
-                return DropdownMenuItem<int>(
-                  value: value,
-                  child: Text(
-                    '$value',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                );
-              }).toList(),
-              onChanged: onRowsPerPageChanged,
-              icon: Icon(Icons.format_list_numbered, size: 20),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12.r),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<int>(
+                padding: EdgeInsets.symmetric(horizontal: 8.w),
+                isExpanded: true,
+                itemHeight: 60.h,
+                borderRadius: BorderRadius.circular(12.r),
+                value: rowsPerPage,
+                items: [10, 20, 50, 100].map((int value) {
+                  return DropdownMenuItem<int>(
+                    value: value,
+                    child: Text(
+                      '$value',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  );
+                }).toList(),
+                onChanged: onRowsPerPageChanged,
+                icon: const Icon(Icons.format_list_numbered, size: 20),
+              ),
             ),
           ),
         ),

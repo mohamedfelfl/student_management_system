@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:easy_localization/easy_localization.dart';
+import '../../../generated/locale_keys.g.dart';
 
 /// Manages device binding to restrict the app to a single computer.
 ///
@@ -84,7 +86,7 @@ class DeviceBindingService {
     try {
       return Platform.localHostname;
     } catch (_) {
-      return 'Unknown Device';
+      return LocaleKeys.unknown_device.tr();
     }
   }
 

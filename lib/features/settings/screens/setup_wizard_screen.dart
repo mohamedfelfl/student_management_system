@@ -5,9 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import '../../../app/di/injection.dart';
 import '../../../app/router/app_router.gr.dart';
 import '../../../app/services/database_service.dart';
+import '../../../generated/locale_keys.g.dart';
 import '../../auth/cubits/auth_cubit.dart';
 import '../services/device_binding_service.dart';
 import '../services/settings_service.dart';
@@ -160,34 +164,40 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                       ),
                       const SizedBox(height: 24),
                       Text(
-                        'Welcome! Let\'s set up your app',
-                        textAlign: TextAlign.center,
-                        style: textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.primary,
-                        ),
+                        LocaleKeys.setup_welcome.tr(),
+                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8.h),
                       Text(
-                        'Complete these steps to get started',
-                        textAlign: TextAlign.center,
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
+                        LocaleKeys.setup_subtitle.tr(),
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
                       ),
                       const SizedBox(height: 32),
 
-                      // Stepper indicator
                       Row(
                         children: [
-                          _buildStepIndicator(0, 'Account', Icons.person),
-                          _buildStepConnector(0),
-                          _buildStepIndicator(1, 'Device', Icons.devices),
+                          StepItem(
+                            icon: Icons.person_add_rounded,
+                            label: LocaleKeys.step_account.tr(),
+                            isActive: _currentStep >= 0,
+                            isCompleted: _currentStep > 0,
+                          ),
+                          StepLine(isCompleted: _currentStep > 0),
+                          StepItem(
+                            icon: Icons.phonelink_lock_rounded,
+                            label: LocaleKeys.step_device.tr(),
+                            isActive: _currentStep >= 1,
+                            isCompleted: _currentStep > 1,
+                          ),
                         ],
                       ),
                       const SizedBox(height: 32),
 
-                      // Step content
                       Container(
                         padding: const EdgeInsets.all(32),
                         decoration: BoxDecoration(
@@ -234,7 +244,6 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                       ),
                       const SizedBox(height: 24),
 
-                      // Navigation buttons
                       Row(
                         children: [
                           Expanded(
@@ -242,7 +251,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                               alignment: Alignment.centerLeft,
                               child: _currentStep > 0
                                   ? OutlinedButton(
-                                      onPressed: _previousStep,
+                                      onPressed: () => setState(() => _currentStep--),
                                       style: OutlinedButton.styleFrom(
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 24,
@@ -254,7 +263,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                                           ),
                                         ),
                                       ),
-                                      child: const Text('Back'),
+                                      child: Text(LocaleKeys.go_back.tr()),
                                     )
                                   : const SizedBox.shrink(),
                             ),
@@ -287,8 +296,8 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                                   )
                                 : Text(
                                     _currentStep == 1
-                                        ? 'Complete Setup'
-                                        : 'Next',
+                                        ? LocaleKeys.complete_setup.tr()
+                                        : LocaleKeys.next.tr(),
                                   ),
                           ),
                           const Expanded(child: SizedBox.shrink()),
@@ -305,72 +314,6 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
     );
   }
 
-  // ─── STEP INDICATORS ───
-
-  Widget _buildStepIndicator(int step, String label, IconData icon) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isActive = _currentStep >= step;
-
-    return Expanded(
-      child: Column(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: isActive
-                  ? colorScheme.primary
-                  : colorScheme.surfaceContainerHigh,
-              boxShadow: isActive
-                  ? [
-                      BoxShadow(
-                        color: colorScheme.primary.withValues(alpha: 0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ]
-                  : null,
-            ),
-            child: Icon(
-              icon,
-              size: 20,
-              color: isActive
-                  ? colorScheme.onPrimary
-                  : colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-              color: isActive
-                  ? colorScheme.primary
-                  : colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStepConnector(int beforeStep) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isActive = _currentStep > beforeStep;
-
-    return SizedBox(
-      width: 40,
-      child: Divider(
-        thickness: 2,
-        color: isActive ? colorScheme.primary : colorScheme.outlineVariant,
-      ),
-    );
-  }
-
-  // ─── STEP 1: ADMIN ACCOUNT ───
-
   Widget _buildStep1Account(ColorScheme colorScheme, TextTheme textTheme) {
     return Form(
       key: _step1FormKey,
@@ -378,98 +321,70 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Create Admin Account',
-            style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            LocaleKeys.create_admin_account.tr(),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Text(
-            'This will be the main administrator account.',
-            style: textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
+            LocaleKeys.admin_account_desc.tr(),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
           ),
           const SizedBox(height: 24),
-          TextFormField(
+          CustomTextFormField(
             controller: _usernameController,
-            decoration: InputDecoration(
-              labelText: 'Username',
-              prefixIcon: const Icon(Icons.person_outline),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            validator: (v) =>
-                v == null || v.trim().isEmpty ? 'Username is required' : null,
-            autofocus: true,
+            labelText: LocaleKeys.username.tr(),
+            prefixIcon: const Icon(Icons.person_outline_rounded),
+            validator: (v) => v!.isEmpty ? LocaleKeys.username_required.tr() : null,
           ),
           const SizedBox(height: 16),
-          TextFormField(
+          CustomTextFormField(
             controller: _passwordController,
             obscureText: _obscurePassword,
-            decoration: InputDecoration(
-              labelText: 'Password',
-              prefixIcon: const Icon(Icons.lock_outline),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                ),
-                onPressed: () =>
-                    setState(() => _obscurePassword = !_obscurePassword),
-              ),
-            ),
-            validator: (v) =>
-                v == null || v.isEmpty ? 'Password is required' : null,
+            labelText: LocaleKeys.password.tr(),
+            prefixIcon: const Icon(Icons.lock_outline_rounded),
+            isPassword: true,
+            validator: (v) => v!.isEmpty ? LocaleKeys.password_required.tr() : null,
+            onVisibilityToggle: () => setState(() => _obscurePassword = !_obscurePassword),
           ),
           const SizedBox(height: 16),
-          TextFormField(
+          CustomTextFormField(
             controller: _confirmPasswordController,
             obscureText: _obscureConfirm,
-            decoration: InputDecoration(
-              labelText: 'Confirm Password',
-              prefixIcon: const Icon(Icons.lock_outline),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscureConfirm ? Icons.visibility_off : Icons.visibility,
-                ),
-                onPressed: () =>
-                    setState(() => _obscureConfirm = !_obscureConfirm),
-              ),
-            ),
-            validator: (v) {
-              if (v == null || v.isEmpty) return 'Confirm your password';
-              if (v != _passwordController.text) {
-                return 'Passwords do not match';
-              }
-              return null;
-            },
+            labelText: LocaleKeys.confirm_password_hint.tr(),
+            prefixIcon: const Icon(Icons.lock_outline_rounded),
+            isPassword: true,
+            validator: (v) => v!.isEmpty
+                ? LocaleKeys.confirm_your_password.tr()
+                : v != _passwordController.text
+                    ? LocaleKeys.passwords_do_not_match.tr()
+                    : null,
+            onVisibilityToggle: () => setState(() => _obscureConfirm = !_obscureConfirm),
           ),
         ],
       ),
     );
   }
 
-  // ─── STEP 2: DEVICE BINDING ───
-
   Widget _buildStep2Device(ColorScheme colorScheme, TextTheme textTheme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Bind to This Device',
-          style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+          LocaleKeys.bind_to_this_device.tr(),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8.h),
         Text(
-          'This app will be restricted to this computer only.',
-          style: textTheme.bodyMedium?.copyWith(
-            color: colorScheme.onSurfaceVariant,
-          ),
+          LocaleKeys.device_restriction_desc.tr(),
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
         ),
         const SizedBox(height: 24),
         Container(
@@ -480,13 +395,13 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
           ),
           child: Column(
             children: [
-              _buildDeviceInfoRow(Icons.computer, 'Device', _deviceName),
+              _buildDeviceInfoRow(Icons.computer, LocaleKeys.device.tr(), _deviceName),
               const SizedBox(height: 12),
-              _buildDeviceInfoRow(Icons.info_outline, 'OS', _osInfo),
+              _buildDeviceInfoRow(Icons.info_outline, LocaleKeys.os.tr(), _osInfo),
               const SizedBox(height: 12),
               _buildDeviceInfoRow(
                 Icons.fingerprint,
-                'Fingerprint',
+                LocaleKeys.fingerprint.tr(),
                 _fingerprint.length > 20
                     ? '${_fingerprint.substring(0, 20)}...'
                     : _fingerprint,
@@ -504,15 +419,15 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.check_circle, color: Colors.green),
-                SizedBox(width: 8),
+                const Icon(Icons.check_circle, color: Colors.green),
+                const SizedBox(width: 8),
                 Text(
-                  'Device bound successfully!',
+                  LocaleKeys.device_bound_success.tr(),
                   style: TextStyle(
-                    color: Colors.green,
-                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
@@ -530,7 +445,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.lock),
-              label: const Text('Bind to This Device'),
+              label: Text(LocaleKeys.bind_to_this_device.tr()),
               style: ElevatedButton.styleFrom(
                 backgroundColor: colorScheme.primary,
                 foregroundColor: colorScheme.onPrimary,
@@ -557,7 +472,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
         Icon(icon, size: 18, color: colorScheme.onSurfaceVariant),
         const SizedBox(width: 12),
         SizedBox(
-          width: 90,
+          width: 110.w,
           child: Text(
             label,
             style: TextStyle(
@@ -585,16 +500,16 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
               await Clipboard.setData(ClipboardData(text: copyText));
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Copied to clipboard'),
+                  SnackBar(
+                    content: Text(LocaleKeys.copied_to_clipboard.tr()),
                     behavior: SnackBarBehavior.floating,
-                    duration: Duration(seconds: 2),
+                    duration: const Duration(seconds: 2),
                   ),
                 );
               }
             },
             icon: const Icon(Icons.copy, size: 16),
-            tooltip: 'Copy',
+            tooltip: LocaleKeys.copy.tr(),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
             color: colorScheme.primary,
@@ -602,21 +517,6 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
         ],
       ],
     );
-  }
-
-  // ─── STEP 3: ACADEMIC YEAR ───
-
-  // ─── NAVIGATION ───
-
-  void _previousStep() {
-    if (_currentStep > 0) {
-      setState(() => _currentStep--);
-      _pageController.animateToPage(
-        _currentStep,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    }
   }
 
   Future<void> _nextStep() async {
@@ -631,10 +531,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
     } else if (_currentStep == 1) {
       if (!_deviceBound) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please bind this device first'),
-            backgroundColor: Colors.orange,
-          ),
+          SnackBar(content: Text(LocaleKeys.bind_device.tr())),
         );
         return;
       }
@@ -658,10 +555,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
       setState(() => _isBindingDevice = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to bind device: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text(LocaleKeys.failed_to_bind_device.tr(args: [e.toString()]))),
         );
       }
     }
@@ -674,7 +568,6 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
       final dbService = getIt<DatabaseService>();
       final Database db = await dbService.database;
 
-      // 1. Create admin user with salted password
       final (passwordHash, salt) = AuthCubit.hashPasswordWithSalt(
         _passwordController.text,
       );
@@ -697,11 +590,9 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
         ]),
       });
 
-      // 3. Mark setup as completed
       final settingsService = getIt<SettingsService>();
       await settingsService.setBool(SettingsKeys.setupCompleted, true);
 
-      // Navigate to login
       if (mounted) {
         context.router.replaceAll([const LoginRoute()]);
       }
@@ -709,12 +600,160 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
       setState(() => _isSubmitting = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Setup failed: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text(LocaleKeys.setup_failed.tr(args: [e.toString()]))),
         );
       }
     }
+  }
+}
+
+class StepItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool isActive;
+  final bool isCompleted;
+
+  const StepItem({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.isActive,
+    required this.isCompleted,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Expanded(
+      child: Column(
+        children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: isCompleted
+                  ? colorScheme.primary
+                  : isActive
+                      ? colorScheme.primaryContainer
+                      : colorScheme.surfaceContainerHigh,
+              shape: BoxShape.circle,
+              boxShadow: isActive
+                  ? [
+                      BoxShadow(
+                        color: colorScheme.primary.withValues(alpha: 0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Icon(
+              isCompleted ? Icons.check_rounded : icon,
+              color: isCompleted
+                  ? colorScheme.onPrimary
+                  : isActive
+                      ? colorScheme.primary
+                      : colorScheme.onSurfaceVariant,
+              size: 20,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+              color: isActive ? colorScheme.primary : colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class StepLine extends StatelessWidget {
+  final bool isCompleted;
+
+  const StepLine({super.key, required this.isCompleted});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 40,
+      height: 2,
+      margin: const EdgeInsets.only(bottom: 20),
+      color: isCompleted
+          ? Theme.of(context).colorScheme.primary
+          : Theme.of(context).colorScheme.outlineVariant,
+    );
+  }
+}
+
+class CustomTextFormField extends StatelessWidget {
+  final TextEditingController controller;
+  final String labelText;
+  final String? hintText;
+  final Icon prefixIcon;
+  final bool isPassword;
+  final bool obscureText;
+  final VoidCallback? onVisibilityToggle;
+  final String? Function(String?)? validator;
+
+  const CustomTextFormField({
+    super.key,
+    required this.controller,
+    required this.labelText,
+    this.hintText,
+    required this.prefixIcon,
+    this.isPassword = false,
+    this.obscureText = false,
+    this.onVisibilityToggle,
+    this.validator,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: controller,
+      obscureText: obscureText,
+      style: const TextStyle(fontSize: 15),
+      decoration: InputDecoration(
+        labelText: labelText,
+        hintText: hintText,
+        prefixIcon: prefixIcon,
+        suffixIcon: isPassword
+            ? IconButton(
+                icon: Icon(
+                  obscureText ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                  size: 20,
+                ),
+                onPressed: onVisibilityToggle,
+              )
+            : null,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.outlineVariant,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.primary,
+            width: 2,
+          ),
+        ),
+        filled: true,
+        fillColor: Theme.of(context).colorScheme.surface,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      ),
+      validator: validator,
+    );
   }
 }

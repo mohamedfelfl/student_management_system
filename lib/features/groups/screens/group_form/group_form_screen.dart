@@ -5,9 +5,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../app/shared/widgets/responsive_layout.dart';
-import '../../../../app/router/app_router.gr.dart';
 import '../../../../generated/locale_keys.g.dart';
 import '../../cubits/group_cubit.dart';
+import 'components/schedule_section.dart';
+import 'components/student_linking_section.dart';
 
 @RoutePage()
 class GroupFormScreen extends StatefulWidget {
@@ -24,17 +25,13 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
   final List<String> _selectedDays = [];
   final Map<String, TimeOfDay> _dayTimes = {};
   bool _isEditing = false;
+  bool _isSubmitting = false;
   final List<int> _selectedStudentIds = [];
-  final List<Map<String, dynamic>> _selectedStudentsData = []; // To show chips with names
+  final List<Map<String, dynamic>> _selectedStudentsData = [];
 
   final List<String> _days = <String>[
-    'Saturday',
-    'Sunday',
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-    'Friday',
+    'Saturday', 'Sunday', 'Monday', 'Tuesday',
+    'Wednesday', 'Thursday', 'Friday',
   ];
 
   @override
@@ -43,7 +40,6 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
     if (widget.id != null) {
       _isEditing = true;
       _loadGroup();
-      // Load linked students for this group
       context.read<GroupCubit>().loadGroupStudents(widget.id!);
     }
     context.read<GroupCubit>().loadAvailableStudents();
@@ -81,46 +77,14 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
   String _normalizeDay(String day) {
     if (day.isEmpty) return day;
     switch (day) {
-      case 'السبت':
-        return 'Saturday';
-      case 'الأحد':
-      case 'الاحد':
-        return 'Sunday';
-      case 'الإثنين':
-      case 'الاثنين':
-        return 'Monday';
-      case 'الثلاثاء':
-        return 'Tuesday';
-      case 'الأربعاء':
-      case 'الاربعاء':
-        return 'Wednesday';
-      case 'الخميس':
-        return 'Thursday';
-      case 'الجمعة':
-        return 'Friday';
-      default:
-        return day;
-    }
-  }
-
-  String _translateDay(String day) {
-    switch (day) {
-      case 'Saturday':
-        return LocaleKeys.saturday.tr();
-      case 'Sunday':
-        return LocaleKeys.sunday.tr();
-      case 'Monday':
-        return LocaleKeys.monday.tr();
-      case 'Tuesday':
-        return LocaleKeys.tuesday.tr();
-      case 'Wednesday':
-        return LocaleKeys.wednesday.tr();
-      case 'Thursday':
-        return LocaleKeys.thursday.tr();
-      case 'Friday':
-        return LocaleKeys.friday.tr();
-      default:
-        return day;
+      case 'السبت': return 'Saturday';
+      case 'الأحد': case 'الاحد': return 'Sunday';
+      case 'الإثنين': case 'الاثنين': return 'Monday';
+      case 'الثلاثاء': return 'Tuesday';
+      case 'الأربعاء': case 'الاربعاء': return 'Wednesday';
+      case 'الخميس': return 'Thursday';
+      case 'الجمعة': return 'Friday';
+      default: return day;
     }
   }
 
@@ -149,7 +113,8 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
   String _formatTime(TimeOfDay time) {
     final int hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
     final String minute = time.minute.toString().padLeft(2, '0');
-    final String period = time.period == DayPeriod.am ? 'AM' : 'PM';
+    final String period =
+        time.period == DayPeriod.am ? LocaleKeys.am.tr() : LocaleKeys.pm.tr();
     return '$hour:$minute $period';
   }
 
@@ -174,7 +139,6 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
   @override
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -202,7 +166,7 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // ── Group Name ──
+                  // Group Name
                   TextFormField(
                     controller: _nameController,
                     style: textTheme.titleMedium,
@@ -217,123 +181,29 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
                   ),
                   SizedBox(height: 32.h),
 
-                  // ── Days Selection (Chips) ──
-                  Text(
-                    LocaleKeys.day_of_week.tr(),
-                    style: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                  ScheduleSection(
+                    days: _days,
+                    selectedDays: _selectedDays,
+                    dayTimes: _dayTimes,
+                    onChanged: () => setState(() {}),
+                    onPickTime: _pickTime,
                   ),
-                  SizedBox(height: 12.h),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: _days.map((day) {
-                      final isSelected = _selectedDays.contains(day);
-                      return FilterChip(
-                        label: Text(_translateDay(day)),
-                        selected: isSelected,
-                        onSelected: (selected) {
-                          setState(() {
-                            if (selected) {
-                              _selectedDays.add(day);
-                              // Default time if not set
-                              _dayTimes[day] ??= const TimeOfDay(
-                                hour: 14,
-                                minute: 0,
-                              );
-                            } else {
-                              _selectedDays.remove(day);
-                              _dayTimes.remove(day);
-                            }
-                          });
-                        },
-                      );
-                    }).toList(),
-                  ),
-                  if (_selectedDays.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8.0, left: 12.0),
-                      child: Text(
-                        LocaleKeys.select_day.tr(),
-                        style: TextStyle(
-                          color: colorScheme.error,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-
-                  SizedBox(height: 24.h),
-
-                  // ── Time Selection for Each Day ──
-                  if (_selectedDays.isNotEmpty) ...[
-                    Text(
-                      LocaleKeys.time.tr(),
-                      style: textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 12.h),
-                    ..._selectedDays.map((day) {
-                      final time = _dayTimes[day];
-                      return Padding(
-                        padding: EdgeInsets.only(bottom: 8.h),
-                        child: Card(
-                          elevation: 0,
-                          color: colorScheme.surfaceContainerHighest.withValues(
-                            alpha: 0.3,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            side: BorderSide(color: colorScheme.outlineVariant),
-                          ),
-                          child: ListTile(
-                            leading: Icon(
-                              Icons.calendar_today,
-                              size: 20,
-                              color: colorScheme.primary,
-                            ),
-                            title: Text(
-                              _translateDay(day),
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            trailing: TextButton.icon(
-                              onPressed: () => _pickTime(day),
-                              icon: const Icon(Icons.access_time, size: 18),
-                              label: Text(
-                                time != null
-                                    ? _formatTime(time)
-                                    : LocaleKeys.time.tr(),
-                              ),
-                              style: TextButton.styleFrom(
-                                backgroundColor: colorScheme.primaryContainer,
-                                foregroundColor: colorScheme.onPrimaryContainer,
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 16.w,
-                                  vertical: 8.h,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    }),
-                  ],
 
                   SizedBox(height: 32.h),
 
-                  // ── Save Button ──
+                  // Save Button
                   SizedBox(
                     width: double.infinity,
                     height: 60,
                     child: ElevatedButton.icon(
-                      onPressed: _submit,
-                      icon: Icon(_isEditing ? Icons.save : Icons.add),
+                      onPressed: _isSubmitting ? null : _submit,
+                      icon: _isSubmitting 
+                        ? const SizedBox(
+                            width: 20, 
+                            height: 20, 
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)
+                          )
+                        : Icon(_isEditing ? Icons.save : Icons.add),
                       label: Text(
                         _isEditing
                             ? LocaleKeys.update.tr()
@@ -346,11 +216,17 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
                     ),
                   ),
 
-                  // ── Student Linking Section ──
+                  // Student Linking Section
                   SizedBox(height: 40.h),
                   const Divider(),
                   SizedBox(height: 16.h),
-                  _buildStudentLinkingSection(textTheme, colorScheme),
+                  StudentLinkingSection(
+                    isEditing: _isEditing,
+                    groupId: widget.id,
+                    selectedStudentIds: _selectedStudentIds,
+                    selectedStudentsData: _selectedStudentsData,
+                    onChanged: () => setState(() {}),
+                  ),
                 ],
               ),
             ),
@@ -360,275 +236,66 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
     );
   }
 
-  Widget _buildStudentLinkingSection(
-    TextTheme textTheme,
-    ColorScheme colorScheme,
-  ) {
-    return BlocBuilder<GroupCubit, GroupState>(
-      builder: (context, state) {
-        final List<Map<String, dynamic>> students =
-            _isEditing ? state.groupStudents : _selectedStudentsData;
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header row
-            Row(
-              children: [
-                Icon(Icons.people, color: colorScheme.primary, size: 28),
-                SizedBox(width: 8.w),
-                Text(
-                  LocaleKeys.linked_students.tr(
-                    args: [students.length.toString()],
-                  ),
-                  style: textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const Spacer(),
-                FilledButton.icon(
-                  onPressed: () => _showAddStudentDialog(colorScheme),
-                  icon: const Icon(Icons.person_add, size: 20),
-                  label: Text(LocaleKeys.add_students_to_group.tr()),
-                ),
-              ],
-            ),
-            SizedBox(height: 16.h),
-
-            if (students.isEmpty)
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.all(32.r),
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerLow,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.group_off,
-                      size: 48,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                    SizedBox(height: 12.h),
-                    Text(
-                      LocaleKeys.no_students_in_group.tr(),
-                      style: textTheme.bodyLarge?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            else
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: students.map((s) {
-                  return InputChip(
-                    avatar: CircleAvatar(
-                      backgroundColor: colorScheme.primary,
-                      child: Text(
-                        (s['name']?.toString() ?? '?')[0].toUpperCase(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                    label: Text(
-                      s['name']?.toString() ?? '',
-                      style: textTheme.bodyLarge,
-                    ),
-                    deleteIcon: const Icon(Icons.close, size: 18),
-                    deleteButtonTooltipMessage:
-                        LocaleKeys.remove_from_group.tr(),
-                    onDeleted: () {
-                      if (_isEditing) {
-                        context.read<GroupCubit>().unlinkStudentFromGroup(
-                          s['id'] as int,
-                          widget.id!,
-                        );
-                      } else {
-                        setState(() {
-                          _selectedStudentIds.remove(s['id'] as int);
-                          _selectedStudentsData.removeWhere(
-                            (item) => item['id'] == s['id'],
-                          );
-                        });
-                      }
-                    },
-                    onPressed: () {
-                      context.router.push(
-                        StudentDetailRoute(id: s['id'] as int),
-                      );
-                    },
-                  );
-                }).toList(),
-              ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showAddStudentDialog(ColorScheme colorScheme) {
-    // Load available students (those not in any group)
-    context.read<GroupCubit>().loadAvailableStudents();
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) {
-        final searchController = TextEditingController();
-
-        return StatefulBuilder(
-          builder: (builderContext, setDialogState) {
-            return AlertDialog(
-              title: Text(LocaleKeys.add_students_to_group.tr()),
-              content: SizedBox(
-                width: 500,
-                height: 400,
-                child: Column(
-                  children: [
-                    TextField(
-                      controller: searchController,
-                      decoration: InputDecoration(
-                        hintText: LocaleKeys.search_students.tr(),
-                        prefixIcon: const Icon(Icons.search),
-                        border: const OutlineInputBorder(),
-                      ),
-                      onChanged: (query) {
-                        context.read<GroupCubit>().loadAvailableStudents(
-                          search: query,
-                        );
-                      },
-                    ),
-                    SizedBox(height: 12.h),
-                    Expanded(
-                      child: BlocBuilder<GroupCubit, GroupState>(
-                        bloc: context.read<GroupCubit>(),
-                        builder: (blocContext, state) {
-                          final available = state.availableStudents;
-                          if (available.isEmpty) {
-                            return Center(
-                              child: Text(
-                                LocaleKeys.no_students_found.tr(),
-                                style: TextStyle(
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            );
-                          }
-                          return ListView.separated(
-                            itemCount: available.length,
-                            separatorBuilder: (_, _) =>
-                                const Divider(height: 1),
-                            itemBuilder: (context, index) {
-                              final s = available[index];
-                              return ListTile(
-                                leading: CircleAvatar(
-                                  backgroundColor: colorScheme.primaryContainer,
-                                  child: Text(
-                                    (s['name']?.toString() ?? '?')[0]
-                                        .toUpperCase(),
-                                    style: TextStyle(
-                                      color: colorScheme.onPrimaryContainer,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                title: Text(
-                                  s['name']?.toString() ?? '',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                subtitle: Text(
-                                  s['serial_number']?.toString() ?? '',
-                                ),
-                                trailing: IconButton(
-                                  icon: Icon(
-                                    Icons.add_circle,
-                                    color: colorScheme.primary,
-                                  ),
-                                  onPressed: () {
-                                    if (_isEditing) {
-                                      context.read<GroupCubit>().linkStudentToGroup(
-                                            s['id'] as int,
-                                            widget.id!,
-                                          );
-                                    } else {
-                                      if (!_selectedStudentIds.contains(
-                                        s['id'] as int,
-                                      )) {
-                                        setState(() {
-                                          _selectedStudentIds.add(
-                                            s['id'] as int,
-                                          );
-                                          _selectedStudentsData.add(s);
-                                        });
-                                        setDialogState(() {});
-                                      }
-                                    }
-                                  },
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: Text(LocaleKeys.cancel.tr()),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
   Future<void> _submit() async {
+    if (_isSubmitting) return;
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    // Custom validation for days
     if (_selectedDays.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(LocaleKeys.select_day.tr()),
           backgroundColor: Theme.of(context).colorScheme.error,
+          behavior: SnackBarBehavior.floating,
         ),
       );
       return;
     }
 
-    final List<Map<String, dynamic>> schedules = _selectedDays.map((day) {
-      final time = _dayTimes[day] ?? const TimeOfDay(hour: 14, minute: 0);
-      return {'day_of_week': day, 'time': _formatTime(time)};
-    }).toList();
+    setState(() => _isSubmitting = true);
 
-    final Map<String, Object?> data = {
-      'name': _nameController.text.trim(),
-      'schedules': schedules,
-      if (!_isEditing) 'studentIds': _selectedStudentIds,
-    };
+    try {
+      final List<Map<String, dynamic>> schedules = _selectedDays.map((day) {
+        final time = _dayTimes[day] ?? const TimeOfDay(hour: 14, minute: 0);
+        return {'day_of_week': day, 'time': _formatTime(time)};
+      }).toList();
 
-    final GroupCubit cubit = context.read<GroupCubit>();
-    if (_isEditing) {
-      await cubit.updateGroup(widget.id!, data);
-    } else {
-      await cubit.createGroup(data);
-    }
+      final Map<String, Object?> data = {
+        'name': _nameController.text.trim(),
+        'schedules': schedules,
+        if (!_isEditing) 'studentIds': _selectedStudentIds,
+      };
 
-    if (mounted) {
-      context.router.maybePop();
+      final GroupCubit cubit = context.read<GroupCubit>();
+      if (_isEditing) {
+        await cubit.updateGroup(widget.id!, data);
+      } else {
+        await cubit.createGroup(data);
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(LocaleKeys.success.tr()),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        context.router.maybePop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
     }
   }
 }

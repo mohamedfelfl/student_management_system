@@ -6,6 +6,7 @@ import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import '../../auth/cubits/auth_cubit.dart';
 import '../../auth/models/user.dart';
+import '../../../app/constants/db_queries.dart';
 import '../../../app/services/database_service.dart';
 
 part 'admin_cubit.freezed.dart';
@@ -31,7 +32,7 @@ class AdminCubit extends Cubit<AdminState> {
     try {
       final Database db = await _databaseService.database;
       final List<Map<String, Object?>> results = await db.query(
-        'users',
+        DBQueries.tableUsers,
         orderBy: 'created_at DESC',
       );
       final users = results
@@ -72,7 +73,7 @@ class AdminCubit extends Cubit<AdminState> {
       // Use salted password hashing
       final (hash, salt) = AuthCubit.hashPasswordWithSalt(password);
 
-      await db.insert('users', <String, Object?>{
+      await db.insert(DBQueries.tableUsers, <String, Object?>{
         'username': username,
         'password_hash': hash,
         'salt': salt,
@@ -110,7 +111,7 @@ class AdminCubit extends Cubit<AdminState> {
       }
 
       if (updates.isNotEmpty) {
-        await db.update('users', updates, where: 'id = ?', whereArgs: [id]);
+        await db.update(DBQueries.tableUsers, updates, where: 'id = ?', whereArgs: [id]);
         await loadUsers();
       }
     } catch (e) {
@@ -121,7 +122,7 @@ class AdminCubit extends Cubit<AdminState> {
   Future<void> deleteUser(int id) async {
     try {
       final Database db = await _databaseService.database;
-      await db.delete('users', where: 'id = ?', whereArgs: <Object?>[id]);
+      await db.delete(DBQueries.tableUsers, where: 'id = ?', whereArgs: <Object?>[id]);
       await loadUsers();
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
