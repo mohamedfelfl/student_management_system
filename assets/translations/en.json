@@ -486,5 +486,8 @@
     "pending_changes": "Pending Changes",
     "deselect_all": "Deselect All",
     "select_all": "Select All",
-    "unsaved_changes": "Unsaved Changes"
+    "unsaved_changes": "Unsaved Changes",
+    "app_already_bound_title": "Unauthorized Device",
+    "app_already_bound_message": "This application is already bound to another device. You cannot set it up on this device. Please contact the developer for a transfer code.",
+    "close_app": "Close App"
 }

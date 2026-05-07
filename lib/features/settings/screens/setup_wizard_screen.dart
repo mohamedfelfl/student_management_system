@@ -471,8 +471,8 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
       children: [
         Icon(icon, size: 18, color: colorScheme.onSurfaceVariant),
         const SizedBox(width: 12),
-        SizedBox(
-          width: 110.w,
+        Expanded(
+          flex: 2,
           child: Text(
             label,
             style: TextStyle(
@@ -480,9 +480,12 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
               fontWeight: FontWeight.w600,
               fontSize: 13,
             ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
+        const SizedBox(width: 8),
         Expanded(
+          flex: 3,
           child: Text(
             value,
             style: TextStyle(
@@ -592,6 +595,11 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
 
       final settingsService = getIt<SettingsService>();
       await settingsService.setBool(SettingsKeys.setupCompleted, true);
+
+      // Write the binding sentinel alongside the executable so that
+      // copying app files to another device will be detected.
+      final bindingService = getIt<DeviceBindingService>();
+      await bindingService.writeBindingSentinel();
 
       if (mounted) {
         context.router.replaceAll([const LoginRoute()]);

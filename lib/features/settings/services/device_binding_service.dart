@@ -5,16 +5,23 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:path/path.dart' as p;
 import '../../../generated/locale_keys.g.dart';
 
 /// Manages device binding to restrict the app to a single computer.
 ///
 /// Uses hardware fingerprinting (Windows MachineGuid, Linux machine-id, macOS IOPlatformUUID)
 /// combined with a license key system for controlled device transfers.
+///
+/// A `.device_bound` sentinel file is written next to the app executable on
+/// first binding.  If the app files are later copied to a different machine
+/// (without the DB), the sentinel will still be present and the app will
+/// refuse to re-run the setup wizard.
 class DeviceBindingService {
   static const _fingerprintKey = 'sms_device_fingerprint';
   static const _licenseKey = 'sms_license_key';
   static const _transferCodeKey = 'sms_transfer_code';
+  static const _sentinelFileName = '.device_bound';
 
   final FlutterSecureStorage _secureStorage;
 
@@ -188,6 +195,96 @@ class DeviceBindingService {
     await _secureStorage.delete(key: _fingerprintKey);
     await _secureStorage.delete(key: _licenseKey);
     await _secureStorage.delete(key: _transferCodeKey);
+    await deleteBindingSentinel();
+  }
+
+  // ─── SENTINEL FILE (anti-copy protection) ───
+
+  /// Get the path to the sentinel file next to the running executable.
+  File _getSentinelFile() {
+    final exeDir = p.dirname(Platform.resolvedExecutable);
+    return File(p.join(exeDir, _sentinelFileName));
+  }
+
+  /// Write a `.device_bound` marker file alongside the executable.
+  ///
+  /// This file is intentionally placed with the app binaries so it gets
+  /// copied if someone duplicates the installation folder.  On the new
+  /// machine the DB will be empty (fresh), but the sentinel will still
+  /// be present, allowing the app to detect the unauthorized copy.
+  Future<void> writeBindingSentinel() async {
+    try {
+      final file = _getSentinelFile();
+      final fingerprint = await generateFingerprint();
+      await file.writeAsString(fingerprint);
+      await _hideSentinelFile(file);
+      if (kDebugMode) {
+        print('DeviceBindingService: Sentinel written at ${file.path}');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('DeviceBindingService: Failed to write sentinel: $e');
+      }
+    }
+  }
+
+  /// Hide the sentinel file so it is not easily visible to users.
+  Future<void> _hideSentinelFile(File file) async {
+    try {
+      if (Platform.isWindows) {
+        // Mark the file as Hidden + System on Windows.
+        await Process.run('attrib', ['+h', '+s', file.path]);
+      }
+      // On Linux/macOS the dot-prefix already hides it from default listings.
+    } catch (e) {
+      if (kDebugMode) {
+        print('DeviceBindingService: Failed to hide sentinel: $e');
+      }
+    }
+  }
+
+  /// Read the fingerprint stored inside the sentinel file.
+  ///
+  /// Returns `null` when the file does not exist or cannot be read.
+  String? readSentinelFingerprint() {
+    try {
+      final file = _getSentinelFile();
+      if (file.existsSync()) {
+        return file.readAsStringSync().trim();
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  /// Validate a developer transfer code against the fingerprint that was
+  /// stored in the sentinel file (i.e. the *original* bound device).
+  bool validateSentinelTransferCode(String transferCode) {
+    final sentinelFp = readSentinelFingerprint();
+    if (sentinelFp == null || sentinelFp.isEmpty) return false;
+    return validateTransferCode(transferCode, sentinelFp);
+  }
+
+  /// Check whether the binding sentinel file exists alongside the executable.
+  bool hasBindingSentinel() {
+    try {
+      return _getSentinelFile().existsSync();
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Delete the sentinel file (called during device transfer).
+  Future<void> deleteBindingSentinel() async {
+    try {
+      final file = _getSentinelFile();
+      if (await file.exists()) {
+        await file.delete();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('DeviceBindingService: Failed to delete sentinel: $e');
+      }
+    }
   }
 }
 

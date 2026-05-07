@@ -502,7 +502,10 @@ class CodegenLoader extends AssetLoader{
   "pending_changes": "تعديلات معلقة",
   "deselect_all": "إلغاء تحديد الكل",
   "select_all": "تحديد الكل",
-  "unsaved_changes": "تعديلات غير محفوظة"
+  "unsaved_changes": "تعديلات غير محفوظة",
+  "app_already_bound_title": "جهاز غير مصرح به",
+  "app_already_bound_message": "هذا التطبيق مرتبط بجهاز آخر بالفعل. لا يمكنك إعداده على هذا الجهاز. يرجى التواصل مع المطور للحصول على رمز النقل.",
+  "close_app": "إغلاق التطبيق"
 };
 static const Map<String,dynamic> _en = {
   "app_title": "Student Management System",
@@ -992,7 +995,10 @@ static const Map<String,dynamic> _en = {
   "pending_changes": "Pending Changes",
   "deselect_all": "Deselect All",
   "select_all": "Select All",
-  "unsaved_changes": "Unsaved Changes"
+  "unsaved_changes": "Unsaved Changes",
+  "app_already_bound_title": "Unauthorized Device",
+  "app_already_bound_message": "This application is already bound to another device. You cannot set it up on this device. Please contact the developer for a transfer code.",
+  "close_app": "Close App"
 };
 static const Map<String, Map<String,dynamic>> mapLocales = {"ar": _ar, "en": _en};
 }

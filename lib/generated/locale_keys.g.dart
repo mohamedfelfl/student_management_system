@@ -491,5 +491,8 @@ abstract class  LocaleKeys {
   static const deselect_all = 'deselect_all';
   static const select_all = 'select_all';
   static const unsaved_changes = 'unsaved_changes';
+  static const app_already_bound_title = 'app_already_bound_title';
+  static const app_already_bound_message = 'app_already_bound_message';
+  static const close_app = 'close_app';
 
 }

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -5,6 +7,8 @@ import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../generated/locale_keys.g.dart';
 import '../../../../app/router/app_router.gr.dart';
+import '../../../../app/di/injection.dart';
+import '../../../settings/services/device_binding_service.dart';
 
 import '../../cubits/auth_cubit.dart';
 
@@ -32,8 +36,110 @@ class _LoginScreenState extends State<LoginScreen> {
     final authCubit = context.read<AuthCubit>();
     final hasUsers = await authCubit.hasAnyUser();
     if (!hasUsers && mounted) {
+      // Check if a binding sentinel exists — means the app was already
+      // set up on another device and the files were copied here.
+      final bindingService = getIt<DeviceBindingService>();
+      if (bindingService.hasBindingSentinel()) {
+        _showAlreadyBoundError();
+        return;
+      }
       context.router.replaceAll([const SetupWizardRoute()]);
     }
+  }
+
+  /// Show an error dialog when app files were copied from a bound device.
+  ///
+  /// The dialog includes a transfer-code field so the developer can unlock
+  /// the app remotely.  Dismissing the dialog exits the application.
+  void _showAlreadyBoundError() {
+    final transferController = TextEditingController();
+    String? errorText;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        final colorScheme = Theme.of(ctx).colorScheme;
+        return StatefulBuilder(
+          builder: (ctx, setDialogState) {
+            return AlertDialog(
+              icon: Icon(
+                Icons.shield_rounded,
+                color: colorScheme.error,
+                size: 48,
+              ),
+              title: Text(
+                LocaleKeys.app_already_bound_title.tr(),
+                style: TextStyle(
+                  color: colorScheme.error,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    LocaleKeys.app_already_bound_message.tr(),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  TextField(
+                    controller: transferController,
+                    textAlign: TextAlign.center,
+                    textCapitalization: TextCapitalization.characters,
+                    decoration: InputDecoration(
+                      labelText: LocaleKeys.transfer_code.tr(),
+                      hintText: LocaleKeys.transfer_code_hint.tr(),
+                      errorText: errorText,
+                      prefixIcon: const Icon(Icons.vpn_key_rounded),
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                ],
+              ),
+              actionsAlignment: MainAxisAlignment.spaceBetween,
+              actions: [
+                TextButton(
+                  onPressed: () => exit(0),
+                  child: Text(LocaleKeys.close_app.tr()),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    final code = transferController.text.trim();
+                    if (code.isEmpty) {
+                      setDialogState(() {
+                        errorText = LocaleKeys.required_field.tr();
+                      });
+                      return;
+                    }
+                    final bindingService = getIt<DeviceBindingService>();
+                    if (bindingService.validateSentinelTransferCode(code)) {
+                      // Valid code – remove sentinel and open setup wizard.
+                      bindingService.deleteBindingSentinel();
+                      Navigator.of(ctx).pop();
+                      if (mounted) {
+                        context.router
+                            .replaceAll([const SetupWizardRoute()]);
+                      }
+                    } else {
+                      setDialogState(() {
+                        errorText = LocaleKeys.invalid_transfer_code.tr();
+                      });
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: colorScheme.onPrimary,
+                  ),
+                  icon: const Icon(Icons.lock_open_rounded),
+                  label: Text(LocaleKeys.transfer.tr()),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
