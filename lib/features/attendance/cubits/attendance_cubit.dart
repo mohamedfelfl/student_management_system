@@ -151,19 +151,9 @@ class AttendanceCubit extends Cubit<AttendanceState> {
           }
         }
       } else {
-        // No group assigned to student — check if any group meets today
-        final List<Map<String, Object?>> anyGroupsToday = await db.rawQuery(
-          DBQueries.getGroupsToday,
-          [currentDayName, currentDayNameAr, currentDayNameArAlt],
-        );
-
-        if (anyGroupsToday.isNotEmpty) {
-          final String groupName = _findClosestGroup(anyGroupsToday, now);
-          notesToInsert = LocaleKeys.attended_another_group.tr(
-            args: [groupName],
-          );
-          finalStatus = AttendanceStatus.otherLesson;
-        }
+        // No group assigned to student — mark as attended with no group
+        finalStatus = AttendanceStatus.attended;
+        notesToInsert = LocaleKeys.attended_no_group.tr();
       }
 
       // Check if already recorded today

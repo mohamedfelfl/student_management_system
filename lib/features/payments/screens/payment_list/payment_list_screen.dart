@@ -261,7 +261,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
       }
       final query = _filterController.text.toLowerCase().trim();
       final desc =
-          '#TRX-${p['id']} - ${LocaleKeys.semester_fee.tr(args: ['${p['month']}/${p['year']}'])}'
+          '#${p['id']} - ${LocaleKeys.semester_fee.tr(args: ['${p['month']}/${p['year']}'])}'
               .toLowerCase();
       final amount = p['total_amount'].toString();
       final paid = p['paid_amount'].toString();

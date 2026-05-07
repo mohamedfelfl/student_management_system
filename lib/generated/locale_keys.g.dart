@@ -160,7 +160,7 @@ abstract class  LocaleKeys {
   static const time = 'time';
   static const select_student_account = 'select_student_account';
   static const search_payment_desc = 'search_payment_desc';
-  static const student_id_prefix = 'student_id_prefix';
+  static const student_serial = 'student_serial';
   static const payment_success_msg = 'payment_success_msg';
   static const payment_ontrack_msg = 'payment_ontrack_msg';
   static const payment_deadline_msg = 'payment_deadline_msg';
@@ -257,6 +257,7 @@ abstract class  LocaleKeys {
   static const attended_his_group = 'attended_his_group';
   static const attended_another_day_group = 'attended_another_day_group';
   static const attended_another_group = 'attended_another_group';
+  static const attended_no_group = 'attended_no_group';
   static const monday = 'monday';
   static const tuesday = 'tuesday';
   static const wednesday = 'wednesday';

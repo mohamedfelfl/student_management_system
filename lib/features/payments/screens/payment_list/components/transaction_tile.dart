@@ -84,13 +84,6 @@ class TransactionTile extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 4.h),
-                  Text(
-                    '#TRX-${payment['id']}',
-                    style: textTheme.labelSmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
                 ],
               ),
             ),

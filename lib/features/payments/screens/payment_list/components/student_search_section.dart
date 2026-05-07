@@ -170,7 +170,7 @@ class StudentSearchSection extends StatelessWidget {
                             ),
                           ),
                           subtitle: Text(
-                            LocaleKeys.student_id_prefix.tr(
+                            LocaleKeys.student_serial.tr(
                               args: [s['serial_number'].toString()],
                             ),
                             style: textTheme.labelSmall?.copyWith(
