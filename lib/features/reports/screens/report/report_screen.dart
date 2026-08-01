@@ -6,7 +6,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:printing/printing.dart';
 
 import '../../../../generated/locale_keys.g.dart';
-import '../../../../app/shared/widgets/responsive_layout.dart';
 import '../../../assistants/cubits/assistant_cubit.dart';
 import '../../../groups/cubits/group_cubit.dart';
 import '../../../notes/cubits/notes_cubit.dart';
@@ -91,21 +90,15 @@ class _ReportScreenState extends State<ReportScreen> {
         }
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            LocaleKeys.reports.tr(),
-            style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-          ),
-          centerTitle: true,
-          leading: context.router.canPop()
-              ? const BackButton()
-              : ResponsiveLayout.isMobile(context)
-                  ? IconButton(
-                      icon: const Icon(Icons.menu),
-                      onPressed: () => Scaffold.of(context).openDrawer(),
-                    )
-                  : null,
-        ),
+        appBar: context.router.canPop()
+            ? AppBar(
+                title: Text(
+                  LocaleKeys.reports.tr(),
+                  style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+                ),
+                centerTitle: true,
+              )
+            : null,
         body: Padding(
           padding: EdgeInsets.all(24.r),
           child: Column(

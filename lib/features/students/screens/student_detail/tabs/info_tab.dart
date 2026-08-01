@@ -11,6 +11,7 @@ class InfoTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -25,6 +26,7 @@ class InfoTab extends StatelessWidget {
                 Icons.school,
                 textTheme,
                 colorScheme,
+                isDark,
               ),
               _divider(),
               _infoRow(
@@ -35,6 +37,7 @@ class InfoTab extends StatelessWidget {
                 Icons.verified_user_outlined,
                 textTheme,
                 colorScheme,
+                isDark,
               ),
               _divider(),
               _infoRow(
@@ -43,6 +46,7 @@ class InfoTab extends StatelessWidget {
                 Icons.calendar_today_outlined,
                 textTheme,
                 colorScheme,
+                isDark,
               ),
               _divider(),
               _infoRow(
@@ -51,6 +55,7 @@ class InfoTab extends StatelessWidget {
                 Icons.location_on_outlined,
                 textTheme,
                 colorScheme,
+                isDark,
               ),
               _divider(),
               _infoRow(
@@ -59,6 +64,7 @@ class InfoTab extends StatelessWidget {
                 Icons.phone,
                 textTheme,
                 colorScheme,
+                isDark,
               ),
               _divider(),
               _infoRow(
@@ -67,6 +73,7 @@ class InfoTab extends StatelessWidget {
                 Icons.phone,
                 textTheme,
                 colorScheme,
+                isDark,
               ),
               _divider(),
               _infoRow(
@@ -75,6 +82,7 @@ class InfoTab extends StatelessWidget {
                 Icons.work_outline,
                 textTheme,
                 colorScheme,
+                isDark,
               ),
               _divider(),
               _infoRow(
@@ -83,6 +91,7 @@ class InfoTab extends StatelessWidget {
                 Icons.school_outlined,
                 textTheme,
                 colorScheme,
+                isDark,
               ),
               _divider(),
               _infoRow(
@@ -91,6 +100,7 @@ class InfoTab extends StatelessWidget {
                 Icons.person_search_outlined,
                 textTheme,
                 colorScheme,
+                isDark,
               ),
             ],
           ),
@@ -137,6 +147,7 @@ class InfoTab extends StatelessWidget {
     IconData icon,
     TextTheme textTheme,
     ColorScheme colorScheme,
+    bool isDark,
   ) {
     return Row(
       children: [
@@ -156,7 +167,7 @@ class InfoTab extends StatelessWidget {
               Text(
                 label,
                 style: textTheme.labelLarge?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+                  color: isDark ? Colors.white70 : colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -164,6 +175,7 @@ class InfoTab extends StatelessWidget {
               Text(
                 value,
                 style: textTheme.titleMedium?.copyWith(
+                  color: isDark ? Colors.white : colorScheme.onSurface,
                   fontWeight: FontWeight.bold,
                 ),
               ),

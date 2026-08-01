@@ -1,7 +1,9 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-import '../../models/student_card_data.dart';
+import '../../../../app/constants/dimens.dart';
+import '../../../../generated/locale_keys.g.dart';
+import '../../data/models/student_card_data.dart';
 import 'qr_card_template_widget.dart';
 
 class QrCardPreviewPanel extends StatefulWidget {
@@ -41,32 +43,38 @@ class _QrCardPreviewPanelState extends State<QrCardPreviewPanel> {
     return Container(
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+        borderRadius: BorderRadius.circular(AppDimens.r16),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(
+            alpha: AppDimens.opacityHalf,
+          ),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: AppDimens.opacitySubtle),
+            blurRadius: AppDimens.r10,
+            offset: Offset(0, AppDimens.h4),
           ),
         ],
       ),
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(AppDimens.p20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Header Bar
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: AppDimens.p8,
+            runSpacing: AppDimens.p8,
             children: [
               Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.preview_rounded, color: colorScheme.primary),
-                  const SizedBox(width: 8),
+                  SizedBox(width: AppDimens.w8),
                   Text(
-                    'معاينة البطاقة',
-                    style: GoogleFonts.cairo(
-                      fontSize: 18,
+                    LocaleKeys.card_preview.tr(),
+                    style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: colorScheme.onSurface,
                     ),
@@ -76,26 +84,37 @@ class _QrCardPreviewPanelState extends State<QrCardPreviewPanel> {
               if (widget.student != null)
                 FilledButton.icon(
                   onPressed: widget.isExporting ? null : widget.onExportSingle,
-                  icon: const Icon(Icons.download_rounded, size: 18),
+                  icon: Icon(
+                    Icons.download_rounded,
+                    size: AppDimens.iconSize18,
+                    color: Colors.white,
+                  ),
                   label: Text(
-                    'حفظ بطاقة الطالب',
-                    style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
+                    LocaleKeys.save_student_card.tr(),
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                   style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    foregroundColor: Colors.white,
+                    backgroundColor: colorScheme.primary,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: AppDimens.p16,
+                      vertical: AppDimens.p12,
+                    ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(AppDimens.r10),
                     ),
                   ),
                 ),
             ],
           ),
 
-          const SizedBox(height: 16),
+          SizedBox(height: AppDimens.h16),
           const Divider(height: 1),
-          const SizedBox(height: 20),
+          SizedBox(height: AppDimens.h20),
 
-          // Main Live Preview Display with Visible Horizontal Scrollbar
           Expanded(
             child: Center(
               child: widget.student == null
@@ -104,14 +123,15 @@ class _QrCardPreviewPanelState extends State<QrCardPreviewPanel> {
                       children: [
                         Icon(
                           Icons.badge_outlined,
-                          size: 64,
-                          color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                          size: AppDimens.iconSize64,
+                          color: colorScheme.onSurfaceVariant.withValues(
+                            alpha: AppDimens.opacityMedium,
+                          ),
                         ),
-                        const SizedBox(height: 12),
+                        SizedBox(height: AppDimens.h12),
                         Text(
-                          'اختر طالباً من القائمة لعرض معاينة البطاقة',
-                          style: GoogleFonts.cairo(
-                            fontSize: 15,
+                          LocaleKeys.select_student_preview_hint.tr(),
+                          style: theme.textTheme.bodyMedium?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                           ),
                         ),
@@ -124,7 +144,7 @@ class _QrCardPreviewPanelState extends State<QrCardPreviewPanel> {
                       child: SingleChildScrollView(
                         controller: _horizontalScrollController,
                         scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.only(bottom: 12),
+                        padding: EdgeInsets.only(bottom: AppDimens.p12),
                         child: SingleChildScrollView(
                           controller: _verticalScrollController,
                           child: FittedBox(
@@ -133,8 +153,8 @@ class _QrCardPreviewPanelState extends State<QrCardPreviewPanel> {
                               key: widget.boundaryKey,
                               child: QrCardTemplateWidget(
                                 student: widget.student!,
-                                width: 600,
-                                height: 350,
+                                width: AppDimens.cardDefaultWidth,
+                                height: AppDimens.cardDefaultHeight,
                               ),
                             ),
                           ),

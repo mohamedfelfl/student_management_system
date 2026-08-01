@@ -94,7 +94,7 @@ class ShellScreen extends StatelessWidget {
                 icon: const Icon(Icons.badge_outlined),
                 selectedIcon: const Icon(Icons.badge),
                 label: Text(
-                  'مولّد بطاقات QR',
+                  LocaleKeys.qr_card_generator.tr(),
                   style: GoogleFonts.cairo(),
                 ),
               ),
@@ -186,15 +186,34 @@ class ShellScreen extends StatelessWidget {
               builder: (context, navState) {
                 return Scaffold(
                   extendBody: true,
-                  drawer: ResponsiveLayout.isMobile(context)
-                      ? _buildDrawer(
-                          context,
-                          isDark,
-                          colorScheme,
-                          destinations,
-                          tabsRouter,
-                        )
-                      : null,
+                  drawer: _buildDrawer(
+                    context,
+                    isDark,
+                    colorScheme,
+                    destinations,
+                    tabsRouter,
+                  ),
+                  appBar: AppBar(
+                    title: Text(
+                      (destinations[tabsRouter.activeIndex].label as Text).data ?? '',
+                      style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
+                    ),
+                    centerTitle: false,
+                    actions: [
+                      IconButton(
+                        icon: Icon(
+                          isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+                        ),
+                        onPressed: () => context.read<LocaleCubit>().toggleThemeMode(),
+                        tooltip: LocaleKeys.theme.tr(),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.language_outlined),
+                        onPressed: () => context.read<LocaleCubit>().toggleLanguage(),
+                        tooltip: LocaleKeys.language.tr(),
+                      ),
+                    ],
+                  ),
                   body: ResponsiveLayout(
                     isCollapsed: navState.isCollapsed,
                     selectedIndex: tabsRouter.activeIndex,
@@ -274,80 +293,6 @@ class ShellScreen extends StatelessWidget {
                     mobileBody: child,
                     desktopBody: child,
                   ),
-                  bottomNavigationBar: ResponsiveLayout.isMobile(context)
-                      ? SafeArea(
-                          child: Container(
-                            height: AppDimens.h70,
-                            margin: EdgeInsets.all(AppDimens.p16),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(AppDimens.r24),
-                              child: BackdropFilter(
-                                filter: ImageFilter.blur(
-                                  sigmaX: 15,
-                                  sigmaY: 15,
-                                ),
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: AppDimens.p12,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.surface.withValues(
-                                      alpha: 0.8,
-                                    ),
-                                    borderRadius: BorderRadius.circular(AppDimens.r24),
-                                    border: Border.all(
-                                      color: colorScheme.onSurface.withValues(
-                                        alpha: 0.1,
-                                      ),
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withValues(
-                                          alpha: 0.1,
-                                        ),
-                                        blurRadius: AppDimens.r20,
-                                        offset: Offset(0, AppDimens.h10),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceAround,
-                                    children: [
-                                      ...List.generate(
-                                        destinations.take(4).length,
-                                        (i) {
-                                          final d = destinations[i];
-                                          final isSelected =
-                                              tabsRouter.activeIndex == i;
-                                          return _buildBottomNavItem(
-                                            context,
-                                            icon: d.icon,
-                                            selectedIcon: d.selectedIcon,
-                                            label: (d.label as Text).data ?? '',
-                                            isSelected: isSelected,
-                                            onTap: () =>
-                                                tabsRouter.setActiveIndex(i),
-                                          );
-                                        },
-                                      ),
-                                      _buildBottomNavItem(
-                                        context,
-                                        icon: const Icon(Icons.more_horiz),
-                                        selectedIcon: const Icon(Icons.menu),
-                                        label: LocaleKeys.menu.tr(),
-                                        isSelected: tabsRouter.activeIndex >= 4,
-                                        onTap: () =>
-                                            Scaffold.of(context).openDrawer(),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        )
-                      : null,
                 );
               },
             );
@@ -439,40 +384,46 @@ class ShellScreen extends StatelessWidget {
                     horizontal: AppDimens.p12,
                     vertical: AppDimens.p4,
                   ),
-                  child: ListTile(
-                    leading: IconTheme(
-                      data: IconThemeData(
-                        color: isSelected
-                            ? colorScheme.primary
-                            : colorScheme.onSurfaceVariant,
-                        size: isSelected ? 28 : 24,
+                  child: Material(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(AppDimens.r16),
+                    clipBehavior: Clip.antiAlias,
+                    child: ListTile(
+                      leading: IconTheme(
+                        data: IconThemeData(
+                          color: isSelected
+                              ? colorScheme.primary
+                              : colorScheme.onSurfaceVariant,
+                          size: isSelected ? 28 : 24,
+                        ),
+                        child: isSelected ? dest.selectedIcon : dest.icon,
                       ),
-                      child: isSelected ? dest.selectedIcon : dest.icon,
-                    ),
-                    title: Text(
-                      dest.label is Text ? (dest.label as Text).data ?? '' : '',
-                      style: GoogleFonts.cairo(
-                        fontSize: 16,
-                        fontWeight: isSelected
-                            ? FontWeight.bold
-                            : FontWeight.w500,
-                        color: isSelected
-                            ? colorScheme.primary
-                            : colorScheme.onSurface,
+                      title: Text(
+                        dest.label is Text ? (dest.label as Text).data ?? '' : '',
+                        style: GoogleFonts.cairo(
+                          fontSize: 16,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.w500,
+                          color: isSelected
+                              ? colorScheme.primary
+                              : colorScheme.onSurface,
+                        ),
                       ),
+                      selected: isSelected,
+                      tileColor: colorScheme.surface,
+                      selectedTileColor: colorScheme.primaryContainer.withValues(
+                        alpha: 0.6,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppDimens.r16),
+                      ),
+                      contentPadding: EdgeInsets.symmetric(horizontal: AppDimens.p16),
+                      onTap: () {
+                        Navigator.pop(context);
+                        tabsRouter.setActiveIndex(i);
+                      },
                     ),
-                    selected: isSelected,
-                    selectedTileColor: colorScheme.primaryContainer.withValues(
-                      alpha: 0.6,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppDimens.r16),
-                    ),
-                    contentPadding: EdgeInsets.symmetric(horizontal: AppDimens.p16),
-                    onTap: () {
-                      Navigator.pop(context);
-                      tabsRouter.setActiveIndex(i);
-                    },
                   ),
                 );
               }),
@@ -483,22 +434,28 @@ class ShellScreen extends StatelessWidget {
                   horizontal: 12,
                   vertical: 4,
                 ),
-                child: ListTile(
-                  leading: Icon(Icons.logout, color: colorScheme.error),
-                  title: Text(
-                    LocaleKeys.logout.tr(),
-                    style: GoogleFonts.cairo(
-                      color: colorScheme.error,
-                      fontWeight: FontWeight.bold,
+                child: Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(AppDimens.r16),
+                  clipBehavior: Clip.antiAlias,
+                  child: ListTile(
+                    leading: Icon(Icons.logout, color: colorScheme.error),
+                    title: Text(
+                      LocaleKeys.logout.tr(),
+                      style: GoogleFonts.cairo(
+                        color: colorScheme.error,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
+                    tileColor: colorScheme.surface,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppDimens.r16),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.read<AuthCubit>().logout();
+                    },
                   ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppDimens.r16),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    context.read<AuthCubit>().logout();
-                  },
                 ),
               ),
               const SizedBox(height: 16),
@@ -509,8 +466,9 @@ class ShellScreen extends StatelessWidget {
                     Icon(Icons.language, color: colorScheme.onSurfaceVariant),
                     const SizedBox(width: 8),
                     TextButton(
-                      onPressed: () =>
-                          context.read<LocaleCubit>().toggleLanguage(),
+                      onPressed: () {
+                        context.read<LocaleCubit>().toggleLanguage();
+                      },
                       child: Text(
                         'عربي / EN',
                         style: GoogleFonts.cairo(fontWeight: FontWeight.w600),
@@ -532,65 +490,6 @@ class ShellScreen extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBottomNavItem(
-    BuildContext context, {
-    required Widget icon,
-    required Widget selectedIcon,
-    required String label,
-    required bool isSelected,
-    required VoidCallback onTap,
-    bool isError = false,
-  }) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final color = isError
-        ? colorScheme.error
-        : (isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant);
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOutQuint,
-        padding: EdgeInsets.symmetric(
-          horizontal: AppDimens.p16,
-          vertical: AppDimens.p8,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? (isError
-                    ? colorScheme.errorContainer
-                    : colorScheme.primaryContainer)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(AppDimens.r20),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconTheme(
-              data: IconThemeData(color: color, size: 24),
-              child: isSelected ? selectedIcon : icon,
-            ),
-            if (isSelected) ...[
-              const SizedBox(width: 8),
-              Flexible(
-                child: Text(
-                  label,
-                  style: GoogleFonts.cairo(
-                    color: color,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ],
         ),
       ),
     );

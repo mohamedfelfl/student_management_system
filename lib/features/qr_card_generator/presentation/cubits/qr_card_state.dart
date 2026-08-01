@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import '../models/qr_card_config.dart';
-import '../models/student_card_data.dart';
+
+import '../../data/models/qr_card_config.dart';
+import '../../data/models/student_card_data.dart';
 
 part 'qr_card_state.freezed.dart';
 

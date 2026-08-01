@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../generated/locale_keys.g.dart';
-import '../../../app/shared/widgets/responsive_layout.dart';
 import '../../auth/cubits/auth_cubit.dart';
 import '../../auth/models/user.dart';
 import '../cubits/settings_cubit.dart';
@@ -32,7 +31,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
 
     return BlocConsumer<SettingsCubit, SettingsState>(
       listener: (context, state) {
@@ -69,14 +67,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         );
 
         return Scaffold(
-          appBar: ResponsiveLayout.isMobile(context) || context.router.canPop()
+          appBar: context.router.canPop()
               ? AppBar(
-                  leading: context.router.canPop()
-                      ? const BackButton()
-                      : IconButton(
-                          icon: const Icon(Icons.menu),
-                          onPressed: () => Scaffold.of(context).openDrawer(),
-                        ),
                   title: Text(LocaleKeys.settings.tr()),
                   centerTitle: true,
                 )
@@ -86,9 +78,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               : ListView(
                   padding: const EdgeInsets.all(24),
                   children: [
-                    // Header
-                    _buildHeader(context, colorScheme, textTheme),
-                    const SizedBox(height: 32),
 
                     // ── GENERAL & APPEARANCE ──
                     _buildSectionHeader(
@@ -158,51 +147,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       },
     );
   }
-
-  Widget _buildHeader(
-    BuildContext context,
-    ColorScheme colorScheme,
-    TextTheme textTheme,
-  ) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: colorScheme.primaryContainer,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(
-            Icons.settings,
-            color: colorScheme.onPrimaryContainer,
-            size: 28,
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                LocaleKeys.settings.tr(),
-                style: textTheme.headlineLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                LocaleKeys.settings_header_desc.tr(),
-                style: textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildSectionHeader(
     BuildContext context, {
     required IconData icon,

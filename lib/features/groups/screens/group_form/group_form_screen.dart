@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../../app/shared/widgets/responsive_layout.dart';
 import '../../../../generated/locale_keys.g.dart';
 import '../../cubits/group_cubit.dart';
 import 'components/schedule_section.dart';
@@ -142,14 +141,7 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        leading: context.router.canPop()
-            ? const BackButton()
-            : ResponsiveLayout.isMobile(context)
-                ? IconButton(
-                    icon: const Icon(Icons.menu),
-                    onPressed: () => Scaffold.of(context).openDrawer(),
-                  )
-                : null,
+        leading: context.router.canPop() ? const BackButton() : null,
         title: Text(
           _isEditing ? LocaleKeys.edit_group.tr() : LocaleKeys.add_group.tr(),
           style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),

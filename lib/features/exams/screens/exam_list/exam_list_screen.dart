@@ -5,7 +5,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../app/router/app_router.gr.dart';
-import '../../../../app/shared/widgets/responsive_layout.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../generated/locale_keys.g.dart';
 import '../../cubits/exam_cubit.dart';
@@ -46,24 +45,18 @@ class _ExamListScreenState extends State<ExamListScreen> {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          LocaleKeys.exams.tr(),
-          style: textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w800,
-            color: colorScheme.primary,
-          ),
-        ),
-        centerTitle: true,
-        leading: context.router.canPop()
-            ? const BackButton()
-            : ResponsiveLayout.isMobile(context)
-                ? IconButton(
-                    icon: const Icon(Icons.menu),
-                    onPressed: () => Scaffold.of(context).openDrawer(),
-                  )
-                : const SizedBox.shrink(),
-      ),
+      appBar: context.router.canPop()
+          ? AppBar(
+              title: Text(
+                LocaleKeys.exams.tr(),
+                style: textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: colorScheme.primary,
+                ),
+              ),
+              centerTitle: true,
+            )
+          : null,
       body: BlocBuilder<ExamCubit, ExamState>(
         builder: (BuildContext context, ExamState state) {
           if (state.isLoading) {

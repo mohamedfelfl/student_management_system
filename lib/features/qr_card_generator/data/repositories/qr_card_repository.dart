@@ -1,9 +1,9 @@
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
-import '../../../app/constants/db_queries.dart';
-import '../../../app/services/database_service.dart';
+import '../../../../app/constants/db_queries.dart';
+import '../../../../app/services/database_service.dart';
+import '../../domain/repositories/iqr_card_repository.dart';
 import '../models/student_card_data.dart';
-import 'iqr_card_repository.dart';
 
 class QrCardRepository implements IQrCardRepository {
   final DatabaseService _databaseService;

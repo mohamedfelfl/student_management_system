@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 
-import '../../../../app/shared/widgets/responsive_layout.dart';
 import '../../../../app/router/app_router.gr.dart';
 import '../../../../generated/locale_keys.g.dart';
 import '../../cubits/group_cubit.dart';
@@ -30,21 +29,15 @@ class _GroupListScreenState extends State<GroupListScreen> {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          LocaleKeys.groups.tr(),
-          style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-        ),
-        centerTitle: true,
-        leading: context.router.canPop()
-            ? const BackButton()
-            : ResponsiveLayout.isMobile(context)
-                ? IconButton(
-                    icon: const Icon(Icons.menu),
-                    onPressed: () => Scaffold.of(context).openDrawer(),
-                  )
-                : null,
-      ),
+      appBar: context.router.canPop()
+          ? AppBar(
+              title: Text(
+                LocaleKeys.groups.tr(),
+                style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+              ),
+              centerTitle: true,
+            )
+          : null,
       body: BlocBuilder<GroupCubit, GroupState>(
         builder: (BuildContext context, GroupState state) {
           return Padding(
@@ -52,22 +45,13 @@ class _GroupListScreenState extends State<GroupListScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (!ResponsiveLayout.isMobile(context))
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          LocaleKeys.groups.tr(),
-                          style: textTheme.headlineLarge,
-                        ),
-                      ),
-                      ElevatedButton.icon(
-                        onPressed: () => context.router.push(GroupFormRoute()),
-                        icon: const Icon(Icons.add),
-                        label: Text(LocaleKeys.add_group.tr()),
-                      ),
-                    ],
+                Center(
+                  child: ElevatedButton.icon(
+                    onPressed: () => context.router.push(GroupFormRoute()),
+                    icon: const Icon(Icons.add),
+                    label: Text(LocaleKeys.add_group.tr()),
                   ),
+                ),
                 const SizedBox(height: 16),
                 if (state.isLoading)
                   const Expanded(

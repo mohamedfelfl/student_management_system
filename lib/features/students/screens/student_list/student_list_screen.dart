@@ -5,7 +5,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../app/router/app_router.gr.dart';
-import '../../../../app/shared/widgets/responsive_layout.dart';
 import '../../../../generated/locale_keys.g.dart';
 import '../../cubits/student_cubit.dart';
 import 'components/empty_student_state.dart';
@@ -41,23 +40,16 @@ class _StudentListScreenState extends State<StudentListScreen> {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          LocaleKeys.students_directory.tr(),
-          style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-        ),
-        centerTitle: true,
-        leading: context.router.canPop()
-            ? const BackButton()
-            : ResponsiveLayout.isMobile(context)
-                ? IconButton(
-                    icon: const Icon(Icons.menu),
-                    onPressed: () => Scaffold.of(context).openDrawer(),
-                  )
-                : null,
-      ),
+      appBar: context.router.canPop()
+          ? AppBar(
+              title: Text(
+                LocaleKeys.students_directory.tr(),
+                style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+              ),
+              centerTitle: true,
+            )
+          : null,
       body: BlocBuilder<StudentCubit, StudentState>(
         builder: (BuildContext context, StudentState state) {
           final bool isSearching = state.searchQuery.isNotEmpty;

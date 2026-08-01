@@ -7,7 +7,6 @@ import '../../../../generated/locale_keys.g.dart';
 
 import '../../../../app/router/app_router.gr.dart';
 import '../../../auth/models/user.dart';
-import '../../../../app/shared/widgets/responsive_layout.dart';
 import '../../cubits/admin_cubit.dart';
 import 'components/user_tile.dart';
 
@@ -28,20 +27,11 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
     return BlocBuilder<AdminCubit, AdminState>(
       builder: (BuildContext context, AdminState state) {
         return Scaffold(
-          appBar: ResponsiveLayout.isMobile(context) || context.router.canPop()
+          appBar: context.router.canPop()
               ? AppBar(
-                  leading: context.router.canPop()
-                      ? const BackButton()
-                      : IconButton(
-                          icon: const Icon(Icons.menu),
-                          onPressed: () => Scaffold.of(context).openDrawer(),
-                        ),
                   title: Text(LocaleKeys.admin_panel.tr()),
                   centerTitle: true,
                 )
@@ -51,32 +41,12 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            LocaleKeys.admin_panel.tr(),
-                            style: textTheme.headlineLarge,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            LocaleKeys.manage_users_permissions.tr(),
-                            style: textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    ElevatedButton.icon(
-                      onPressed: () => context.router.push(UserFormRoute()),
-                      icon: const Icon(Icons.person_add),
-                      label: Text(LocaleKeys.add_user.tr()),
-                    ),
-                  ],
+                Center(
+                  child: ElevatedButton.icon(
+                    onPressed: () => context.router.push(UserFormRoute()),
+                    icon: const Icon(Icons.person_add),
+                    label: Text(LocaleKeys.add_user.tr()),
+                  ),
                 ),
                 const SizedBox(height: 24),
                 if (state.isLoading)

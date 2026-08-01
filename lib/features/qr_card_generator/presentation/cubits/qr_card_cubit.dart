@@ -1,8 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../models/qr_card_config.dart';
-import '../models/student_card_data.dart';
-import '../repositories/iqr_card_repository.dart';
+import '../../data/models/qr_card_config.dart';
+import '../../data/models/student_card_data.dart';
+import '../../domain/repositories/iqr_card_repository.dart';
 import 'qr_card_state.dart';
 
 class QrCardCubit extends Cubit<QrCardState> {
@@ -115,7 +115,6 @@ class QrCardCubit extends Cubit<QrCardState> {
   void _applyFilters() {
     List<StudentCardData> results = List.from(state.allStudents);
 
-    // Apply selection mode filter
     switch (state.selectionMode) {
       case QRCardSelectionMode.group:
         if (state.selectedGroupId != null) {
@@ -129,8 +128,12 @@ class QrCardCubit extends Cubit<QrCardState> {
         break;
       case QRCardSelectionMode.stage:
         if (state.selectedStage != null && state.selectedStage!.isNotEmpty) {
-          results =
-              results.where((s) => s.stageName == state.selectedStage).toList();
+          final targetFormatted =
+              StudentCardData.formatStageArabic(state.selectedStage);
+          results = results.where((s) {
+            return s.stageName == state.selectedStage ||
+                s.stageName == targetFormatted;
+          }).toList();
         }
         break;
       case QRCardSelectionMode.student:
@@ -138,7 +141,6 @@ class QrCardCubit extends Cubit<QrCardState> {
         break;
     }
 
-    // Apply search query filter
     if (state.searchQuery.trim().isNotEmpty) {
       final q = state.searchQuery.trim().toLowerCase();
       results = results.where((s) {
@@ -150,7 +152,6 @@ class QrCardCubit extends Cubit<QrCardState> {
       }).toList();
     }
 
-    // Retain valid active preview student or pick first from results
     StudentCardData? preview = state.activePreviewStudent;
     if (preview != null && !results.any((s) => s.id == preview!.id)) {
       preview = results.isNotEmpty ? results.first : null;

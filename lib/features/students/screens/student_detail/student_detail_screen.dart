@@ -65,6 +65,8 @@ class _StudentDetailScreenState extends State<StudentDetailScreen>
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       body: Column(
         children: [
@@ -86,9 +88,9 @@ class _StudentDetailScreenState extends State<StudentDetailScreen>
                     children: [
                       IconButton(
                         onPressed: () => context.router.maybePop(),
-                        icon: Icon(
+                        icon: const Icon(
                           Icons.arrow_back,
-                          color: colorScheme.onPrimary,
+                          color: Colors.white,
                         ),
                       ),
                       const Spacer(),
@@ -101,7 +103,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen>
                             _loadData();
                           }
                         },
-                        icon: Icon(Icons.edit, color: colorScheme.onPrimary),
+                        icon: const Icon(Icons.edit, color: Colors.white),
                       ),
                     ],
                   ),
@@ -109,14 +111,15 @@ class _StudentDetailScreenState extends State<StudentDetailScreen>
                   Text(
                     _student!['name']?.toString() ?? '',
                     style: textTheme.headlineMedium?.copyWith(
-                      color: colorScheme.onPrimary,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                   SizedBox(height: AppDimens.h4),
                   Text(
                     '${LocaleKeys.serial.tr(args: [_student!['serial_number'].toString()])} • ${_student!['group_name'] ?? LocaleKeys.unassigned.tr()}',
                     style: textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onPrimary.withValues(alpha: 0.8),
+                      color: Colors.white.withValues(alpha: 0.9),
                     ),
                   ),
                 ],
@@ -127,6 +130,10 @@ class _StudentDetailScreenState extends State<StudentDetailScreen>
           // Tabs
           TabBar(
             controller: _tabController,
+            labelColor: isDark ? Colors.white : colorScheme.primary,
+            unselectedLabelColor:
+                isDark ? Colors.white70 : colorScheme.onSurfaceVariant,
+            indicatorColor: isDark ? Colors.white : colorScheme.primary,
             tabs: [
               Tab(text: LocaleKeys.info.tr()),
               Tab(text: LocaleKeys.tab_payments.tr()),

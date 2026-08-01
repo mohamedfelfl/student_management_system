@@ -1,12 +1,17 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-import '../../cubits/qr_card_cubit.dart';
-import '../../cubits/qr_card_state.dart';
-import '../../models/student_card_data.dart';
-import '../../services/qr_card_export_service.dart';
+import '../../../../app/constants/app_constants.dart';
+import '../../../../app/constants/dimens.dart';
+import '../../../../app/theme/app_typography.dart';
+import '../../../../generated/locale_keys.g.dart';
+import '../../data/models/student_card_data.dart';
+import '../../data/services/qr_card_export_service.dart';
+import '../../domain/services/iqr_card_export_service.dart';
+import '../cubits/qr_card_cubit.dart';
+import '../cubits/qr_card_state.dart';
 import '../widgets/qr_card_control_bar.dart';
 import '../widgets/qr_card_preview_panel.dart';
 import '../widgets/qr_card_template_widget.dart';
@@ -32,7 +37,10 @@ class _QrCardGeneratorScreenState extends State<QrCardGeneratorScreen> {
 
   Future<void> _handleSingleExport(StudentCardData student) async {
     final cubit = context.read<QrCardCubit>();
-    cubit.updateExportProgress(0.5, 'جاري إنشاء الصورة...');
+    cubit.updateExportProgress(
+      AppDimens.opacityHalf,
+      LocaleKeys.creating_image_progress.tr(),
+    );
 
     final String? savedPath = await _exportService.saveSingleCardImage(
       boundaryKey: _previewBoundaryKey,
@@ -40,15 +48,13 @@ class _QrCardGeneratorScreenState extends State<QrCardGeneratorScreen> {
     );
 
     if (savedPath != null) {
-      cubit.finishExport(successMessage: 'تم حفظ بطاقة الطالب بنجاح: $savedPath');
+      final msg = LocaleKeys.student_card_saved_success.tr(args: [savedPath]);
+      cubit.finishExport(successMessage: msg);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              'تم حفظ بطاقة الطالب بنجاح في: $savedPath',
-              style: GoogleFonts.cairo(),
-            ),
-            backgroundColor: Colors.green.shade700,
+            content: Text(msg, style: AppTypography.cairo()),
+            backgroundColor: AppCardColors.successGreen,
           ),
         );
       }
@@ -74,23 +80,23 @@ class _QrCardGeneratorScreenState extends State<QrCardGeneratorScreen> {
       onProgress: (current, total, name) {
         cubit.updateExportProgress(
           current / total,
-          'جاري معالجة بطاقات الطلاب ($current / $total): $name',
+          LocaleKeys.exporting_cards_progress.tr(
+            args: [current.toString(), total.toString(), name],
+          ),
         );
       },
     );
 
     if (resultDir != null) {
-      cubit.finishExport(
-        successMessage: 'تم تصدير ${targetStudents.length} بطاقة بنجاح إلى المجسّر: $resultDir',
+      final msg = LocaleKeys.cards_exported_success.tr(
+        args: [targetStudents.length.toString(), resultDir],
       );
+      cubit.finishExport(successMessage: msg);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              'تم تصدير ${targetStudents.length} بطاقة بنجاح إلى المجلد المحدد',
-              style: GoogleFonts.cairo(),
-            ),
-            backgroundColor: Colors.green.shade700,
+            content: Text(msg, style: AppTypography.cairo()),
+            backgroundColor: AppCardColors.successGreen,
           ),
         );
       }
@@ -110,7 +116,7 @@ class _QrCardGeneratorScreenState extends State<QrCardGeneratorScreen> {
           if (state.error != null && state.error!.isNotEmpty) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(state.error!, style: GoogleFonts.cairo()),
+                content: Text(state.error!, style: AppTypography.cairo()),
                 backgroundColor: colorScheme.error,
               ),
             );
@@ -123,25 +129,10 @@ class _QrCardGeneratorScreenState extends State<QrCardGeneratorScreen> {
           }
 
           return Padding(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(AppDimens.p20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Top Header Title (Centered, No Icon, No Subtitle)
-                Center(
-                  child: Text(
-                    'منشئ بطاقات QR للطلاب',
-                    style: GoogleFonts.cairo(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onSurface,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // Top Control Bar (Mode Dropdown + Search + Filters)
                 QrCardControlBar(
                   selectionMode: state.selectionMode,
                   onSelectionModeChanged: (mode) {
@@ -162,16 +153,14 @@ class _QrCardGeneratorScreenState extends State<QrCardGeneratorScreen> {
                       context.read<QrCardCubit>().selectStageFilter(stage),
                 ),
 
-                const SizedBox(height: 16),
+                SizedBox(height: AppDimens.h16),
 
-                // Main Split View Layout (Left Preview Panel, Right Selection List)
                 Expanded(
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Left Panel: Live Preview Panel (Flex 5)
                       Expanded(
-                        flex: 5,
+                        flex: AppDimens.previewFlex,
                         child: QrCardPreviewPanel(
                           student: state.activePreviewStudent,
                           boundaryKey: _previewBoundaryKey,
@@ -184,11 +173,10 @@ class _QrCardGeneratorScreenState extends State<QrCardGeneratorScreen> {
                         ),
                       ),
 
-                      const SizedBox(width: 16),
+                      SizedBox(width: AppDimens.w16),
 
-                      // Right Panel: Student List & Checkbox Selection (Flex 4)
                       Expanded(
-                        flex: 4,
+                        flex: AppDimens.selectionFlex,
                         child: StudentSelectionPanel(
                           students: state.filteredStudents,
                           selectedStudentIds: state.selectedStudentIds,

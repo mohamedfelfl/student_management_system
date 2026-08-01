@@ -117,6 +117,9 @@ class PaymentsTab extends StatelessWidget {
                   final double remaining = total - paid;
                   final bool isPaid = remaining <= 0;
 
+                  final isDark =
+                      Theme.of(context).brightness == Brightness.dark;
+
                   return Card(
                     child: Padding(
                       padding: const EdgeInsets.all(16),
@@ -128,9 +131,13 @@ class PaymentsTab extends StatelessWidget {
                               children: [
                                 Text(
                                   '${p['month']}/${p['year']}',
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.titleMedium,
+                                  style: Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(
+                                        color: isDark
+                                            ? Colors.white
+                                            : colorScheme.onSurface,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
@@ -140,6 +147,12 @@ class PaymentsTab extends StatelessWidget {
                                       paid.toStringAsFixed(2),
                                     ],
                                   ),
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(
+                                        color: isDark
+                                            ? Colors.white70
+                                            : colorScheme.onSurfaceVariant,
+                                      ),
                                 ),
                               ],
                             ),

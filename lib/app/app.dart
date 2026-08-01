@@ -25,8 +25,8 @@ import '../features/reports/cubits/report_cubit.dart';
 import '../features/assistants/cubits/assistant_cubit.dart';
 import '../features/assistants/cubits/assistant_attendance_cubit.dart';
 import '../features/notes/cubits/notes_cubit.dart';
-import '../features/qr_card_generator/cubits/qr_card_cubit.dart';
-import '../features/qr_card_generator/repositories/qr_card_repository.dart';
+import '../features/qr_card_generator/presentation/cubits/qr_card_cubit.dart';
+import '../features/qr_card_generator/data/repositories/qr_card_repository.dart';
 import '../features/settings/cubits/settings_cubit.dart';
 import '../features/settings/services/backup_service.dart';
 import '../features/settings/services/device_binding_service.dart';
@@ -137,7 +137,12 @@ class _StudentsManagementAppState extends State<StudentsManagementApp>
           ),
         ),
       ],
-      child: BlocBuilder<LocaleCubit, LocaleState>(
+      child: BlocConsumer<LocaleCubit, LocaleState>(
+        listener: (context, localeState) {
+          if (context.locale.languageCode != localeState.languageCode) {
+            context.setLocale(Locale(localeState.languageCode));
+          }
+        },
         builder: (context, localeState) {
           return ScreenUtilInit(
             designSize: const Size(390, 844),

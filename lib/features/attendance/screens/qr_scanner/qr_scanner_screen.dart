@@ -9,7 +9,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../../../app/router/app_router.gr.dart';
-import '../../../../app/shared/widgets/responsive_layout.dart';
 import '../../../../app/constants/dimens.dart';
 import '../../../../generated/locale_keys.g.dart';
 import '../../cubits/attendance_cubit.dart';
@@ -59,21 +58,15 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
     final TextTheme textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      appBar: AppBar(
-        leading: context.router.canPop()
-            ? const BackButton()
-            : ResponsiveLayout.isMobile(context)
-                ? IconButton(
-                    icon: const Icon(Icons.menu),
-                    onPressed: () => Scaffold.of(context).openDrawer(),
-                  )
-                : null,
-        title: Text(
-          LocaleKeys.qr_attendance.tr(),
-          style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-        ),
-        centerTitle: true,
-      ),
+      appBar: context.router.canPop()
+          ? AppBar(
+              title: Text(
+                LocaleKeys.qr_attendance.tr(),
+                style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+              ),
+              centerTitle: true,
+            )
+          : null,
       body: BlocListener<AttendanceCubit, AttendanceState>(
         listener: (context, state) {
           if (state.scanSuccess) {

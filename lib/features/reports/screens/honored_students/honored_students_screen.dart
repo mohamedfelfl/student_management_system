@@ -3,8 +3,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
-import '../../../../app/shared/widgets/responsive_layout.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../generated/locale_keys.g.dart';
 import '../../../exams/cubits/exam_cubit.dart';
@@ -66,24 +64,18 @@ class _HonoredStudentsScreenState extends State<HonoredStudentsScreen> {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        title: Text(
-          LocaleKeys.honor_board.tr(),
-          style: textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w800,
-            color: colorScheme.primary,
-          ),
-        ),
-        centerTitle: true,
-        leading: context.router.canPop()
-            ? const BackButton()
-            : ResponsiveLayout.isMobile(context)
-                ? IconButton(
-                    icon: const Icon(Icons.menu),
-                    onPressed: () => Scaffold.of(context).openDrawer(),
-                  )
-                : const SizedBox.shrink(),
-      ),
+      appBar: context.router.canPop()
+          ? AppBar(
+              title: Text(
+                LocaleKeys.honor_board.tr(),
+                style: textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: colorScheme.primary,
+                ),
+              ),
+              centerTitle: true,
+            )
+          : null,
       body: BlocBuilder<ExamCubit, ExamState>(
         builder: (context, state) {
           final hasSelection =

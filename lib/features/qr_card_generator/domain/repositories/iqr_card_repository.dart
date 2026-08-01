@@ -1,4 +1,4 @@
-import '../models/student_card_data.dart';
+import '../../data/models/student_card_data.dart';
 
 abstract class IQrCardRepository {
   Future<List<StudentCardData>> getStudentsForCards();

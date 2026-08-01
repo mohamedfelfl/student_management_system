@@ -46,16 +46,36 @@ class LocaleCubit extends Cubit<LocaleState> {
     emit(state.copyWith(themeMode: mode, languageCode: lang));
   }
 
-  void setLanguage(String languageCode) {
+  Future<void> setLanguage(String languageCode) async {
+    await _settingsService.set(SettingsKeys.language, languageCode);
     emit(state.copyWith(languageCode: languageCode));
   }
 
-  void toggleLanguage() {
+  Future<void> toggleLanguage() async {
     final newLang = state.languageCode == 'en' ? 'ar' : 'en';
-    emit(state.copyWith(languageCode: newLang));
+    await setLanguage(newLang);
   }
 
-  void setThemeMode(ThemeMode mode) {
+  Future<void> setThemeMode(ThemeMode mode) async {
+    String modeStr;
+    switch (mode) {
+      case ThemeMode.dark:
+        modeStr = 'dark';
+        break;
+      case ThemeMode.light:
+        modeStr = 'light';
+        break;
+      case ThemeMode.system:
+        modeStr = 'system';
+        break;
+    }
+    await _settingsService.set(SettingsKeys.themeMode, modeStr);
     emit(state.copyWith(themeMode: mode));
+  }
+
+  Future<void> toggleThemeMode() async {
+    final newMode =
+        state.themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+    await setThemeMode(newMode);
   }
 }

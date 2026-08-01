@@ -1,8 +1,10 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-import '../../models/qr_card_config.dart';
-import '../../models/student_card_data.dart';
+import '../../../../app/constants/dimens.dart';
+import '../../../../generated/locale_keys.g.dart';
+import '../../data/models/qr_card_config.dart';
+import '../../data/models/student_card_data.dart';
 
 class QrCardControlBar extends StatelessWidget {
   final QRCardSelectionMode selectionMode;
@@ -34,120 +36,147 @@ class QrCardControlBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(AppDimens.p16),
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+        borderRadius: BorderRadius.circular(AppDimens.r16),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(
+            alpha: AppDimens.opacityHalf,
+          ),
+        ),
       ),
-      child: Wrap(
-        spacing: 16,
-        runSpacing: 12,
-        crossAxisAlignment: WrapCrossAlignment.center,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Dropdown 1: Selection Mode
-          SizedBox(
-            width: 200,
+          Expanded(
+            flex: 2,
             child: DropdownButtonFormField<QRCardSelectionMode>(
               isExpanded: true,
               initialValue: selectionMode,
               decoration: InputDecoration(
-                labelText: 'تحديد حسب',
-                labelStyle: GoogleFonts.cairo(fontSize: 13),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                labelText: LocaleKeys.select_by.tr(),
+                labelStyle: textTheme.bodyMedium,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: AppDimens.p12,
+                  vertical: AppDimens.p10,
+                ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(AppDimens.r10),
                 ),
               ),
-              items: const [
+              items: [
                 DropdownMenuItem(
                   value: QRCardSelectionMode.student,
-                  child: Text('طالب محدد'),
+                  child: Text(
+                    LocaleKeys.student_selected_mode.tr(),
+                    style: textTheme.bodyMedium,
+                  ),
                 ),
                 DropdownMenuItem(
                   value: QRCardSelectionMode.group,
-                  child: Text('مجموعة شعبة'),
+                  child: Text(
+                    LocaleKeys.group_mode.tr(),
+                    style: textTheme.bodyMedium,
+                  ),
                 ),
                 DropdownMenuItem(
                   value: QRCardSelectionMode.stage,
-                  child: Text('المرحلة الدراسية'),
+                  child: Text(
+                    LocaleKeys.stage_mode.tr(),
+                    style: textTheme.bodyMedium,
+                  ),
                 ),
                 DropdownMenuItem(
                   value: QRCardSelectionMode.all,
-                  child: Text('جميع الطلاب'),
+                  child: Text(
+                    LocaleKeys.all_students_mode.tr(),
+                    style: textTheme.bodyMedium,
+                  ),
                 ),
               ],
               onChanged: onSelectionModeChanged,
             ),
           ),
 
-          // Secondary Dropdown for Group / Stage mode
-          if (selectionMode == QRCardSelectionMode.group)
-            SizedBox(
-              width: 200,
+          if (selectionMode == QRCardSelectionMode.group) ...[
+            SizedBox(width: AppDimens.p12),
+            Expanded(
+              flex: 2,
               child: DropdownButtonFormField<int>(
                 isExpanded: true,
                 initialValue: selectedGroupId,
                 decoration: InputDecoration(
-                  labelText: 'اختر المجموعة',
-                  labelStyle: GoogleFonts.cairo(fontSize: 13),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
+                  labelText: LocaleKeys.select_group.tr(),
+                  labelStyle: textTheme.bodyMedium,
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: AppDimens.p12,
+                    vertical: AppDimens.p10,
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(AppDimens.r10),
                   ),
                 ),
                 items: [
-                  const DropdownMenuItem<int>(
+                  DropdownMenuItem<int>(
                     value: null,
-                    child: Text('كل المجموعات'),
+                    child: Text(
+                      LocaleKeys.all_groups.tr(),
+                      style: textTheme.bodyMedium,
+                    ),
                   ),
                   ...availableGroups.map((g) {
                     final id = g['id'] as int;
                     final name = g['name'] as String? ?? '';
                     return DropdownMenuItem<int>(
                       value: id,
-                      child: Text(name),
+                      child: Text(
+                        name,
+                        style: textTheme.bodyMedium,
+                      ),
                     );
                   }),
                 ],
                 onChanged: onGroupChanged,
               ),
             ),
+          ],
 
-          if (selectionMode == QRCardSelectionMode.stage)
-            SizedBox(
-              width: 200,
+          if (selectionMode == QRCardSelectionMode.stage) ...[
+            SizedBox(width: AppDimens.p12),
+            Expanded(
+              flex: 2,
               child: DropdownButtonFormField<String>(
                 isExpanded: true,
                 initialValue: selectedStage,
                 decoration: InputDecoration(
-                  labelText: 'اختر المرحلة',
-                  labelStyle: GoogleFonts.cairo(fontSize: 13),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
+                  labelText: LocaleKeys.select_stage.tr(),
+                  labelStyle: textTheme.bodyMedium,
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: AppDimens.p12,
+                    vertical: AppDimens.p10,
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(AppDimens.r10),
                   ),
                 ),
                 items: [
-                  const DropdownMenuItem<String>(
+                  DropdownMenuItem<String>(
                     value: null,
-                    child: Text('كل المراحل'),
+                    child: Text(
+                      LocaleKeys.all_stages.tr(),
+                      style: textTheme.bodyMedium,
+                    ),
                   ),
                   ...availableStages.map((stage) {
                     return DropdownMenuItem<String>(
                       value: stage,
                       child: Text(
                         StudentCardData.formatStageArabic(stage),
-                        style: GoogleFonts.cairo(fontSize: 13),
+                        style: textTheme.bodyMedium,
                       ),
                     );
                   }),
@@ -155,22 +184,28 @@ class QrCardControlBar extends StatelessWidget {
                 onChanged: onStageChanged,
               ),
             ),
+          ],
 
-          // Search Field
-          SizedBox(
-            width: 260,
+          SizedBox(width: AppDimens.p12),
+
+          Expanded(
+            flex: 3,
             child: TextField(
               onChanged: onSearchChanged,
+              style: textTheme.bodyMedium,
               decoration: InputDecoration(
-                hintText: 'بحث باسم الطالب أو الكود...',
-                hintStyle: GoogleFonts.cairo(fontSize: 13),
-                prefixIcon: const Icon(Icons.search_rounded, size: 20),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 10,
+                hintText: LocaleKeys.search_student_or_code_hint.tr(),
+                hintStyle: textTheme.bodyMedium,
+                prefixIcon: Icon(
+                  Icons.search_rounded,
+                  size: AppDimens.iconSize20,
+                ),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: AppDimens.p12,
+                  vertical: AppDimens.p10,
                 ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(AppDimens.r10),
                 ),
               ),
             ),

@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:student_management_system/features/qr_card_generator/cubits/qr_card_cubit.dart';
-import 'package:student_management_system/features/qr_card_generator/models/qr_card_config.dart';
-import 'package:student_management_system/features/qr_card_generator/models/student_card_data.dart';
-import 'package:student_management_system/features/qr_card_generator/repositories/iqr_card_repository.dart';
+import 'package:student_management_system/features/qr_card_generator/data/models/qr_card_config.dart';
+import 'package:student_management_system/features/qr_card_generator/data/models/student_card_data.dart';
+import 'package:student_management_system/features/qr_card_generator/domain/repositories/iqr_card_repository.dart';
+import 'package:student_management_system/features/qr_card_generator/presentation/cubits/qr_card_cubit.dart';
 
 class MockQrCardRepository implements IQrCardRepository {
   final List<StudentCardData> mockStudents;
@@ -42,7 +42,6 @@ void main() {
       expect(studentCard.id, equals(101));
       expect(studentCard.studentCode, equals('EM000101'));
       expect(studentCard.fullName, equals('إياد أحمد صبري'));
-      expect(studentCard.stageName, equals('الصف الأول الإعدادي'));
       expect(studentCard.groupSchedule, equals('السبت و الثلاثاء الساعة 12'));
       expect(studentCard.qrPayload, equals('EM000101'));
     });

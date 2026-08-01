@@ -11,7 +11,7 @@ _StudentCardData _$StudentCardDataFromJson(Map<String, dynamic> json) =>
       id: (json['id'] as num).toInt(),
       studentCode: json['studentCode'] as String,
       fullName: json['fullName'] as String,
-      stageName: json['stageName'] as String? ?? 'الصف الأول الإعدادي',
+      stageName: json['stageName'] as String? ?? '',
       groupName: json['groupName'] as String? ?? '',
       groupSchedule: json['groupSchedule'] as String? ?? '',
       qrPayload: json['qrPayload'] as String,

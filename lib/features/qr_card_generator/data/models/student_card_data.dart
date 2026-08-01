@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../../app/constants/app_constants.dart';
+
 part 'student_card_data.freezed.dart';
 part 'student_card_data.g.dart';
 
@@ -9,7 +11,7 @@ abstract class StudentCardData with _$StudentCardData {
     required int id,
     required String studentCode,
     required String fullName,
-    @Default('الصف الأول الإعدادي') String stageName,
+    @Default('') String stageName,
     @Default('') String groupName,
     @Default('') String groupSchedule,
     required String qrPayload,
@@ -54,17 +56,20 @@ abstract class StudentCardData with _$StudentCardData {
     final serial = map['serial_number'] as String? ?? '';
     final code = serial.isNotEmpty
         ? serial
-        : 'EM${(map['id'] as int? ?? 0).toString().padLeft(6, '0')}';
-    
-    final rawGrade = map['grade'] as String? ?? map['stage_name'] as String? ?? '';
+        : '${AppConstants.studentCodePrefix}${(map['id'] as int? ?? 0).toString().padLeft(6, '0')}';
+
+    final rawGrade =
+        map['grade'] as String? ?? map['stage_name'] as String? ?? '';
 
     return StudentCardData(
       id: map['id'] as int? ?? 0,
       studentCode: code,
-      fullName: map['name'] as String? ?? 'طالب',
+      fullName: map['name'] as String? ?? 'Student',
       stageName: formatStageArabic(rawGrade),
       groupName: map['group_name'] as String? ?? '',
-      groupSchedule: map['attendance_day'] as String? ?? map['group_schedule'] as String? ?? '',
+      groupSchedule: map['attendance_day'] as String? ??
+          map['group_schedule'] as String? ??
+          '',
       qrPayload: code,
     );
   }

@@ -18,7 +18,7 @@ class NotesScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
         appBar: AppBar(
-          title: Text(LocaleKeys.notes.tr()),
+          title: context.router.canPop() ? Text(LocaleKeys.notes.tr()) : null,
           bottom: TabBar(
             indicatorColor: theme.colorScheme.primary,
             labelColor: theme.colorScheme.onSurface,

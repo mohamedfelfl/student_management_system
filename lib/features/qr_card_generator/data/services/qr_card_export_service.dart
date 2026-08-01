@@ -1,24 +1,16 @@
 import 'dart:io';
 import 'dart:ui' as ui;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
+import '../../../../app/constants/app_constants.dart';
+import '../../../../app/constants/dimens.dart';
+import '../../../../generated/locale_keys.g.dart';
+import '../../domain/services/iqr_card_export_service.dart';
 import '../models/student_card_data.dart';
-
-abstract class IQrCardExportService {
-  Future<Uint8List?> captureBoundaryToPng(GlobalKey boundaryKey, {double pixelRatio = 3.0});
-  Future<String?> saveSingleCardImage({
-    required GlobalKey boundaryKey,
-    required StudentCardData student,
-  });
-  Future<String?> exportBatchCardsToDirectory({
-    required List<StudentCardData> students,
-    required Widget Function(StudentCardData student) cardWidgetBuilder,
-    required void Function(int current, int total, String name) onProgress,
-  });
-}
 
 class QrCardExportService implements IQrCardExportService {
   @override
@@ -51,14 +43,17 @@ class QrCardExportService implements IQrCardExportService {
     final pngBytes = await captureBoundaryToPng(boundaryKey, pixelRatio: 3.0);
     if (pngBytes == null) return null;
 
-    final sanitizedName = student.fullName.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
+    final sanitizedName = student.fullName.replaceAll(
+      RegExp(r'[\\/:*?"<>|]'),
+      '_',
+    );
     final defaultFileName = '${student.studentCode}_$sanitizedName.png';
 
     final String? outputFile = await FilePicker.platform.saveFile(
-      dialogTitle: 'Save QR Card',
+      dialogTitle: LocaleKeys.save_student_card.tr(),
       fileName: defaultFileName,
       type: FileType.custom,
-      allowedExtensions: ['png'],
+      allowedExtensions: const [AppConstants.pngExtension],
     );
 
     if (outputFile != null) {
@@ -69,15 +64,18 @@ class QrCardExportService implements IQrCardExportService {
     return null;
   }
 
-  /// Renders a Flutter widget offscreen into PNG byte array at specified DPI/resolution
   Future<Uint8List?> renderWidgetToPngBytes(
     Widget widget, {
-    Size logicalSize = const Size(600, 350),
+    Size? logicalSize,
     double pixelRatio = 3.0,
   }) async {
+    final targetSize =
+        logicalSize ??
+        Size(AppDimens.cardDefaultWidth, AppDimens.cardDefaultHeight);
     try {
       final repaintBoundary = RenderRepaintBoundary();
-      final view = WidgetsBinding.instance.platformDispatcher.implicitView ??
+      final view =
+          WidgetsBinding.instance.platformDispatcher.implicitView ??
           WidgetsBinding.instance.platformDispatcher.views.first;
 
       final renderView = RenderView(
@@ -87,7 +85,7 @@ class QrCardExportService implements IQrCardExportService {
           child: repaintBoundary,
         ),
         configuration: ViewConfiguration(
-          logicalConstraints: BoxConstraints.tight(logicalSize),
+          logicalConstraints: BoxConstraints.tight(targetSize),
           devicePixelRatio: pixelRatio,
         ),
       );
@@ -101,7 +99,7 @@ class QrCardExportService implements IQrCardExportService {
       final rootElement = RenderObjectToWidgetAdapter<RenderBox>(
         container: repaintBoundary,
         child: Directionality(
-          textDirection: TextDirection.rtl,
+          textDirection: ui.TextDirection.rtl,
           child: MediaQuery(
             data: MediaQueryData.fromView(view),
             child: Material(
@@ -118,7 +116,9 @@ class QrCardExportService implements IQrCardExportService {
       pipelineOwner.flushCompositingBits();
       pipelineOwner.flushPaint();
 
-      final ui.Image image = await repaintBoundary.toImage(pixelRatio: pixelRatio);
+      final ui.Image image = await repaintBoundary.toImage(
+        pixelRatio: pixelRatio,
+      );
       final ByteData? byteData = await image.toByteData(
         format: ui.ImageByteFormat.png,
       );
@@ -138,7 +138,7 @@ class QrCardExportService implements IQrCardExportService {
     if (students.isEmpty) return null;
 
     final String? selectedDirectory = await FilePicker.platform.getDirectoryPath(
-      dialogTitle: 'اختر مجلد حفظ بطاقات QR',
+      dialogTitle: LocaleKeys.export_selected_png.tr(),
     );
 
     if (selectedDirectory == null || selectedDirectory.isEmpty) return null;
@@ -166,7 +166,6 @@ class QrCardExportService implements IQrCardExportService {
         await file.writeAsBytes(pngBytes);
       }
 
-      // Allow UI thread to breathe between batch iterations
       await Future.delayed(const Duration(milliseconds: 20));
     }
 

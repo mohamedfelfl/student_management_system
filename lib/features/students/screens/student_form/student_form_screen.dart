@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../app/constants/dimens.dart';
-import '../../../../app/shared/widgets/responsive_layout.dart';
 import '../../../../generated/locale_keys.g.dart';
 import '../../../groups/cubits/group_cubit.dart';
 import '../../cubits/student_cubit.dart';
@@ -125,14 +124,7 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
           style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
         ),
         centerTitle: true,
-        leading: context.router.canPop()
-            ? const BackButton()
-            : ResponsiveLayout.isMobile(context)
-            ? IconButton(
-                icon: const Icon(Icons.menu),
-                onPressed: () => Scaffold.of(context).openDrawer(),
-              )
-            : null,
+        leading: context.router.canPop() ? const BackButton() : null,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),

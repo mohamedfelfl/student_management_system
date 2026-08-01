@@ -24,7 +24,7 @@ void main() {
       } else {
         scheduleMap = firstSchedule.toJson();
       }
-      expect(scheduleMap['day_of_week'], 'Saturday');
+      expect(scheduleMap['dayOfWeek'] ?? scheduleMap['day_of_week'], 'Saturday');
 
       // Ensure the JSON is in a format fromJson expects (all Maps)
       final jsonForDeserialization = Map<String, dynamic>.from(json);

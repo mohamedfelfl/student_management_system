@@ -30,6 +30,9 @@ class AttendanceTab extends StatelessWidget {
             final status = a['status']?.toString() ?? '';
             final notes = a['notes']?.toString() ?? '';
 
+            final isDark =
+                Theme.of(context).brightness == Brightness.dark;
+
             return Padding(
               padding: EdgeInsets.symmetric(vertical: AppDimens.h6),
               child: Container(
@@ -50,6 +53,7 @@ class AttendanceTab extends StatelessWidget {
                           Text(
                             a['date']?.toString() ?? '',
                             style: textTheme.bodyMedium?.copyWith(
+                              color: isDark ? Colors.white : null,
                               fontWeight: FontWeight.w500,
                             ),
                           ),

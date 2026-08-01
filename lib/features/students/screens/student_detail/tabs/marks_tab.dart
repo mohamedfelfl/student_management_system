@@ -31,6 +31,9 @@ class MarksTab extends StatelessWidget {
             final full = (m['exam_full_mark'] as num?)?.toDouble() ?? 0;
             final pct = full > 0 ? (score / full * 100) : 0;
 
+            final isDark =
+                Theme.of(context).brightness == Brightness.dark;
+
             return Card(
               clipBehavior: Clip.hardEdge,
               child: InkWell(
@@ -60,10 +63,18 @@ class MarksTab extends StatelessWidget {
                           children: [
                             Text(
                               m['exam_name']?.toString() ?? '',
-                              style: Theme.of(context).textTheme.titleMedium,
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(
+                                    color: isDark ? Colors.white : null,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                             Text(
                               '${score.toStringAsFixed(1)} / ${full.toStringAsFixed(1)}',
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: isDark ? Colors.white70 : null,
+                                  ),
                             ),
                           ],
                         ),
@@ -79,7 +90,11 @@ class MarksTab extends StatelessWidget {
                       const SizedBox(width: 8),
                       Text(
                         '${pct.toStringAsFixed(0)}%',
-                        style: Theme.of(context).textTheme.titleMedium,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              color: isDark ? Colors.white : null,
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                     ],
                   ),

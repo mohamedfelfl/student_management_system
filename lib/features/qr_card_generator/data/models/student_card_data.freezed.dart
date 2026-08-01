@@ -215,7 +215,7 @@ return $default(_that.id,_that.studentCode,_that.fullName,_that.stageName,_that.
 @JsonSerializable()
 
 class _StudentCardData implements StudentCardData {
-  const _StudentCardData({required this.id, required this.studentCode, required this.fullName, this.stageName = 'الصف الأول الإعدادي', this.groupName = '', this.groupSchedule = '', required this.qrPayload});
+  const _StudentCardData({required this.id, required this.studentCode, required this.fullName, this.stageName = '', this.groupName = '', this.groupSchedule = '', required this.qrPayload});
   factory _StudentCardData.fromJson(Map<String, dynamic> json) => _$StudentCardDataFromJson(json);
 
 @override final  int id;

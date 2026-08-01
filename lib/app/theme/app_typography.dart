@@ -137,6 +137,34 @@ class AppTypography {
     color: color,
   );
 
+  // ─── CUSTOM FONT BUILDERS ───
+
+  static TextStyle outfit({
+    double? fontSize,
+    FontWeight? fontWeight,
+    Color? color,
+    double? letterSpacing,
+  }) =>
+      GoogleFonts.outfit(
+        fontSize: fontSize,
+        fontWeight: fontWeight,
+        color: color,
+        letterSpacing: letterSpacing,
+      );
+
+  static TextStyle cairo({
+    double? fontSize,
+    FontWeight? fontWeight,
+    Color? color,
+    double? letterSpacing,
+  }) =>
+      GoogleFonts.cairo(
+        fontSize: fontSize,
+        fontWeight: fontWeight,
+        color: color,
+        letterSpacing: letterSpacing,
+      );
+
   // ─── HELPER: Build TextTheme ───
 
   static TextTheme textTheme({Color? displayColor, Color? bodyColor}) =>

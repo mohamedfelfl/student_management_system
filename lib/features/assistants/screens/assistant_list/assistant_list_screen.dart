@@ -5,7 +5,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../app/router/app_router.gr.dart';
-import '../../../../app/shared/widgets/responsive_layout.dart';
 import '../../../../generated/locale_keys.g.dart';
 import '../../cubits/assistant_cubit.dart';
 
@@ -37,21 +36,15 @@ class _AssistantListScreenState extends State<AssistantListScreen> {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          LocaleKeys.assistants_directory.tr(),
-          style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-        ),
-        centerTitle: true,
-        leading: context.router.canPop()
-            ? const BackButton()
-            : ResponsiveLayout.isMobile(context)
-                ? IconButton(
-                    icon: const Icon(Icons.menu),
-                    onPressed: () => Scaffold.of(context).openDrawer(),
-                  )
-                : null,
-      ),
+      appBar: context.router.canPop()
+          ? AppBar(
+              title: Text(
+                LocaleKeys.assistants_directory.tr(),
+                style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+              ),
+              centerTitle: true,
+            )
+          : null,
       body: BlocBuilder<AssistantCubit, AssistantState>(
         builder: (context, state) {
           return Padding(

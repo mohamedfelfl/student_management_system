@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../app/constants/dimens.dart';
-import '../../../../app/shared/widgets/responsive_layout.dart';
 import '../../../../generated/locale_keys.g.dart';
 import '../../../auth/cubits/auth_cubit.dart';
 import '../../../auth/models/user.dart';
@@ -52,36 +51,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
         }
 
         return Scaffold(
-          appBar: AppBar(
-            title: Text(
-              LocaleKeys.app_title.tr(),
-              style: textTheme.titleLarge?.copyWith(
-                color: colorScheme.primary,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            centerTitle: true,
-            leading: context.router.canPop()
-                ? const BackButton()
-                : ResponsiveLayout.isMobile(context)
-                ? IconButton(
-                    icon: Icon(Icons.menu, color: colorScheme.onSurface),
-                    onPressed: () => Scaffold.of(context).openDrawer(),
-                  )
-                : null,
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.language),
-                onPressed: () {
-                  if (context.locale.languageCode == 'en') {
-                    context.setLocale(const Locale('ar'));
-                  } else {
-                    context.setLocale(const Locale('en'));
-                  }
-                },
-              ),
-            ],
-          ),
+          appBar: context.router.canPop()
+              ? AppBar(
+                  title: Text(
+                    LocaleKeys.app_title.tr(),
+                    style: textTheme.titleLarge?.copyWith(
+                      color: colorScheme.primary,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  centerTitle: true,
+                )
+              : null,
           body: RefreshIndicator(
             onRefresh: () => context.read<DashboardCubit>().loadDashboard(),
             child: SingleChildScrollView(
