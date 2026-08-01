@@ -25,6 +25,8 @@ import '../features/reports/cubits/report_cubit.dart';
 import '../features/assistants/cubits/assistant_cubit.dart';
 import '../features/assistants/cubits/assistant_attendance_cubit.dart';
 import '../features/notes/cubits/notes_cubit.dart';
+import '../features/qr_card_generator/cubits/qr_card_cubit.dart';
+import '../features/qr_card_generator/repositories/qr_card_repository.dart';
 import '../features/settings/cubits/settings_cubit.dart';
 import '../features/settings/services/backup_service.dart';
 import '../features/settings/services/device_binding_service.dart';
@@ -121,6 +123,11 @@ class _StudentsManagementAppState extends State<StudentsManagementApp>
           create: (_) => AssistantAttendanceCubit(databaseService: dbService),
         ),
         BlocProvider(create: (_) => NotesCubit(databaseService: dbService)),
+        BlocProvider(
+          create: (_) => QrCardCubit(
+            repository: QrCardRepository(databaseService: dbService),
+          )..loadInitialData(),
+        ),
         BlocProvider(create: (_) => ShellNavigationCubit()),
         BlocProvider(
           create: (_) => SettingsCubit(

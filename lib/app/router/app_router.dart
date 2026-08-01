@@ -20,6 +20,7 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: GroupListRoute.page),
         AutoRoute(page: PaymentListRoute.page),
         AutoRoute(page: QrScannerRoute.page),
+        AutoRoute(page: QrCardGeneratorRoute.page),
         AutoRoute(page: ExamListRoute.page),
         AutoRoute(page: HonoredStudentsRoute.page),
         AutoRoute(page: ReportRoute.page),

@@ -87,6 +87,18 @@ class ShellScreen extends StatelessWidget {
                 ),
               ),
             ),
+          if (user.can(UserPermission.manageStudents))
+            (
+              route: const QrCardGeneratorRoute(),
+              destination: NavigationRailDestination(
+                icon: const Icon(Icons.badge_outlined),
+                selectedIcon: const Icon(Icons.badge),
+                label: Text(
+                  'مولّد بطاقات QR',
+                  style: GoogleFonts.cairo(),
+                ),
+              ),
+            ),
           if (user.can(UserPermission.manageGroups))
             (
               route: const GroupListRoute(),
@@ -195,18 +207,28 @@ class ShellScreen extends StatelessWidget {
                         children: [
                           Image.asset(
                             'assets/images/logo.png',
-                            width: AppDimens.avatarSizeLarge,
-                            height: AppDimens.avatarSizeLarge,
+                            width: 44,
+                            height: 44,
                             fit: BoxFit.contain,
                           ),
                           if (!navState.isCollapsed) ...[
-                            SizedBox(height: AppDimens.h8),
+                            const SizedBox(height: 4),
                             Text(
-                              'SMS',
+                              'Legendary Eagle',
+                              textAlign: TextAlign.center,
                               style: GoogleFonts.cairo(
                                 fontWeight: FontWeight.w900,
-                                fontSize: 18,
+                                fontSize: 14,
                                 color: colorScheme.primary,
+                              ),
+                            ),
+                            Text(
+                              'Mr. Ali Sabry',
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.cairo(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 11,
+                                color: colorScheme.onSurfaceVariant,
                               ),
                             ),
                           ],
@@ -389,12 +411,20 @@ class ShellScreen extends StatelessWidget {
                     ),
                     SizedBox(height: AppDimens.h12),
                     Text(
-                      'SMS',
+                      'Legendary Eagle',
                       style: GoogleFonts.cairo(
                         textStyle: Theme.of(context).textTheme.headlineMedium,
                         color: colorScheme.onPrimary,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 1.2,
+                      ),
+                    ),
+                    Text(
+                      'Mr. Ali Sabry',
+                      style: GoogleFonts.cairo(
+                        fontSize: 14,
+                        color: colorScheme.onPrimary.withValues(alpha: 0.9),
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],

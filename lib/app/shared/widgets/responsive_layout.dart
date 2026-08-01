@@ -13,7 +13,7 @@ class ResponsiveLayout extends StatelessWidget {
   final List<NavigationRailDestination> destinations;
   final Widget? leading;
 
-  static const double breakpoint = 900;
+  static const double breakpoint = 800;
 
   final bool isCollapsed;
 
@@ -55,32 +55,45 @@ class ResponsiveLayout extends StatelessWidget {
                 ),
               ],
             ),
-            child: NavigationRail(
-              selectedIndex: selectedIndex,
-              onDestinationSelected: onDestinationSelected,
-              destinations: destinations,
-              labelType: isCollapsed
-                  ? NavigationRailLabelType.none
-                  : (width >= 1200
-                        ? NavigationRailLabelType.none
-                        : NavigationRailLabelType.all),
-              selectedLabelTextStyle: GoogleFonts.cairo(
-                fontSize: 17,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.primary,
-                letterSpacing: 0.5,
-              ),
-              unselectedLabelTextStyle: GoogleFonts.cairo(
-                fontSize: 15,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                letterSpacing: 0.2,
-              ),
-              indicatorShape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              leading: leading,
-              trailing: trailing,
-              extended: !isCollapsed && width >= 1200,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: IntrinsicHeight(
+                      child: NavigationRail(
+                        selectedIndex: selectedIndex,
+                        onDestinationSelected: onDestinationSelected,
+                        destinations: destinations,
+                        labelType: isCollapsed
+                            ? NavigationRailLabelType.none
+                            : (width >= 1200
+                                  ? NavigationRailLabelType.none
+                                  : NavigationRailLabelType.all),
+                        selectedLabelTextStyle: GoogleFonts.cairo(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
+                          letterSpacing: 0.5,
+                        ),
+                        unselectedLabelTextStyle: GoogleFonts.cairo(
+                          fontSize: 15,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          letterSpacing: 0.2,
+                        ),
+                        indicatorShape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        leading: leading,
+                        trailing: trailing,
+                        extended: !isCollapsed && width >= 1200,
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
           ),
           Expanded(child: desktopBody ?? mobileBody),

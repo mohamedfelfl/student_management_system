@@ -31,7 +31,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   int screenHeight = ::GetSystemMetrics(SM_CYSCREEN);
   Win32Window::Point origin((screenWidth - size.width) / 2,
                             (screenHeight - size.height) / 2);
-  if (!window.Create(L"student_management_system", origin, size)) {
+  if (!window.Create(L"Legendary Eagle", origin, size)) {
     return EXIT_FAILURE;
   }
   window.SetQuitOnClose(true);
