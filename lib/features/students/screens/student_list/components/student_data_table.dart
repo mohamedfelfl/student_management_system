@@ -312,12 +312,6 @@ class _StudentDataSource extends DataTableSource {
   int get selectedRowCount => selectedIds.length;
 
   String _getGradeLabel(String? grade) {
-    if (grade == 'primary_1') return LocaleKeys.primary_1.tr();
-    if (grade == 'primary_2') return LocaleKeys.primary_2.tr();
-    if (grade == 'primary_3') return LocaleKeys.primary_3.tr();
-    if (grade == 'primary_4') return LocaleKeys.primary_4.tr();
-    if (grade == 'primary_5') return LocaleKeys.primary_5.tr();
-    if (grade == 'primary_6') return LocaleKeys.primary_6.tr();
     if (grade == 'prep_1') return LocaleKeys.prep_1.tr();
     if (grade == 'prep_2') return LocaleKeys.prep_2.tr();
     if (grade == 'prep_3') return LocaleKeys.prep_3.tr();

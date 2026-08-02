@@ -189,6 +189,44 @@ class StudentCubit extends Cubit<StudentState> {
     }
   }
 
+  static const Map<String, int> kGradeBaseSerials = {
+    'prep_1': 10777,
+    'prep_2': 20777,
+    'prep_3': 30777,
+    'sec_1': 40777,
+    'sec_2': 50777,
+    'sec_3': 60777,
+  };
+
+  Future<String> getNextSerialNumber(String grade) async {
+    final int base = kGradeBaseSerials[grade] ?? 10777;
+    try {
+      final Database db = await _databaseService.database;
+      final List<Map<String, Object?>> rows = await db.query(
+        DBQueries.tableStudents,
+        columns: ['serial_number'],
+        where: 'grade = ?',
+        whereArgs: [grade],
+      );
+
+      int maxSerial = base - 1;
+      for (final row in rows) {
+        final serialStr = row['serial_number']?.toString();
+        if (serialStr != null) {
+          final parsed = int.tryParse(serialStr);
+          if (parsed != null && parsed > maxSerial) {
+            maxSerial = parsed;
+          }
+        }
+      }
+
+      final int nextSerial = (maxSerial >= base) ? (maxSerial + 1) : base;
+      return nextSerial.toString();
+    } catch (e) {
+      return base.toString();
+    }
+  }
+
   String _buildWhereClause() {
     final List<String> conditions = <String>[];
     if (state.searchQuery.isNotEmpty) {

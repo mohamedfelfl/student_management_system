@@ -23,18 +23,6 @@ abstract class StudentCardData with _$StudentCardData {
   static String formatStageArabic(String? grade) {
     if (grade == null || grade.trim().isEmpty) return 'الصف الأول الإعدادي';
     switch (grade.trim()) {
-      case 'primary_1':
-        return 'الصف الأول الابتدائي';
-      case 'primary_2':
-        return 'الصف الثاني الابتدائي';
-      case 'primary_3':
-        return 'الصف الثالث الابتدائي';
-      case 'primary_4':
-        return 'الصف الرابع الابتدائي';
-      case 'primary_5':
-        return 'الصف الخامس الابتدائي';
-      case 'primary_6':
-        return 'الصف السادس الابتدائي';
       case 'prep_1':
         return 'الصف الأول الإعدادي';
       case 'prep_2':

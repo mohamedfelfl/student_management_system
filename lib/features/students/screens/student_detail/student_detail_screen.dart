@@ -7,6 +7,8 @@ import '../../../../app/constants/dimens.dart';
 import '../../../../app/router/app_router.gr.dart';
 import '../../../../generated/locale_keys.g.dart';
 import '../../cubits/student_cubit.dart';
+import '../../../auth/cubits/auth_cubit.dart';
+import '../../../auth/models/user.dart';
 import '../../../payments/cubits/payment_cubit.dart';
 import '../../../attendance/cubits/attendance_cubit.dart';
 import '../../../exams/cubits/exam_cubit.dart';
@@ -29,11 +31,20 @@ class _StudentDetailScreenState extends State<StudentDetailScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   Map<String, dynamic>? _student;
+  bool _canManagePayments = false;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    final user = context.read<AuthCubit>().state.maybeWhen(
+      authenticated: (u) => u,
+      orElse: () => null,
+    );
+    _canManagePayments = user?.can(UserPermission.managePayments) ?? false;
+    _tabController = TabController(
+      length: _canManagePayments ? 4 : 3,
+      vsync: this,
+    );
     _loadData();
   }
 
@@ -44,7 +55,9 @@ class _StudentDetailScreenState extends State<StudentDetailScreen>
     setState(() => _student = student);
 
     if (mounted) {
-      context.read<PaymentCubit>().loadPayments(widget.id);
+      if (_canManagePayments) {
+        context.read<PaymentCubit>().loadPayments(widget.id);
+      }
       context.read<AttendanceCubit>().loadAttendance(widget.id);
       context.read<ExamCubit>().loadStudentMarks(widget.id);
     }
@@ -136,7 +149,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen>
             indicatorColor: isDark ? Colors.white : colorScheme.primary,
             tabs: [
               Tab(text: LocaleKeys.info.tr()),
-              Tab(text: LocaleKeys.tab_payments.tr()),
+              if (_canManagePayments) Tab(text: LocaleKeys.tab_payments.tr()),
               Tab(text: LocaleKeys.tab_attendance.tr()),
               Tab(text: LocaleKeys.tab_marks.tr()),
             ],
@@ -148,11 +161,12 @@ class _StudentDetailScreenState extends State<StudentDetailScreen>
               controller: _tabController,
               children: [
                 InfoTab(student: _student!),
-                PaymentsTab(
-                  studentId: widget.id,
-                  studentStatus:
-                      _student!['student_status']?.toString() ?? 'normal',
-                ),
+                if (_canManagePayments)
+                  PaymentsTab(
+                    studentId: widget.id,
+                    studentStatus:
+                        _student!['student_status']?.toString() ?? 'normal',
+                  ),
                 AttendanceTab(studentId: widget.id),
                 MarksTab(studentId: widget.id, onRefresh: _loadData),
               ],

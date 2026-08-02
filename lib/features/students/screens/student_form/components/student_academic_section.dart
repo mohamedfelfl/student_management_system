@@ -35,67 +35,44 @@ class StudentAcademicSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Grade Dropdown
-        DropdownButtonFormField<String?>(
-          initialValue: selectedGrade,
+        DropdownButtonFormField<String>(
+          initialValue: selectedGrade ?? 'prep_1',
           decoration: InputDecoration(
             labelText: LocaleKeys.grade.tr(),
             prefixIcon: const Icon(Icons.school),
           ),
+          validator: (value) => (value == null || value.isEmpty)
+              ? LocaleKeys.required_field.tr()
+              : null,
           items: [
-            DropdownMenuItem<String?>(
-              value: null,
-              child: Text(LocaleKeys.not_specified.tr()),
-            ),
-            DropdownMenuItem<String?>(
-              value: 'primary_1',
-              child: Text(LocaleKeys.primary_1.tr()),
-            ),
-            DropdownMenuItem<String?>(
-              value: 'primary_2',
-              child: Text(LocaleKeys.primary_2.tr()),
-            ),
-            DropdownMenuItem<String?>(
-              value: 'primary_3',
-              child: Text(LocaleKeys.primary_3.tr()),
-            ),
-            DropdownMenuItem<String?>(
-              value: 'primary_4',
-              child: Text(LocaleKeys.primary_4.tr()),
-            ),
-            DropdownMenuItem<String?>(
-              value: 'primary_5',
-              child: Text(LocaleKeys.primary_5.tr()),
-            ),
-            DropdownMenuItem<String?>(
-              value: 'primary_6',
-              child: Text(LocaleKeys.primary_6.tr()),
-            ),
-            DropdownMenuItem<String?>(
+            DropdownMenuItem<String>(
               value: 'prep_1',
               child: Text(LocaleKeys.prep_1.tr()),
             ),
-            DropdownMenuItem<String?>(
+            DropdownMenuItem<String>(
               value: 'prep_2',
               child: Text(LocaleKeys.prep_2.tr()),
             ),
-            DropdownMenuItem<String?>(
+            DropdownMenuItem<String>(
               value: 'prep_3',
               child: Text(LocaleKeys.prep_3.tr()),
             ),
-            DropdownMenuItem<String?>(
+            DropdownMenuItem<String>(
               value: 'sec_1',
               child: Text(LocaleKeys.sec_1.tr()),
             ),
-            DropdownMenuItem<String?>(
+            DropdownMenuItem<String>(
               value: 'sec_2',
               child: Text(LocaleKeys.sec_2.tr()),
             ),
-            DropdownMenuItem<String?>(
+            DropdownMenuItem<String>(
               value: 'sec_3',
               child: Text(LocaleKeys.sec_3.tr()),
             ),
           ],
-          onChanged: onGradeChanged,
+          onChanged: (v) {
+            if (v != null) onGradeChanged(v);
+          },
         ),
         const SizedBox(height: 24),
 

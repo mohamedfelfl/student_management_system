@@ -394,57 +394,60 @@ class _NotesDeliveryTabState extends State<NotesDeliveryTab> {
                                           ),
                                           // Content
                                           Expanded(
-                                            child: CheckboxListTile(
-                                              controlAffinity:
-                                                  ListTileControlAffinity
-                                                      .leading,
-                                              value: effectiveDelivered,
-                                              onChanged: canManageNodes
-                                                  ? (bool? val) {
-                                                      if (val != null) {
-                                                        context
-                                                            .read<
-                                                              NotesCubit
-                                                            >()
-                                                            .updateDeliveryStatusLocal(
-                                                              studentId,
-                                                              val,
-                                                            );
+                                            child: Material(
+                                              color: Colors.transparent,
+                                              child: CheckboxListTile(
+                                                controlAffinity:
+                                                    ListTileControlAffinity
+                                                        .leading,
+                                                value: effectiveDelivered,
+                                                onChanged: canManageNodes
+                                                    ? (bool? val) {
+                                                        if (val != null) {
+                                                          context
+                                                              .read<
+                                                                NotesCubit
+                                                              >()
+                                                              .updateDeliveryStatusLocal(
+                                                                studentId,
+                                                                val,
+                                                              );
+                                                        }
                                                       }
-                                                    }
-                                                  : null,
-                                              title: Text(
-                                                student['name'] as String,
-                                                style: theme
-                                                    .textTheme.bodyLarge
-                                                    ?.copyWith(
-                                                  fontWeight:
-                                                      hasPendingChange
-                                                          ? FontWeight.w600
-                                                          : FontWeight
-                                                              .normal,
+                                                    : null,
+                                                title: Text(
+                                                  student['name'] as String,
+                                                  style: theme
+                                                      .textTheme.bodyLarge
+                                                      ?.copyWith(
+                                                    fontWeight:
+                                                        hasPendingChange
+                                                            ? FontWeight.w600
+                                                            : FontWeight
+                                                                .normal,
+                                                  ),
                                                 ),
-                                              ),
-                                              subtitle: Text(
-                                                student['group_name']
-                                                        ?.toString() ??
-                                                    LocaleKeys.no_group
-                                                        .tr(),
-                                                style: theme
-                                                    .textTheme.bodySmall
-                                                    ?.copyWith(
-                                                  color: theme.colorScheme
-                                                      .onSurfaceVariant,
+                                                subtitle: Text(
+                                                  student['group_name']
+                                                          ?.toString() ??
+                                                      LocaleKeys.no_group
+                                                          .tr(),
+                                                  style: theme
+                                                      .textTheme.bodySmall
+                                                      ?.copyWith(
+                                                    color: theme.colorScheme
+                                                        .onSurfaceVariant,
+                                                  ),
                                                 ),
-                                              ),
-                                              secondary:
-                                                  _buildStatusIndicator(
-                                                theme: theme,
-                                                isDelivered: isDelivered,
-                                                effectiveDelivered:
-                                                    effectiveDelivered,
-                                                hasPendingChange:
-                                                    hasPendingChange,
+                                                secondary:
+                                                    _buildStatusIndicator(
+                                                  theme: theme,
+                                                  isDelivered: isDelivered,
+                                                  effectiveDelivered:
+                                                      effectiveDelivered,
+                                                  hasPendingChange:
+                                                      hasPendingChange,
+                                                ),
                                               ),
                                             ),
                                           ),

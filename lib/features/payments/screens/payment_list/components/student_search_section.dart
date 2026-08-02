@@ -152,44 +152,49 @@ class StudentSearchSection extends StatelessWidget {
                             ),
                           ),
                         ),
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: colorScheme.primaryContainer,
-                            child: Text(
-                              (s['name']?.toString() ?? 'S')[0].toUpperCase(),
-                              style: TextStyle(
-                                color: colorScheme.onPrimaryContainer,
-                                fontWeight: FontWeight.bold,
+                        child: Material(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(16.r),
+                          clipBehavior: Clip.antiAlias,
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: colorScheme.primaryContainer,
+                              child: Text(
+                                (s['name']?.toString() ?? 'S')[0].toUpperCase(),
+                                style: TextStyle(
+                                  color: colorScheme.onPrimaryContainer,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
-                          ),
-                          title: Text(
-                            s['name']?.toString() ?? '',
-                            style: textTheme.titleSmall?.copyWith(
-                              color: colorScheme.onSurface,
+                            title: Text(
+                              s['name']?.toString() ?? '',
+                              style: textTheme.titleSmall?.copyWith(
+                                color: colorScheme.onSurface,
+                              ),
                             ),
-                          ),
-                          subtitle: Text(
-                            LocaleKeys.student_serial.tr(
-                              args: [s['serial_number'].toString()],
+                            subtitle: Text(
+                              LocaleKeys.student_serial.tr(
+                                args: [s['serial_number'].toString()],
+                              ),
+                              style: textTheme.labelSmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
                             ),
-                            style: textTheme.labelSmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
+                            trailing: Icon(
+                              Icons.arrow_forward_ios,
+                              size: 16,
+                              color: colorScheme.onSurfaceVariant.withValues(
+                                alpha: 0.6,
+                              ),
                             ),
+                            onTap: () {
+                              onStudentSelected(s);
+                              context.read<PaymentCubit>().loadPayments(
+                                s['id'] as int,
+                              );
+                            },
                           ),
-                          trailing: Icon(
-                            Icons.arrow_forward_ios,
-                            size: 16,
-                            color: colorScheme.onSurfaceVariant.withValues(
-                              alpha: 0.6,
-                            ),
-                          ),
-                          onTap: () {
-                            onStudentSelected(s);
-                            context.read<PaymentCubit>().loadPayments(
-                              s['id'] as int,
-                            );
-                          },
                         ),
                       ),
                     ),

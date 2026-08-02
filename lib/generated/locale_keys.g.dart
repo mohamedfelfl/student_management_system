@@ -237,12 +237,6 @@ abstract class  LocaleKeys {
   static const daily_payments = 'daily_payments';
   static const paid_date = 'paid_date';
   static const grade = 'grade';
-  static const primary_1 = 'primary_1';
-  static const primary_2 = 'primary_2';
-  static const primary_3 = 'primary_3';
-  static const primary_4 = 'primary_4';
-  static const primary_5 = 'primary_5';
-  static const primary_6 = 'primary_6';
   static const prep_1 = 'prep_1';
   static const prep_2 = 'prep_2';
   static const prep_3 = 'prep_3';

@@ -5,9 +5,8 @@ import 'package:flutter/services.dart';
 import '../../../../../app/constants/dimens.dart';
 import '../../../../../generated/locale_keys.g.dart';
 
-/// Personal info fields: serial, name, address, phones, father job, school, previous teacher.
+/// Personal info fields: name, address, phones, father job, school, previous teacher.
 class StudentInfoSection extends StatelessWidget {
-  final TextEditingController serialController;
   final TextEditingController nameController;
   final TextEditingController addressController;
   final TextEditingController phone1Controller;
@@ -18,7 +17,6 @@ class StudentInfoSection extends StatelessWidget {
 
   const StudentInfoSection({
     super.key,
-    required this.serialController,
     required this.nameController,
     required this.addressController,
     required this.phone1Controller,
@@ -33,18 +31,6 @@ class StudentInfoSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Serial Number
-        TextFormField(
-          controller: serialController,
-          decoration: InputDecoration(
-            labelText: LocaleKeys.serial_number.tr(),
-            prefixIcon: const Icon(Icons.tag),
-          ),
-          validator: (v) =>
-              v == null || v.isEmpty ? LocaleKeys.required_field.tr() : null,
-        ),
-        SizedBox(height: AppDimens.h24),
-
         // Name
         TextFormField(
           controller: nameController,

@@ -31,7 +31,7 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
   final TextEditingController _previousTeacherController =
       TextEditingController();
   int? _selectedGroupId;
-  String? _selectedGrade;
+  String _selectedGrade = 'prep_1';
   String _selectedStatus = 'normal';
   String? _selectedAttendanceDay;
   bool _isEditing = false;
@@ -44,6 +44,20 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
     if (widget.id != null) {
       _isEditing = true;
       _loadStudent();
+    } else {
+      _selectedGrade = 'prep_1';
+      _updateNextSerial('prep_1');
+    }
+  }
+
+  Future<void> _updateNextSerial(String grade) async {
+    if (_isEditing) return;
+    final String nextSerial =
+        await context.read<StudentCubit>().getNextSerialNumber(grade);
+    if (mounted) {
+      setState(() {
+        _serialController.text = nextSerial;
+      });
     }
   }
 
@@ -65,12 +79,6 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
 
       final String? gradeValue = student['grade']?.toString();
       const List<String> validGrades = [
-        'primary_1',
-        'primary_2',
-        'primary_3',
-        'primary_4',
-        'primary_5',
-        'primary_6',
         'prep_1',
         'prep_2',
         'prep_3',
@@ -78,7 +86,7 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
         'sec_2',
         'sec_3',
       ];
-      _selectedGrade = validGrades.contains(gradeValue) ? gradeValue : null;
+      _selectedGrade = validGrades.contains(gradeValue) ? gradeValue! : 'prep_1';
 
       _selectedStatus = student['student_status']?.toString() ?? 'normal';
 
@@ -140,7 +148,6 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
                   SizedBox(height: AppDimens.h24),
 
                   StudentInfoSection(
-                    serialController: _serialController,
                     nameController: _nameController,
                     addressController: _addressController,
                     phone1Controller: _phone1Controller,
@@ -155,12 +162,33 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
                     selectedStatus: _selectedStatus,
                     selectedGroupId: _selectedGroupId,
                     selectedAttendanceDay: _selectedAttendanceDay,
-                    onGradeChanged: (v) => setState(() => _selectedGrade = v),
+                    onGradeChanged: (v) {
+                      if (v != null) {
+                        setState(() => _selectedGrade = v);
+                        if (!_isEditing) {
+                          _updateNextSerial(v);
+                        }
+                      }
+                    },
                     onStatusChanged: (v) => setState(() => _selectedStatus = v),
                     onGroupChanged: (v) => setState(() => _selectedGroupId = v),
                     onAttendanceDayChanged: (v) =>
                         setState(() => _selectedAttendanceDay = v),
                   ),
+
+                  // Auto-Generated Serial Number (Bottom Field)
+                  TextFormField(
+                    controller: _serialController,
+                    readOnly: !_isEditing,
+                    decoration: InputDecoration(
+                      labelText: LocaleKeys.serial_number.tr(),
+                      prefixIcon: const Icon(Icons.tag),
+                      filled: !_isEditing,
+                    ),
+                    validator: (v) =>
+                        v == null || v.isEmpty ? LocaleKeys.required_field.tr() : null,
+                  ),
+                  SizedBox(height: AppDimens.h24),
 
                   // Submit Button
                   SizedBox(
