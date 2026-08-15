@@ -10,11 +10,13 @@ void main() {
       final group = Group(
         id: 1,
         name: 'Physics Group A',
+        grade: 'prep_1',
         schedules: [schedule],
       );
 
       final json = group.toJson();
       expect(json['name'], 'Physics Group A');
+      expect(json['grade'], 'prep_1');
       expect(json['schedules'], isA<List>());
 
       final firstSchedule = json['schedules'][0];
@@ -34,6 +36,7 @@ void main() {
 
       final fromJson = Group.fromJson(jsonForDeserialization);
       expect(fromJson.name, group.name);
+      expect(fromJson.grade, 'prep_1');
       expect(fromJson.schedules.length, 1);
       expect(fromJson.schedules[0].dayOfWeek, 'Saturday');
     });

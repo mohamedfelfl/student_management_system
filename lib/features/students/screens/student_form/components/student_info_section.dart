@@ -14,6 +14,7 @@ class StudentInfoSection extends StatelessWidget {
   final TextEditingController fatherJobController;
   final TextEditingController schoolController;
   final TextEditingController previousTeacherController;
+  final String? Function(String?)? nameValidator;
 
   const StudentInfoSection({
     super.key,
@@ -24,6 +25,7 @@ class StudentInfoSection extends StatelessWidget {
     required this.fatherJobController,
     required this.schoolController,
     required this.previousTeacherController,
+    this.nameValidator,
   });
 
   @override
@@ -38,8 +40,9 @@ class StudentInfoSection extends StatelessWidget {
             labelText: LocaleKeys.name.tr(),
             prefixIcon: const Icon(Icons.person_outline),
           ),
-          validator: (v) =>
-              v == null || v.isEmpty ? LocaleKeys.required_field.tr() : null,
+          validator: nameValidator ??
+              (v) =>
+                  v == null || v.isEmpty ? LocaleKeys.required_field.tr() : null,
         ),
         SizedBox(height: AppDimens.h24),
 

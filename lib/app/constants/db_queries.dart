@@ -38,6 +38,7 @@ class DBQueries {
     CREATE TABLE IF NOT EXISTS groups (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
+      grade TEXT,
       day_of_week TEXT,
       time TEXT,
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -231,6 +232,8 @@ class DBQueries {
       'ALTER TABLE users ADD COLUMN salt TEXT';
   static const String alterUsersAddMustChangePassword =
       'ALTER TABLE users ADD COLUMN must_change_password INTEGER NOT NULL DEFAULT 0';
+  static const String alterGroupsAddGrade =
+      'ALTER TABLE groups ADD COLUMN grade TEXT';
   static const String alterStudentsAddGrade =
       'ALTER TABLE students ADD COLUMN grade TEXT';
   static const String alterStudentsAddStatus =

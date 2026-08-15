@@ -12,6 +12,7 @@ import '../../../cubits/group_cubit.dart';
 class StudentLinkingSection extends StatelessWidget {
   final bool isEditing;
   final int? groupId;
+  final String? selectedGrade;
   final List<int> selectedStudentIds;
   final List<Map<String, dynamic>> selectedStudentsData;
   final VoidCallback onChanged;
@@ -20,6 +21,7 @@ class StudentLinkingSection extends StatelessWidget {
     super.key,
     required this.isEditing,
     this.groupId,
+    this.selectedGrade,
     required this.selectedStudentIds,
     required this.selectedStudentsData,
     required this.onChanged,
@@ -114,6 +116,7 @@ class StudentLinkingSection extends StatelessWidget {
                         context.read<GroupCubit>().unlinkStudentFromGroup(
                           s['id'] as int,
                           groupId!,
+                          grade: selectedGrade,
                         );
                       } else {
                         selectedStudentIds.remove(s['id'] as int);
@@ -138,7 +141,18 @@ class StudentLinkingSection extends StatelessWidget {
   }
 
   void _showAddStudentDialog(BuildContext context, ColorScheme colorScheme) {
-    context.read<GroupCubit>().loadAvailableStudents();
+    if (selectedGrade == null || selectedGrade!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(LocaleKeys.please_select_stage_first.tr()),
+          backgroundColor: colorScheme.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    context.read<GroupCubit>().loadAvailableStudents(grade: selectedGrade);
 
     showDialog(
       context: context,
@@ -164,6 +178,7 @@ class StudentLinkingSection extends StatelessWidget {
                       onChanged: (query) {
                         context.read<GroupCubit>().loadAvailableStudents(
                           search: query,
+                          grade: selectedGrade,
                         );
                       },
                     ),
@@ -235,6 +250,7 @@ class StudentLinkingSection extends StatelessWidget {
                                           .linkStudentToGroup(
                                             s['id'] as int,
                                             groupId!,
+                                            grade: selectedGrade,
                                           );
                                     } else {
                                       if (!selectedStudentIds.contains(

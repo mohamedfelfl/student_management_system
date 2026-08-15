@@ -106,11 +106,66 @@ class StudentCubit extends Cubit<StudentState> {
 
   // ── CRUD ──
 
-  Future<void> createStudent(Map<String, dynamic> data) async {
+  Future<String> createStudent(Map<String, dynamic> data) async {
     try {
       final Database db = await _databaseService.database;
-      await db.insert(DBQueries.tableStudents, data);
+      final name = data['name']?.toString().trim() ?? '';
+      if (name.isNotEmpty) {
+        final existing = await db.query(
+          DBQueries.tableStudents,
+          where: 'LOWER(TRIM(name)) = LOWER(TRIM(?))',
+          whereArgs: [name],
+        );
+        if (existing.isNotEmpty) {
+          throw Exception('student_name_exists');
+        }
+      }
+
+      final grade = (data['grade']?.toString() ?? 'prep_1').trim().toLowerCase();
+      String serial = data['serial_number']?.toString().trim() ?? '';
+
+      // Perform atomic serial check, allocation & insertion inside a database transaction
+      final finalSerial = await db.transaction<String>((txn) async {
+        bool needsRecalculation = serial.isEmpty;
+        if (!needsRecalculation) {
+          final existing = await txn.rawQuery(
+            'SELECT id FROM ${DBQueries.tableStudents} WHERE serial_number = ?',
+            [serial],
+          );
+          if (existing.isNotEmpty) {
+            needsRecalculation = true;
+          }
+        }
+
+        if (needsRecalculation) {
+          serial = await _calculateNextSerial(txn, grade);
+        }
+
+        final Map<String, dynamic> insertData = Map<String, dynamic>.from(data);
+        insertData['serial_number'] = serial;
+        insertData['grade'] = grade;
+
+        await txn.insert(DBQueries.tableStudents, insertData);
+
+        // Update tracking counter in app_settings table
+        final parsedSerial = int.tryParse(serial);
+        if (parsedSerial != null) {
+          await txn.insert(
+            DBQueries.tableAppSettings,
+            {
+              'key': 'serial_counter_$grade',
+              'value': parsedSerial.toString(),
+              'updated_at': DateTime.now().toIso8601String(),
+            },
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+        }
+
+        return serial;
+      });
+
       await loadStudents();
+      return finalSerial;
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
       rethrow;
@@ -120,6 +175,18 @@ class StudentCubit extends Cubit<StudentState> {
   Future<void> updateStudent(int id, Map<String, dynamic> data) async {
     try {
       final Database db = await _databaseService.database;
+      final name = data['name']?.toString().trim() ?? '';
+      if (name.isNotEmpty) {
+        final existing = await db.query(
+          DBQueries.tableStudents,
+          where: 'LOWER(TRIM(name)) = LOWER(TRIM(?)) AND id != ?',
+          whereArgs: [name, id],
+        );
+        if (existing.isNotEmpty) {
+          throw Exception('student_name_exists');
+        }
+      }
+
       await db.update(
         DBQueries.tableStudents,
         data,
@@ -198,31 +265,80 @@ class StudentCubit extends Cubit<StudentState> {
     'sec_3': 60777,
   };
 
-  Future<String> getNextSerialNumber(String grade) async {
-    final int base = kGradeBaseSerials[grade] ?? 10777;
-    try {
-      final Database db = await _databaseService.database;
-      final List<Map<String, Object?>> rows = await db.query(
-        DBQueries.tableStudents,
-        columns: ['serial_number'],
-        where: 'grade = ?',
-        whereArgs: [grade],
-      );
+  static const Map<String, ({int base, int min, int max})> kGradeSerialRanges = {
+    'prep_1': (base: 10777, min: 10000, max: 19999),
+    'prep_2': (base: 20777, min: 20000, max: 29999),
+    'prep_3': (base: 30777, min: 30000, max: 39999),
+    'sec_1': (base: 40777, min: 40000, max: 49999),
+    'sec_2': (base: 50777, min: 50000, max: 59999),
+    'sec_3': (base: 60777, min: 60000, max: 69999),
+  };
 
-      int maxSerial = base - 1;
-      for (final row in rows) {
-        final serialStr = row['serial_number']?.toString();
-        if (serialStr != null) {
-          final parsed = int.tryParse(serialStr);
-          if (parsed != null && parsed > maxSerial) {
+  Future<String> _calculateNextSerial(dynamic executor, String grade) async {
+    final String cleanGrade = grade.trim().toLowerCase();
+    final config = kGradeSerialRanges[cleanGrade] ??
+        (base: kGradeBaseSerials[cleanGrade] ?? 10777, min: 10000, max: 19999);
+    final int base = config.base;
+
+    int maxSerial = base - 1;
+
+    // 1. Read tracked counter from app_settings
+    try {
+      final List<Map<String, Object?>> tracked = await executor.rawQuery(
+        'SELECT value FROM ${DBQueries.tableAppSettings} WHERE key = ?',
+        ['serial_counter_$cleanGrade'],
+      );
+      if (tracked.isNotEmpty) {
+        final trackedVal = int.tryParse(tracked.first['value']?.toString().trim() ?? '');
+        if (trackedVal != null && trackedVal > maxSerial) {
+          maxSerial = trackedVal;
+        }
+      }
+    } catch (_) {}
+
+    // 2. Read existing serials from students table
+    final List<Map<String, Object?>> rows = await executor.rawQuery(
+      'SELECT serial_number, grade FROM ${DBQueries.tableStudents}',
+    );
+
+    final Set<String> existingSerials = <String>{};
+
+    for (final row in rows) {
+      final serialRaw = row['serial_number']?.toString().trim();
+      if (serialRaw == null || serialRaw.isEmpty) continue;
+      existingSerials.add(serialRaw);
+
+      final rowGrade = row['grade']?.toString().trim().toLowerCase();
+      final parsed = int.tryParse(serialRaw);
+
+      if (parsed != null) {
+        final isSameGrade = (rowGrade == cleanGrade);
+        final isInRange = (parsed >= config.min && parsed <= config.max);
+
+        if (isSameGrade || isInRange) {
+          if (parsed > maxSerial) {
             maxSerial = parsed;
           }
         }
       }
+    }
 
-      final int nextSerial = (maxSerial >= base) ? (maxSerial + 1) : base;
-      return nextSerial.toString();
+    int candidate = (maxSerial >= base) ? (maxSerial + 1) : base;
+
+    while (existingSerials.contains(candidate.toString())) {
+      candidate++;
+    }
+
+    return candidate.toString();
+  }
+
+  Future<String> getNextSerialNumber(String grade) async {
+    try {
+      final Database db = await _databaseService.database;
+      return await _calculateNextSerial(db, grade);
     } catch (e) {
+      final cleanGrade = grade.trim().toLowerCase();
+      final base = kGradeBaseSerials[cleanGrade] ?? 10777;
       return base.toString();
     }
   }

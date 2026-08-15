@@ -21,6 +21,7 @@ class GroupFormScreen extends StatefulWidget {
 class _GroupFormScreenState extends State<GroupFormScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
+  String? _selectedGrade;
   final List<String> _selectedDays = [];
   final Map<String, TimeOfDay> _dayTimes = {};
   bool _isEditing = false;
@@ -40,8 +41,9 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
       _isEditing = true;
       _loadGroup();
       context.read<GroupCubit>().loadGroupStudents(widget.id!);
+    } else {
+      context.read<GroupCubit>().loadAvailableStudents();
     }
-    context.read<GroupCubit>().loadAvailableStudents();
   }
 
   void _loadGroup() {
@@ -54,6 +56,7 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
         .firstOrNull;
     if (g != null) {
       _nameController.text = g['name']?.toString() ?? '';
+      _selectedGrade = g['grade']?.toString();
 
       final List<dynamic> schedules = g['schedules'] ?? [];
       for (final s in schedules) {
@@ -70,6 +73,7 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
         }
       }
       setState(() {});
+      context.read<GroupCubit>().loadAvailableStudents(grade: _selectedGrade);
     }
   }
 
@@ -167,11 +171,78 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
                       prefixIcon: const Icon(Icons.groups),
                       border: const OutlineInputBorder(),
                     ),
-                    validator: (v) => v == null || v.isEmpty
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) {
+                        return LocaleKeys.required_field.tr();
+                      }
+                      final name = v.trim().toLowerCase();
+                      final groups = context.read<GroupCubit>().state.groups;
+                      final isDuplicate = groups.any((g) {
+                        final gName = (g['name'] as String?)?.trim().toLowerCase();
+                        if (gName != name) return false;
+                        if (_isEditing && g['id'] == widget.id) return false;
+                        return true;
+                      });
+                      if (isDuplicate) {
+                        return LocaleKeys.group_name_exists.tr();
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 24.h),
+
+                  // Stage / Grade Dropdown
+                  DropdownButtonFormField<String>(
+                    key: ValueKey('grade_$_selectedGrade'),
+                    initialValue: _selectedGrade,
+                    decoration: InputDecoration(
+                      labelText: LocaleKeys.grade.tr(),
+                      prefixIcon: const Icon(Icons.school),
+                      border: const OutlineInputBorder(),
+                    ),
+                    validator: (v) => (v == null || v.isEmpty)
                         ? LocaleKeys.required_field.tr()
                         : null,
+                    items: [
+                      DropdownMenuItem<String>(
+                        value: 'prep_1',
+                        child: Text(LocaleKeys.prep_1.tr()),
+                      ),
+                      DropdownMenuItem<String>(
+                        value: 'prep_2',
+                        child: Text(LocaleKeys.prep_2.tr()),
+                      ),
+                      DropdownMenuItem<String>(
+                        value: 'prep_3',
+                        child: Text(LocaleKeys.prep_3.tr()),
+                      ),
+                      DropdownMenuItem<String>(
+                        value: 'sec_1',
+                        child: Text(LocaleKeys.sec_1.tr()),
+                      ),
+                      DropdownMenuItem<String>(
+                        value: 'sec_2',
+                        child: Text(LocaleKeys.sec_2.tr()),
+                      ),
+                      DropdownMenuItem<String>(
+                        value: 'sec_3',
+                        child: Text(LocaleKeys.sec_3.tr()),
+                      ),
+                    ],
+                    onChanged: (val) {
+                      setState(() {
+                        _selectedGrade = val;
+                        // If creating, clean up selected students that don't match the new grade
+                        if (!_isEditing && val != null) {
+                          _selectedStudentsData.removeWhere((s) => s['grade'] != val);
+                          _selectedStudentIds.clear();
+                          _selectedStudentIds.addAll(_selectedStudentsData.map((s) => s['id'] as int));
+                        }
+                      });
+                      context.read<GroupCubit>().loadAvailableStudents(grade: val);
+                    },
                   ),
-                  SizedBox(height: 32.h),
+                  SizedBox(height: 24.h),
 
                   ScheduleSection(
                     days: _days,
@@ -215,6 +286,7 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
                   StudentLinkingSection(
                     isEditing: _isEditing,
                     groupId: widget.id,
+                    selectedGrade: _selectedGrade,
                     selectedStudentIds: _selectedStudentIds,
                     selectedStudentsData: _selectedStudentsData,
                     onChanged: () => setState(() {}),
@@ -231,6 +303,17 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
   Future<void> _submit() async {
     if (_isSubmitting) return;
     if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    if (_selectedGrade == null || _selectedGrade!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(LocaleKeys.please_select_stage_first.tr()),
+          backgroundColor: Theme.of(context).colorScheme.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
 
     if (_selectedDays.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -253,6 +336,7 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
 
       final Map<String, Object?> data = {
         'name': _nameController.text.trim(),
+        'grade': _selectedGrade,
         'schedules': schedules,
         if (!_isEditing) 'studentIds': _selectedStudentIds,
       };
@@ -276,9 +360,13 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
       }
     } catch (e) {
       if (mounted) {
+        final errorMsg = e.toString().contains('group_name_exists')
+            ? LocaleKeys.group_name_exists.tr()
+            : e.toString();
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(e.toString()),
+            content: Text(errorMsg),
             backgroundColor: Theme.of(context).colorScheme.error,
             behavior: SnackBarBehavior.floating,
           ),

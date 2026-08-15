@@ -14,6 +14,7 @@ import '../../cubits/shell_navigation_cubit.dart';
 import '../../router/app_router.gr.dart';
 import '../../constants/dimens.dart';
 import '../widgets/responsive_layout.dart';
+import '../../../features/settings/widgets/update_banner.dart';
 
 @RoutePage(name: 'ShellRoute')
 class ShellScreen extends StatelessWidget {
@@ -214,84 +215,91 @@ class ShellScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  body: ResponsiveLayout(
-                    isCollapsed: navState.isCollapsed,
-                    selectedIndex: tabsRouter.activeIndex,
-                    onDestinationSelected: tabsRouter.setActiveIndex,
-                    destinations: destinations,
-                    leading: Padding(
-                      padding: EdgeInsets.all(AppDimens.p8),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Image.asset(
-                            'assets/images/logo.png',
-                            width: 44,
-                            height: 44,
-                            fit: BoxFit.contain,
-                          ),
-                          if (!navState.isCollapsed) ...[
-                            const SizedBox(height: 4),
-                            Text(
-                              'Legendary Eagle',
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.cairo(
-                                fontWeight: FontWeight.w900,
-                                fontSize: 14,
-                                color: colorScheme.primary,
-                              ),
-                            ),
-                            Text(
-                              'Mr. Ali Sabry',
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.cairo(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 11,
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                    trailing: Flexible(
-                      child: SingleChildScrollView(
-                        child: Align(
-                          alignment: Alignment.bottomCenter,
-                          child: Padding(
-                            padding: EdgeInsets.only(bottom: AppDimens.p16),
+                  body: Column(
+                    children: [
+                      const UpdateNotificationBanner(),
+                      Expanded(
+                        child: ResponsiveLayout(
+                          isCollapsed: navState.isCollapsed,
+                          selectedIndex: tabsRouter.activeIndex,
+                          onDestinationSelected: tabsRouter.setActiveIndex,
+                          destinations: destinations,
+                          leading: Padding(
+                            padding: EdgeInsets.all(AppDimens.p8),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                IconButton(
-                                  icon: Icon(
-                                    navState.isCollapsed
-                                        ? Icons.chevron_right
-                                        : Icons.chevron_left,
+                                Image.asset(
+                                  'assets/images/logo.png',
+                                  width: 44,
+                                  height: 44,
+                                  fit: BoxFit.contain,
+                                ),
+                                if (!navState.isCollapsed) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Legendary Eagle',
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.cairo(
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 14,
+                                      color: colorScheme.primary,
+                                    ),
                                   ),
-                                  onPressed: () => context
-                                      .read<ShellNavigationCubit>()
-                                      .toggleSidebar(),
-                                  tooltip: navState.isCollapsed
-                                      ? 'Expand'
-                                      : 'Collapse',
-                                ),
-                                SizedBox(height: AppDimens.h8),
-                                IconButton(
-                                  icon: const Icon(Icons.logout),
-                                  onPressed: () =>
-                                      context.read<AuthCubit>().logout(),
-                                  tooltip: LocaleKeys.logout.tr(),
-                                  color: colorScheme.error,
-                                ),
+                                  Text(
+                                    'Mr. Ali Sabry',
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.cairo(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 11,
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
                               ],
                             ),
                           ),
+                          trailing: Flexible(
+                            child: SingleChildScrollView(
+                              child: Align(
+                                alignment: Alignment.bottomCenter,
+                                child: Padding(
+                                  padding: EdgeInsets.only(bottom: AppDimens.p16),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        icon: Icon(
+                                          navState.isCollapsed
+                                              ? Icons.chevron_right
+                                              : Icons.chevron_left,
+                                        ),
+                                        onPressed: () => context
+                                            .read<ShellNavigationCubit>()
+                                            .toggleSidebar(),
+                                        tooltip: navState.isCollapsed
+                                            ? 'Expand'
+                                            : 'Collapse',
+                                      ),
+                                      SizedBox(height: AppDimens.h8),
+                                      IconButton(
+                                        icon: const Icon(Icons.logout),
+                                        onPressed: () =>
+                                            context.read<AuthCubit>().logout(),
+                                        tooltip: LocaleKeys.logout.tr(),
+                                        color: colorScheme.error,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          mobileBody: child,
+                          desktopBody: child,
                         ),
                       ),
-                    ),
-                    mobileBody: child,
-                    desktopBody: child,
+                    ],
                   ),
                 );
               },

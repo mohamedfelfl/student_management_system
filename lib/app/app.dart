@@ -28,6 +28,7 @@ import '../features/notes/cubits/notes_cubit.dart';
 import '../features/qr_card_generator/presentation/cubits/qr_card_cubit.dart';
 import '../features/qr_card_generator/data/repositories/qr_card_repository.dart';
 import '../features/settings/cubits/settings_cubit.dart';
+import '../features/settings/cubits/update_cubit.dart';
 import '../features/settings/services/backup_service.dart';
 import '../features/settings/services/device_binding_service.dart';
 
@@ -135,6 +136,9 @@ class _StudentsManagementAppState extends State<StudentsManagementApp>
             backupService: getIt<BackupService>(),
             deviceBindingService: getIt<DeviceBindingService>(),
           ),
+        ),
+        BlocProvider(
+          create: (_) => getIt<UpdateCubit>()..initialize(),
         ),
       ],
       child: BlocConsumer<LocaleCubit, LocaleState>(

@@ -5,6 +5,8 @@ import '../services/encryption_service.dart';
 import '../../features/settings/services/settings_service.dart';
 import '../../features/settings/services/backup_service.dart';
 import '../../features/settings/services/device_binding_service.dart';
+import '../services/update_service.dart';
+import '../../features/settings/cubits/update_cubit.dart';
 
 final getIt = GetIt.instance;
 
@@ -31,5 +33,14 @@ Future<void> configureDependencies() async {
   // Device Binding
   getIt.registerLazySingleton<DeviceBindingService>(
     () => DeviceBindingService(),
+  );
+
+  // Software Updates (Velopack)
+  getIt.registerLazySingleton<UpdateService>(
+    () => VelopackUpdateService(),
+  );
+
+  getIt.registerFactory<UpdateCubit>(
+    () => UpdateCubit(updateService: getIt<UpdateService>()),
   );
 }

@@ -189,6 +189,9 @@ class DatabaseService {
       await db.execute(DBQueries.alterUsersAddMustChangePassword);
     } catch (_) {}
     try {
+      await db.execute(DBQueries.alterGroupsAddGrade);
+    } catch (_) {}
+    try {
       await db.execute(DBQueries.alterStudentsAddGrade);
     } catch (_) {}
     try {

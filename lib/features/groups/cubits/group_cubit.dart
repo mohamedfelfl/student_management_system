@@ -55,23 +55,34 @@ class GroupCubit extends Cubit<GroupState> {
 
   Future<void> createGroup(Map<String, dynamic> data) async {
     try {
+      final String name = data['name']?.toString().trim() ?? '';
+      final db = await _databaseService.database;
+
+      final existing = await db.query(
+        DBQueries.tableGroups,
+        where: 'LOWER(TRIM(name)) = LOWER(TRIM(?))',
+        whereArgs: [name],
+      );
+      if (existing.isNotEmpty) {
+        throw Exception('group_name_exists');
+      }
+
       final List<Map<String, dynamic>> schedules =
           List<Map<String, dynamic>>.from(data.remove('schedules') ?? []);
       final List<int> studentIds = List<int>.from(
         data.remove('studentIds') ?? [],
       );
 
-      final db = await _databaseService.database;
       await db.transaction((txn) async {
         final groupId = await txn.insert(DBQueries.tableGroups, data);
- 
+
         for (final schedule in schedules) {
           await txn.insert(DBQueries.tableGroupSchedules, {
             ...schedule,
             'group_id': groupId,
           });
         }
- 
+
         // Link students to the new group
         for (final studentId in studentIds) {
           await txn.update(
@@ -86,24 +97,36 @@ class GroupCubit extends Cubit<GroupState> {
       await loadGroups();
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
+      rethrow;
     }
   }
 
   Future<void> updateGroup(int id, Map<String, dynamic> data) async {
     try {
+      final String name = data['name']?.toString().trim() ?? '';
+      final db = await _databaseService.database;
+
+      final existing = await db.query(
+        DBQueries.tableGroups,
+        where: 'LOWER(TRIM(name)) = LOWER(TRIM(?)) AND id != ?',
+        whereArgs: [name, id],
+      );
+      if (existing.isNotEmpty) {
+        throw Exception('group_name_exists');
+      }
+
       final List<Map<String, dynamic>> schedules =
           List<Map<String, dynamic>>.from(data.remove('schedules') ?? []);
 
-      final db = await _databaseService.database;
       await db.transaction((txn) async {
         await txn.update(DBQueries.tableGroups, data, where: 'id = ?', whereArgs: [id]);
- 
+
         // Refresh schedules: delete and re-insert
         await txn.rawDelete(
           DBQueries.deleteGroupSchedulesByGroupId,
           [id],
         );
- 
+
         for (final schedule in schedules) {
           await txn.insert(DBQueries.tableGroupSchedules, {...schedule, 'group_id': id});
         }
@@ -112,6 +135,7 @@ class GroupCubit extends Cubit<GroupState> {
       await loadGroups();
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
+      rethrow;
     }
   }
 
@@ -143,12 +167,16 @@ class GroupCubit extends Cubit<GroupState> {
     }
   }
 
-  /// Load students not currently in any group (available for linking).
-  Future<void> loadAvailableStudents({String search = ''}) async {
+  /// Load students not currently in any group (available for linking), optionally filtered by grade/stage.
+  Future<void> loadAvailableStudents({String search = '', String? grade}) async {
     try {
       final db = await _databaseService.database;
       String query = DBQueries.loadAvailableStudentsBase;
       final List<Object?> args = <Object?>[];
+      if (grade != null && grade.isNotEmpty) {
+        query += ' AND grade = ?';
+        args.add(grade);
+      }
       if (search.isNotEmpty) {
         query += DBQueries.availableStudentsSearchCondition;
         args.add('%$search%');
@@ -163,7 +191,7 @@ class GroupCubit extends Cubit<GroupState> {
   }
 
   /// Link a student to this group.
-  Future<void> linkStudentToGroup(int studentId, int groupId) async {
+  Future<void> linkStudentToGroup(int studentId, int groupId, {String? grade}) async {
     try {
       final db = await _databaseService.database;
       await db.update(
@@ -173,7 +201,7 @@ class GroupCubit extends Cubit<GroupState> {
         whereArgs: [studentId],
       );
       await loadGroupStudents(groupId);
-      await loadAvailableStudents();
+      await loadAvailableStudents(grade: grade);
       await loadGroups();
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
@@ -181,7 +209,7 @@ class GroupCubit extends Cubit<GroupState> {
   }
 
   /// Unlink a student from their group.
-  Future<void> unlinkStudentFromGroup(int studentId, int groupId) async {
+  Future<void> unlinkStudentFromGroup(int studentId, int groupId, {String? grade}) async {
     try {
       final db = await _databaseService.database;
       await db.update(
@@ -191,7 +219,7 @@ class GroupCubit extends Cubit<GroupState> {
         whereArgs: [studentId],
       );
       await loadGroupStudents(groupId);
-      await loadAvailableStudents();
+      await loadAvailableStudents(grade: grade);
       await loadGroups();
     } catch (e) {
       emit(state.copyWith(error: e.toString()));

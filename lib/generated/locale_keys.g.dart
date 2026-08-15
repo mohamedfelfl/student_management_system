@@ -525,5 +525,29 @@ abstract class  LocaleKeys {
   static const friday_group = 'friday_group';
   static const general_group = 'general_group';
   static const qr_card_generator = 'qr_card_generator';
+  static const check_for_updates = 'check_for_updates';
+  static const checking_for_updates = 'checking_for_updates';
+  static const update_available = 'update_available';
+  static const update_available_msg = 'update_available_msg';
+  static const download_and_update = 'download_and_update';
+  static const downloading_update = 'downloading_update';
+  static const update_ready_title = 'update_ready_title';
+  static const update_ready_msg = 'update_ready_msg';
+  static const restart_now = 'restart_now';
+  static const apply_on_exit = 'apply_on_exit';
+  static const app_up_to_date = 'app_up_to_date';
+  static const update_error = 'update_error';
+  static const update_download_error = 'update_download_error';
+  static const release_notes = 'release_notes';
+  static const current_version_label = 'current_version_label';
+  static const latest_version_label = 'latest_version_label';
+  static const dismiss = 'dismiss';
+  static const update_settings_title = 'update_settings_title';
+  static const update_settings_desc = 'update_settings_desc';
+  static const auto_check_updates = 'auto_check_updates';
+  static const retry = 'retry';
+  static const group_name_exists = 'group_name_exists';
+  static const please_select_stage_first = 'please_select_stage_first';
+  static const student_name_exists = 'student_name_exists';
 
 }

@@ -9,6 +9,7 @@ abstract class Group with _$Group {
   const factory Group({
     int? id,
     required String name,
+    String? grade,
     @Default([]) List<GroupSchedule> schedules,
     DateTime? createdAt,
   }) = _Group;

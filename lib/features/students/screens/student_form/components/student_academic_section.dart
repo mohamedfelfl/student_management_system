@@ -36,6 +36,7 @@ class StudentAcademicSection extends StatelessWidget {
       children: [
         // Grade Dropdown
         DropdownButtonFormField<String>(
+          key: ValueKey('grade_${selectedGrade ?? 'prep_1'}'),
           initialValue: selectedGrade ?? 'prep_1',
           decoration: InputDecoration(
             labelText: LocaleKeys.grade.tr(),
@@ -78,6 +79,7 @@ class StudentAcademicSection extends StatelessWidget {
 
         // Student Status Dropdown
         DropdownButtonFormField<String>(
+          key: ValueKey('status_$selectedStatus'),
           initialValue: selectedStatus,
           decoration: InputDecoration(
             labelText: LocaleKeys.student_status.tr(),
@@ -105,6 +107,7 @@ class StudentAcademicSection extends StatelessWidget {
             );
 
             return DropdownButtonFormField<int?>(
+              key: ValueKey('group_$selectedGroupId'),
               initialValue: valueExists ? selectedGroupId : null,
               decoration: InputDecoration(
                 labelText: LocaleKeys.groups.tr(),
@@ -130,6 +133,7 @@ class StudentAcademicSection extends StatelessWidget {
 
         // Attendance Day Dropdown
         DropdownButtonFormField<String?>(
+          key: ValueKey('day_$selectedAttendanceDay'),
           initialValue: selectedAttendanceDay,
           decoration: InputDecoration(
             labelText: LocaleKeys.attendance_day.tr(),

@@ -109,6 +109,28 @@ class GroupCard extends StatelessWidget {
               const SizedBox(height: 16),
               Row(
                 children: [
+                  if (group['grade'] != null && (group['grade'] as String).isNotEmpty)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primaryContainer.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.school, size: 14, color: colorScheme.primary),
+                          const SizedBox(width: 4),
+                          Text(
+                            _localizeGrade(group['grade'].toString()),
+                            style: textTheme.labelSmall?.copyWith(
+                              color: colorScheme.onPrimaryContainer,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   const Spacer(),
                   Chip(
                     label: Text(
@@ -127,6 +149,18 @@ class GroupCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _localizeGrade(String grade) {
+    switch (grade) {
+      case 'prep_1': return LocaleKeys.prep_1.tr();
+      case 'prep_2': return LocaleKeys.prep_2.tr();
+      case 'prep_3': return LocaleKeys.prep_3.tr();
+      case 'sec_1': return LocaleKeys.sec_1.tr();
+      case 'sec_2': return LocaleKeys.sec_2.tr();
+      case 'sec_3': return LocaleKeys.sec_3.tr();
+      default: return grade;
+    }
   }
 
   String _localizeDay(String day) {

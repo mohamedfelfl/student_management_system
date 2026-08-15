@@ -155,6 +155,23 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
                     fatherJobController: _fatherJobController,
                     schoolController: _schoolController,
                     previousTeacherController: _previousTeacherController,
+                    nameValidator: (v) {
+                      if (v == null || v.trim().isEmpty) {
+                        return LocaleKeys.required_field.tr();
+                      }
+                      final name = v.trim().toLowerCase();
+                      final students = context.read<StudentCubit>().state.students;
+                      final isDuplicate = students.any((s) {
+                        final sName = (s['name'] as String?)?.trim().toLowerCase();
+                        if (sName != name) return false;
+                        if (_isEditing && s['id'] == widget.id) return false;
+                        return true;
+                      });
+                      if (isDuplicate) {
+                        return LocaleKeys.student_name_exists.tr();
+                      }
+                      return null;
+                    },
                   ),
 
                   StudentAcademicSection(
@@ -267,7 +284,9 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
     } catch (e) {
       if (mounted) {
         String errorMessage = e.toString();
-        if (errorMessage.contains('UNIQUE constraint failed')) {
+        if (errorMessage.contains('student_name_exists')) {
+          errorMessage = LocaleKeys.student_name_exists.tr();
+        } else if (errorMessage.contains('UNIQUE constraint failed')) {
           errorMessage =
               'This serial number is already in use by another student.';
         }
@@ -279,6 +298,10 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
             behavior: SnackBarBehavior.floating,
           ),
         );
+
+        if (!_isEditing) {
+          _updateNextSerial(_selectedGrade);
+        }
       }
     } finally {
       if (mounted) {

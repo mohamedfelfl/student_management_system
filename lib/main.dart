@@ -7,10 +7,21 @@ import 'package:window_manager/window_manager.dart';
 import 'app/app.dart';
 import 'app/di/injection.dart';
 import 'app/services/database_service.dart';
+import 'app/services/update_service.dart';
 import 'generated/codegen_loader.g.dart';
 
-void main() async {
+void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Velopack startup lifecycle hooks
+  final veloExitCommands = [
+    '--veloapp-obsolete',
+    '--veloapp-uninstall',
+  ];
+  if (veloExitCommands.any((cmd) => args.contains(cmd))) {
+    exit(0);
+  }
+
   await EasyLocalization.ensureInitialized();
 
   if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
@@ -32,6 +43,13 @@ void main() async {
 
   // Configure dependency injection
   await configureDependencies();
+
+  // Initialize update service (caches version & prepares hooks)
+  try {
+    await getIt<UpdateService>().initialize();
+  } catch (e) {
+    debugPrint('UpdateService initialization failed: $e');
+  }
 
   runApp(
     EasyLocalization(

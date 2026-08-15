@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Group {
 
- int? get id; String get name; List<GroupSchedule> get schedules; DateTime? get createdAt;
+ int? get id; String get name; String? get grade; List<GroupSchedule> get schedules; DateTime? get createdAt;
 /// Create a copy of Group
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $GroupCopyWith<Group> get copyWith => _$GroupCopyWithImpl<Group>(this as Group, 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Group&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.schedules, schedules)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Group&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.grade, grade) || other.grade == grade)&&const DeepCollectionEquality().equals(other.schedules, schedules)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,const DeepCollectionEquality().hash(schedules),createdAt);
+int get hashCode => Object.hash(runtimeType,id,name,grade,const DeepCollectionEquality().hash(schedules),createdAt);
 
 @override
 String toString() {
-  return 'Group(id: $id, name: $name, schedules: $schedules, createdAt: $createdAt)';
+  return 'Group(id: $id, name: $name, grade: $grade, schedules: $schedules, createdAt: $createdAt)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $GroupCopyWith<$Res>  {
   factory $GroupCopyWith(Group value, $Res Function(Group) _then) = _$GroupCopyWithImpl;
 @useResult
 $Res call({
- int? id, String name, List<GroupSchedule> schedules, DateTime? createdAt
+ int? id, String name, String? grade, List<GroupSchedule> schedules, DateTime? createdAt
 });
 
 
@@ -65,11 +65,12 @@ class _$GroupCopyWithImpl<$Res>
 
 /// Create a copy of Group
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? name = null,Object? schedules = null,Object? createdAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? name = null,Object? grade = freezed,Object? schedules = null,Object? createdAt = freezed,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,schedules: null == schedules ? _self.schedules : schedules // ignore: cast_nullable_to_non_nullable
+as String,grade: freezed == grade ? _self.grade : grade // ignore: cast_nullable_to_non_nullable
+as String?,schedules: null == schedules ? _self.schedules : schedules // ignore: cast_nullable_to_non_nullable
 as List<GroupSchedule>,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
@@ -156,10 +157,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  String name,  List<GroupSchedule> schedules,  DateTime? createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  String name,  String? grade,  List<GroupSchedule> schedules,  DateTime? createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Group() when $default != null:
-return $default(_that.id,_that.name,_that.schedules,_that.createdAt);case _:
+return $default(_that.id,_that.name,_that.grade,_that.schedules,_that.createdAt);case _:
   return orElse();
 
 }
@@ -177,10 +178,10 @@ return $default(_that.id,_that.name,_that.schedules,_that.createdAt);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  String name,  List<GroupSchedule> schedules,  DateTime? createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  String name,  String? grade,  List<GroupSchedule> schedules,  DateTime? createdAt)  $default,) {final _that = this;
 switch (_that) {
 case _Group():
-return $default(_that.id,_that.name,_that.schedules,_that.createdAt);case _:
+return $default(_that.id,_that.name,_that.grade,_that.schedules,_that.createdAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -197,10 +198,10 @@ return $default(_that.id,_that.name,_that.schedules,_that.createdAt);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  String name,  List<GroupSchedule> schedules,  DateTime? createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  String name,  String? grade,  List<GroupSchedule> schedules,  DateTime? createdAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Group() when $default != null:
-return $default(_that.id,_that.name,_that.schedules,_that.createdAt);case _:
+return $default(_that.id,_that.name,_that.grade,_that.schedules,_that.createdAt);case _:
   return null;
 
 }
@@ -212,11 +213,12 @@ return $default(_that.id,_that.name,_that.schedules,_that.createdAt);case _:
 @JsonSerializable()
 
 class _Group implements Group {
-  const _Group({this.id, required this.name, final  List<GroupSchedule> schedules = const [], this.createdAt}): _schedules = schedules;
+  const _Group({this.id, required this.name, this.grade, final  List<GroupSchedule> schedules = const [], this.createdAt}): _schedules = schedules;
   factory _Group.fromJson(Map<String, dynamic> json) => _$GroupFromJson(json);
 
 @override final  int? id;
 @override final  String name;
+@override final  String? grade;
  final  List<GroupSchedule> _schedules;
 @override@JsonKey() List<GroupSchedule> get schedules {
   if (_schedules is EqualUnmodifiableListView) return _schedules;
@@ -239,16 +241,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Group&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other._schedules, _schedules)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Group&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.grade, grade) || other.grade == grade)&&const DeepCollectionEquality().equals(other._schedules, _schedules)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,const DeepCollectionEquality().hash(_schedules),createdAt);
+int get hashCode => Object.hash(runtimeType,id,name,grade,const DeepCollectionEquality().hash(_schedules),createdAt);
 
 @override
 String toString() {
-  return 'Group(id: $id, name: $name, schedules: $schedules, createdAt: $createdAt)';
+  return 'Group(id: $id, name: $name, grade: $grade, schedules: $schedules, createdAt: $createdAt)';
 }
 
 
@@ -259,7 +261,7 @@ abstract mixin class _$GroupCopyWith<$Res> implements $GroupCopyWith<$Res> {
   factory _$GroupCopyWith(_Group value, $Res Function(_Group) _then) = __$GroupCopyWithImpl;
 @override @useResult
 $Res call({
- int? id, String name, List<GroupSchedule> schedules, DateTime? createdAt
+ int? id, String name, String? grade, List<GroupSchedule> schedules, DateTime? createdAt
 });
 
 
@@ -276,11 +278,12 @@ class __$GroupCopyWithImpl<$Res>
 
 /// Create a copy of Group
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? name = null,Object? schedules = null,Object? createdAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? name = null,Object? grade = freezed,Object? schedules = null,Object? createdAt = freezed,}) {
   return _then(_Group(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,schedules: null == schedules ? _self._schedules : schedules // ignore: cast_nullable_to_non_nullable
+as String,grade: freezed == grade ? _self.grade : grade // ignore: cast_nullable_to_non_nullable
+as String?,schedules: null == schedules ? _self._schedules : schedules // ignore: cast_nullable_to_non_nullable
 as List<GroupSchedule>,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
