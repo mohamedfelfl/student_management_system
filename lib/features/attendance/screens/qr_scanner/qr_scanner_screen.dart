@@ -10,6 +10,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../../../app/router/app_router.gr.dart';
 import '../../../../app/constants/dimens.dart';
+import '../../../../app/shared/animations/app_animations.dart';
 import '../../../../generated/locale_keys.g.dart';
 import '../../cubits/attendance_cubit.dart';
 import '../../models/attendance.dart';
@@ -171,7 +172,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
                         time: record['date'] as String? ?? '',
                         status: displayStatus,
                         statusKey: status,
-                      );
+                      ).animateStaggeredEntrance(index: index);
                     },
                   );
                 },
@@ -228,15 +229,6 @@ class ScannerOverlayPainter extends CustomPainter {
       Offset(size.width, size.height),
       Offset(size.width, size.height - length),
       paint,
-    );
-
-    // Scanning Line Animation placeholder
-    final linePaint = Paint()
-      ..color = color.withValues(alpha: 0.5)
-      ..style = PaintingStyle.fill;
-    canvas.drawRect(
-      Rect.fromLTWH(20, size.height / 2, size.width - 40, 2),
-      linePaint,
     );
   }
 

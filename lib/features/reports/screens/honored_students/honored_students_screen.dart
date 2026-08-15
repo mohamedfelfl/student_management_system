@@ -331,9 +331,9 @@ class _HonoredStudentsScreenState extends State<HonoredStudentsScreen> {
         final isMobile = constraints.maxWidth < 600;
 
         // We rearrange them: Silver (2), Gold (1), Bronze (3) for better podium layout
-        final double podiumHeight = isMobile ? 180.h : 220.h;
+        final double podiumHeight = isMobile ? 160.h : 200.h;
         return SizedBox(
-          height: podiumHeight + 140.h,
+          height: podiumHeight + 180.h,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -389,31 +389,32 @@ class _HonoredStudentsScreenState extends State<HonoredStudentsScreen> {
     return Expanded(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.end,
+        mainAxisSize: MainAxisSize.min,
         children: [
           CircleAvatar(
-            radius: isMobile ? 24.r : 32.r,
+            radius: isMobile ? 22.r : 28.r,
             backgroundColor: color.withValues(alpha: 0.2),
             child: Icon(
               rank == 1 ? Icons.emoji_events : Icons.workspace_premium,
               color: color,
-              size: isMobile ? 28.r : 36.r,
+              size: isMobile ? 24.r : 32.r,
             ),
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: 6.h),
           Text(
             student.studentName,
             style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
-            maxLines: 2,
+            maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          SizedBox(height: 4.h),
+          SizedBox(height: 2.h),
           Text(
             '${student.percentage.toStringAsFixed(1)}%',
-            style: textTheme.bodySmall?.copyWith(color: color),
+            style: textTheme.bodySmall?.copyWith(color: color, fontWeight: FontWeight.w600),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: 6.h),
           Container(
             height: height,
             width: double.infinity,
@@ -436,7 +437,7 @@ class _HonoredStudentsScreenState extends State<HonoredStudentsScreen> {
               ],
             ),
             alignment: Alignment.topCenter,
-            padding: EdgeInsets.only(top: 16.h),
+            padding: EdgeInsets.only(top: 12.h),
             child: Text(
               '#$rank',
               style: textTheme.headlineMedium?.copyWith(

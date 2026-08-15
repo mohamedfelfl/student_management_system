@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../../../app/cubits/locale_cubit.dart';
+import '../../../../../app/shared/widgets/theme_mask/circular_reveal_theme_wrapper.dart';
 import '../../../cubits/settings_cubit.dart';
 
 /// General & Appearance settings section (theme + language).
@@ -58,14 +59,12 @@ class GeneralAppearanceSection extends StatelessWidget {
         onSelectionChanged: (set) {
           final mode = set.first;
           context.read<SettingsCubit>().setThemeMode(mode);
-          final localeCubit = context.read<LocaleCubit>();
-          if (mode == 'dark') {
-            localeCubit.setThemeMode(ThemeMode.dark);
-          } else if (mode == 'light') {
-            localeCubit.setThemeMode(ThemeMode.light);
-          } else {
-            localeCubit.setThemeMode(ThemeMode.system);
-          }
+          final themeMode = mode == 'dark'
+              ? ThemeMode.dark
+              : mode == 'light'
+                  ? ThemeMode.light
+                  : ThemeMode.system;
+          ThemeMaskController.setThemeMode(context, themeMode);
         },
         showSelectedIcon: false,
         style: ButtonStyle(

@@ -5,11 +5,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 
-import '../../../../generated/locale_keys.g.dart';
-import '../../../../app/router/app_router.gr.dart';
-import '../../../../app/di/injection.dart';
-import '../../../settings/services/device_binding_service.dart';
+import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../app/cubits/locale_cubit.dart';
+import '../../../../app/di/injection.dart';
+import '../../../../app/router/app_router.gr.dart';
+import '../../../../app/shared/animations/app_animations.dart';
+import '../../../../app/shared/animations/pressable_scale.dart';
+import '../../../../app/shared/widgets/theme_mask/animated_theme_switch.dart';
+import '../../../../generated/locale_keys.g.dart';
+import '../../../settings/services/device_binding_service.dart';
 import '../../cubits/auth_cubit.dart';
 
 @RoutePage()
@@ -154,6 +159,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final size = MediaQuery.of(context).size;
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -226,6 +232,73 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
+
+            // Top Controls Bar (Language and Theme Switchers)
+            Positioned(
+              top: 16,
+              left: 20,
+              right: 20,
+              child: SafeArea(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Language Switcher Pill
+                    PressableScale(
+                      onTap: () => context.read<LocaleCubit>().toggleLanguage(),
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? colorScheme.surfaceContainerHigh.withValues(alpha: 0.85)
+                              : colorScheme.surfaceContainerLowest.withValues(alpha: 0.95),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: colorScheme.outlineVariant.withValues(alpha: 0.25),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.language_rounded,
+                              size: 18,
+                              color: colorScheme.primary,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              context.watch<LocaleCubit>().state.languageCode == 'ar'
+                                  ? 'English'
+                                  : 'العربية',
+                              style: GoogleFonts.cairo(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.onSurface,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // Animated Theme Switch (Figma day/night with mask reveal)
+                    AnimatedThemeSwitch(
+                      isDark: isDark,
+                    ),
+                  ],
+                ),
+              ),
+            ),
 
             // Main Content
             SafeArea(
@@ -372,51 +445,54 @@ class _LoginScreenState extends State<LoginScreen> {
                                       loading: () => true,
                                       orElse: () => false,
                                     );
-                                    return SizedBox(
-                                      width: double.infinity,
-                                      height: 56,
-                                      child: ElevatedButton(
-                                        onPressed: isLoading ? null : _submit,
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: colorScheme.primary,
-                                          foregroundColor:
-                                              colorScheme.onPrimary,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              16,
-                                            ),
-                                          ),
-                                          elevation: 4,
-                                          shadowColor: colorScheme.primary
-                                              .withValues(alpha: 0.4),
-                                        ),
-                                        child: isLoading
-                                            ? SizedBox(
-                                                width: 24,
-                                                height: 24,
-                                                child:
-                                                    CircularProgressIndicator(
-                                                      strokeWidth: 2,
-                                                      color:
-                                                          colorScheme.onPrimary,
-                                                    ),
-                                              )
-                                            : Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  Text(
-                                                    LocaleKeys.sign_in.tr(),
-                                                    style: const TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(width: 8),
-                                                  const Icon(Icons.login),
-                                                ],
+                                    return PressableScale(
+                                      onTap: isLoading ? null : _submit,
+                                      child: SizedBox(
+                                        width: double.infinity,
+                                        height: 56,
+                                        child: ElevatedButton(
+                                          onPressed: isLoading ? null : _submit,
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: colorScheme.primary,
+                                            foregroundColor:
+                                                colorScheme.onPrimary,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(
+                                                16,
                                               ),
+                                            ),
+                                            elevation: 4,
+                                            shadowColor: colorScheme.primary
+                                                .withValues(alpha: 0.4),
+                                          ),
+                                          child: isLoading
+                                              ? SizedBox(
+                                                  width: 24,
+                                                  height: 24,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                        strokeWidth: 2,
+                                                        color:
+                                                            colorScheme.onPrimary,
+                                                      ),
+                                                )
+                                              : Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    Text(
+                                                      LocaleKeys.sign_in.tr(),
+                                                      style: const TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    const Icon(Icons.login),
+                                                  ],
+                                                ),
+                                        ),
                                       ),
                                     );
                                   },
@@ -424,7 +500,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ],
                             ),
                           ),
-                        ),
+                        ).animateSpringEntrance(),
 
                         const SizedBox(height: 64),
 

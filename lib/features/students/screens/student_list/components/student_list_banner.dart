@@ -1,6 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../../../app/shared/animations/animated_counter.dart';
+import '../../../../../app/shared/animations/app_animations.dart';
 import 'package:student_management_system/generated/locale_keys.g.dart';
 
 class StudentListBanner extends StatelessWidget {
@@ -51,8 +53,8 @@ class StudentListBanner extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 4.h),
-              Text(
-                '$totalStudents',
+              AnimatedCounter(
+                value: totalStudents,
                 style: textTheme.displayMedium?.copyWith(
                   color: isDark ? colorScheme.onSurface : colorScheme.onPrimary,
                   fontWeight: FontWeight.bold,
@@ -62,6 +64,6 @@ class StudentListBanner extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ).animateSpringEntrance();
   }
 }

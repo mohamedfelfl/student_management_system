@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../app/router/app_router.gr.dart';
+import '../../../../app/shared/animations/app_animations.dart';
 import '../../../../generated/locale_keys.g.dart';
 import '../../cubits/group_cubit.dart';
 import 'components/group_card.dart';
@@ -96,12 +97,13 @@ class _GroupListScreenState extends State<GroupListScreen> {
                           return Wrap(
                             spacing: 16,
                             runSpacing: 16,
-                            children: state.groups.map((g) {
+                            children: List.generate(state.groups.length, (index) {
+                              final g = state.groups[index];
                               return SizedBox(
                                 width: itemWidth,
                                 child: GroupCard(group: g),
-                              );
-                            }).toList(),
+                              ).animateStaggeredEntrance(index: index);
+                            }),
                           );
                         },
                       ),

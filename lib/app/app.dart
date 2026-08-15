@@ -12,6 +12,7 @@ import 'di/injection.dart';
 import 'router/app_router.dart';
 import 'router/app_router.gr.dart';
 import 'services/database_service.dart';
+import 'shared/widgets/theme_mask/circular_reveal_theme_wrapper.dart';
 import 'theme/app_theme.dart';
 import '../features/auth/cubits/auth_cubit.dart';
 import '../features/admin/cubits/admin_cubit.dart';
@@ -172,6 +173,11 @@ class _StudentsManagementAppState extends State<StudentsManagementApp>
                   supportedLocales: context.supportedLocales,
                   localizationsDelegates: context.localizationDelegates,
                   routerConfig: _appRouter.config(),
+                  builder: (context, routerChild) {
+                    return CircularRevealThemeWrapper(
+                      child: routerChild ?? const SizedBox.shrink(),
+                    );
+                  },
                 ),
               );
             },

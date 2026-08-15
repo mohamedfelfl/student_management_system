@@ -21,7 +21,7 @@ class MarkEntryScreen extends StatefulWidget {
 class _MarkEntryScreenState extends State<MarkEntryScreen> {
   bool _isSaving = false;
   final Map<int, TextEditingController> _scoreControllers = {};
-  final Map<int, GlobalKey> _studentKeys = {};
+  final Map<String, GlobalKey> _studentKeys = {};
   bool _hasScrolled = false;
   int? _highlightedStudentId;
   bool _canPop = false;
@@ -181,22 +181,24 @@ class _MarkEntryScreenState extends State<MarkEntryScreen> {
                                     ...groupStudents.map((student) {
                                       final int studentId =
                                           student['id'] as int;
+                                      final String rowKey =
+                                          '${groupName}_$studentId';
                                       _scoreControllers.putIfAbsent(
                                         studentId,
                                         () => TextEditingController(),
                                       );
                                       _studentKeys.putIfAbsent(
-                                        studentId,
+                                        rowKey,
                                         () => GlobalKey(),
                                       );
 
-                                      _scrollToStudentIfNeeded(studentId);
+                                      _scrollToStudentIfNeeded(studentId, rowKey);
 
                                       return StudentMarkRow(
                                         student: student,
                                         scoreController:
                                             _scoreControllers[studentId]!,
-                                        studentKey: _studentKeys[studentId]!,
+                                        studentKey: _studentKeys[rowKey]!,
                                         isHighlighted:
                                             _highlightedStudentId == studentId,
                                         fullMark: fullMark,
@@ -220,14 +222,14 @@ class _MarkEntryScreenState extends State<MarkEntryScreen> {
     );
   }
 
-  void _scrollToStudentIfNeeded(int studentId) {
+  void _scrollToStudentIfNeeded(int studentId, String rowKey) {
     if (widget.studentId != null &&
         !_hasScrolled &&
         widget.studentId == studentId) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_studentKeys[studentId]?.currentContext != null) {
+        if (_studentKeys[rowKey]?.currentContext != null) {
           Scrollable.ensureVisible(
-            _studentKeys[studentId]!.currentContext!,
+            _studentKeys[rowKey]!.currentContext!,
             duration: const Duration(milliseconds: 500),
             curve: Curves.easeInOut,
             alignment: 0.5,

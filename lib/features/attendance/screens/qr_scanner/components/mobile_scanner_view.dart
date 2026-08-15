@@ -6,6 +6,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../cubits/attendance_cubit.dart';
 import '../qr_scanner_screen.dart';
+import 'scanner_laser_beam.dart';
 
 /// Mobile scanner view with camera, controls, and manual entry fallback.
 class MobileScannerView extends StatelessWidget {
@@ -58,6 +59,14 @@ class MobileScannerView extends StatelessWidget {
                 child: CustomPaint(
                   size: const Size(200, 200),
                   painter: ScannerOverlayPainter(color: colorScheme.primary),
+                ),
+              ),
+              // Animated Laser Beam
+              Center(
+                child: ScannerLaserBeam(
+                  width: 200,
+                  height: 200,
+                  color: colorScheme.primary,
                 ),
               ),
               Positioned(

@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../app/constants/dimens.dart';
 import '../../../../../app/router/app_router.gr.dart';
+import '../../../../../app/shared/animations/app_animations.dart';
 import '../../../../../app/theme/app_colors.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../../auth/cubits/auth_cubit.dart';
@@ -125,7 +126,10 @@ class QuickActionsGrid extends StatelessWidget {
           mainAxisSpacing: AppDimens.p16,
           crossAxisSpacing: AppDimens.p16,
           childAspectRatio: 0.85,
-          children: actions,
+          children: List.generate(
+            actions.length,
+            (index) => actions[index].animateStaggeredEntrance(index: index),
+          ),
         );
       },
     );

@@ -14,6 +14,7 @@ import '../../cubits/shell_navigation_cubit.dart';
 import '../../router/app_router.gr.dart';
 import '../../constants/dimens.dart';
 import '../widgets/responsive_layout.dart';
+import '../widgets/theme_mask/animated_theme_switch.dart';
 import '../../../features/settings/widgets/update_banner.dart';
 
 @RoutePage(name: 'ShellRoute')
@@ -201,12 +202,13 @@ class ShellScreen extends StatelessWidget {
                     ),
                     centerTitle: false,
                     actions: [
-                      IconButton(
-                        icon: Icon(
-                          isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Center(
+                          child: AnimatedThemeSwitch(
+                            isDark: isDark,
+                          ),
                         ),
-                        onPressed: () => context.read<LocaleCubit>().toggleThemeMode(),
-                        tooltip: LocaleKeys.theme.tr(),
                       ),
                       IconButton(
                         icon: const Icon(Icons.language_outlined),
@@ -483,15 +485,8 @@ class ShellScreen extends StatelessWidget {
                       ),
                     ),
                     const Spacer(),
-                    Icon(Icons.dark_mode, color: colorScheme.onSurfaceVariant),
-                    const SizedBox(width: 4),
-                    Switch(
-                      value: isDark,
-                      onChanged: (_) {
-                        context.read<LocaleCubit>().setThemeMode(
-                          isDark ? ThemeMode.light : ThemeMode.dark,
-                        );
-                      },
+                    AnimatedThemeSwitch(
+                      isDark: isDark,
                     ),
                   ],
                 ),

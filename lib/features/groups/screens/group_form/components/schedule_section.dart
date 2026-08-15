@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../../../app/utils/time_helper.dart';
 import '../../../../../generated/locale_keys.g.dart';
 
 /// Day and time selection section for group schedules.
@@ -43,11 +44,7 @@ class ScheduleSection extends StatelessWidget {
   }
 
   String _formatTime(TimeOfDay time) {
-    final int hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
-    final String minute = time.minute.toString().padLeft(2, '0');
-    final String period =
-        time.period == DayPeriod.am ? LocaleKeys.am.tr() : LocaleKeys.pm.tr();
-    return '$hour:$minute $period';
+    return TimeHelper.formatTime(time);
   }
 
   @override

@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../../app/constants/dimens.dart';
+import '../../../../../app/shared/animations/app_animations.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../cubits/dashboard_cubit.dart';
 import 'banner_stat.dart';
@@ -71,25 +72,25 @@ class PremiumBanner extends StatelessWidget {
               children: [
                 BannerStat(
                   label: LocaleKeys.total_students.tr(),
-                  value: '${state.totalStudents}',
+                  value: state.totalStudents,
                   isDark: isDark,
                 ),
                 _buildSeparator(colorScheme, isDark),
                 BannerStat(
                   label: LocaleKeys.total_groups.tr(),
-                  value: '${state.totalGroups}',
+                  value: state.totalGroups,
                   isDark: isDark,
                 ),
                 _buildSeparator(colorScheme, isDark),
                 BannerStat(
                   label: LocaleKeys.total_assistants.tr(),
-                  value: '${state.totalAssistants}',
+                  value: state.totalAssistants,
                   isDark: isDark,
                 ),
                 _buildSeparator(colorScheme, isDark),
                 BannerStat(
                   label: LocaleKeys.total_exams.tr(),
-                  value: '${state.totalExams}',
+                  value: state.totalExams,
                   isDark: isDark,
                 ),
               ],
@@ -97,7 +98,7 @@ class PremiumBanner extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ).animateSpringEntrance();
   }
 
   Widget _buildSeparator(ColorScheme colorScheme, bool isDark) {

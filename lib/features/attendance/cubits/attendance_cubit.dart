@@ -6,6 +6,7 @@ import '../../../../generated/locale_keys.g.dart';
 
 import '../../../app/constants/db_queries.dart';
 import '../../../app/services/database_service.dart';
+import '../../../app/utils/time_helper.dart';
 import '../models/attendance.dart';
 
 part 'attendance_cubit.freezed.dart';
@@ -298,25 +299,9 @@ class AttendanceCubit extends Cubit<AttendanceState> {
 
   DateTime? _parseTimeToDateTime(String timeString, DateTime now) {
     if (timeString.isEmpty) return null;
-    try {
-      final RegExp re = RegExp(
-        r'(\d{1,2}):(\d{2})\s*(AM|PM)?',
-        caseSensitive: false,
-      );
-      final match = re.firstMatch(timeString);
-      if (match != null) {
-        int hour = int.parse(match.group(1)!);
-        final int minute = int.parse(match.group(2)!);
-        final String? period = match.group(3);
-
-        if (period != null) {
-          if (period.toUpperCase() == 'PM' && hour < 12) hour += 12;
-          if (period.toUpperCase() == 'AM' && hour == 12) hour = 0;
-        }
-        return DateTime(now.year, now.month, now.day, hour, minute);
-      }
-    } catch (_) {}
-    return null;
+    final time = TimeHelper.parseTime(timeString);
+    if (time == null) return null;
+    return DateTime(now.year, now.month, now.day, time.hour, time.minute);
   }
 
   String _getArabicDayName(String englishDayName) {

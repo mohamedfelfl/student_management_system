@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../../../app/shared/animations/animated_counter.dart';
 import 'package:student_management_system/generated/locale_keys.g.dart';
 
 class RemainingBalanceCard extends StatelessWidget {
@@ -73,8 +74,10 @@ class RemainingBalanceCard extends StatelessWidget {
               SizedBox(height: 8.h),
               FittedBox(
                 fit: BoxFit.scaleDown,
-                child: Text(
-                  '${LocaleKeys.currency_symbol.tr()} ${NumberFormat('#,##0.00').format(remaining)}',
+                child: AnimatedCounter(
+                  value: remaining,
+                  prefix: '${LocaleKeys.currency_symbol.tr()} ',
+                  fractionDigits: 2,
                   style: textTheme.displayLarge?.copyWith(
                     color: onPrimaryContainerColor,
                     fontWeight: FontWeight.w800,

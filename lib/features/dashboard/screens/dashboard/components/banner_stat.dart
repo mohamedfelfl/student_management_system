@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../../app/constants/dimens.dart';
+import '../../../../../app/shared/animations/animated_counter.dart';
 
 class BannerStat extends StatelessWidget {
   final String label;
-  final String value;
+  final num value;
   final bool isDark;
 
   const BannerStat({
@@ -22,8 +23,8 @@ class BannerStat extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          value,
+        AnimatedCounter(
+          value: value,
           style: textTheme.headlineSmall?.copyWith(
             color: isDark ? colorScheme.onSurface : colorScheme.onPrimary,
             fontWeight: FontWeight.bold,

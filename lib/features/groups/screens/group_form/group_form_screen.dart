@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../../app/utils/time_helper.dart';
 import '../../../../generated/locale_keys.g.dart';
 import '../../cubits/group_cubit.dart';
 import 'components/schedule_section.dart';
@@ -66,7 +67,7 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
           if (!_selectedDays.contains(day)) {
             _selectedDays.add(day);
           }
-          final time = _parseTime(timeStr);
+          final time = TimeHelper.parseTime(timeStr);
           if (time != null) {
             _dayTimes[day] = time;
           }
@@ -91,40 +92,10 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
     }
   }
 
-  TimeOfDay? _parseTime(String text) {
-    if (text.isEmpty) return null;
-    try {
-      final RegExp re = RegExp(
-        r'(\d{1,2}):(\d{2})\s*(AM|PM)?',
-        caseSensitive: false,
-      );
-      final match = re.firstMatch(text);
-      if (match != null) {
-        int hour = int.parse(match.group(1)!);
-        final int minute = int.parse(match.group(2)!);
-        final String? period = match.group(3);
-        if (period != null) {
-          if (period.toUpperCase() == 'PM' && hour < 12) hour += 12;
-          if (period.toUpperCase() == 'AM' && hour == 12) hour = 0;
-        }
-        return TimeOfDay(hour: hour, minute: minute);
-      }
-    } catch (_) {}
-    return null;
-  }
-
-  String _formatTime(TimeOfDay time) {
-    final int hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
-    final String minute = time.minute.toString().padLeft(2, '0');
-    final String period =
-        time.period == DayPeriod.am ? LocaleKeys.am.tr() : LocaleKeys.pm.tr();
-    return '$hour:$minute $period';
-  }
-
   Future<void> _pickTime(String day) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
-      initialTime: _dayTimes[day] ?? TimeOfDay.now(),
+      initialTime: _dayTimes[day] ?? const TimeOfDay(hour: 14, minute: 0),
     );
     if (picked != null) {
       setState(() {
@@ -331,7 +302,7 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
     try {
       final List<Map<String, dynamic>> schedules = _selectedDays.map((day) {
         final time = _dayTimes[day] ?? const TimeOfDay(hour: 14, minute: 0);
-        return {'day_of_week': day, 'time': _formatTime(time)};
+        return {'day_of_week': day, 'time': TimeHelper.formatForDb(time)};
       }).toList();
 
       final Map<String, Object?> data = {

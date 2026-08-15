@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../app/constants/dimens.dart';
+import '../../../../../app/shared/animations/app_animations.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../cubits/attendance_cubit.dart';
 
@@ -35,7 +36,7 @@ class DesktopScannerView extends StatelessWidget {
             Icons.qr_code_scanner_rounded,
             size: 80,
             color: colorScheme.primary,
-          ),
+          ).animatePulseHighlight(),
           SizedBox(height: AppDimens.h24),
           Text(
             LocaleKeys.connect_scanner.tr(),
@@ -102,6 +103,6 @@ class DesktopScannerView extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ).animateSpringEntrance();
   }
 }

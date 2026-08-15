@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../app/router/app_router.gr.dart';
+import '../../../../../app/utils/time_helper.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../cubits/group_cubit.dart';
 
@@ -177,8 +178,6 @@ class GroupCard extends StatelessWidget {
   }
 
   String _localizeTime(String time) {
-    return time
-        .replaceAll('AM', LocaleKeys.am.tr())
-        .replaceAll('PM', LocaleKeys.pm.tr());
+    return TimeHelper.localizeTimeString(time);
   }
 }

@@ -29,46 +29,53 @@ class PaymentStatsCard extends StatelessWidget {
           SizedBox(
             width: 192.r,
             height: 192.r,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                CircularProgressIndicator(
-                  value: 1.0,
-                  strokeWidth: 12.r,
-                  color: colorScheme.surfaceContainerHighest,
-                ),
-                CircularProgressIndicator(
-                  value: progress,
-                  strokeWidth: 12.r,
-                  color: colorScheme.primary,
-                  backgroundColor: Colors.transparent,
-                ),
-                Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          '${(progress * 100).toInt()}%',
-                          style: textTheme.displayMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.onSurface,
+            child: TweenAnimationBuilder<double>(
+              tween: Tween<double>(begin: 0.0, end: progress),
+              duration: const Duration(milliseconds: 900),
+              curve: Curves.easeOutCubic,
+              builder: (context, animatedProgress, _) {
+                return Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    CircularProgressIndicator(
+                      value: 1.0,
+                      strokeWidth: 12.r,
+                      color: colorScheme.surfaceContainerHighest,
+                    ),
+                    CircularProgressIndicator(
+                      value: animatedProgress,
+                      strokeWidth: 12.r,
+                      color: colorScheme.primary,
+                      backgroundColor: Colors.transparent,
+                    ),
+                    Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              '${(animatedProgress * 100).toInt()}%',
+                              style: textTheme.displayMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.onSurface,
+                              ),
+                            ),
                           ),
-                        ),
+                          Text(
+                            'تم السداد',
+                            style: textTheme.labelSmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                              letterSpacing: 2.0,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
-                      Text(
-                        'تم السداد',
-                        style: textTheme.labelSmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                          letterSpacing: 2.0,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                    ),
+                  ],
+                );
+              },
             ),
           ),
           SizedBox(height: 24.h),
