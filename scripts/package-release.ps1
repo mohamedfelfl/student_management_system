@@ -46,10 +46,24 @@ $ErrorActionPreference = 'Stop'
 # Ensure .NET 9 roll-forward is enabled for vpk
 $env:DOTNET_ROLL_FORWARD = "LatestMajor"
 
-# Fallback to environment variable for GitHub token if not passed directly
+# Fallback to environment variable or git credential helper for GitHub token if not passed directly
 if (-not $Token) {
     if ($env:GITHUB_TOKEN) { $Token = $env:GITHUB_TOKEN }
     elseif ($env:GH_TOKEN) { $Token = $env:GH_TOKEN }
+    else {
+        try {
+            $credIn = "protocol=https`nhost=github.com`n"
+            $credOut = $credIn | git credential fill 2>$null
+            if ($credOut) {
+                foreach ($line in ($credOut -split "`n")) {
+                    if ($line.Trim().StartsWith("password=")) {
+                        $Token = $line.Trim().Substring(9).Trim()
+                        break
+                    }
+                }
+            }
+        } catch {}
+    }
 }
 
 # Ensure user-level .NET SDK and vpk tools are on PATH
