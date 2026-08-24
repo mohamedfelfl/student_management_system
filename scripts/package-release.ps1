@@ -51,31 +51,36 @@ if (-not $Token) {
     if ($env:GITHUB_TOKEN) { $Token = $env:GITHUB_TOKEN }
     elseif ($env:GH_TOKEN) { $Token = $env:GH_TOKEN }
     else {
-        try {
-            $process = New-Object System.Diagnostics.Process
-            $process.StartInfo.FileName = "git"
-            $process.StartInfo.Arguments = "credential fill"
-            $process.StartInfo.UseShellExecute = $false
-            $process.StartInfo.RedirectStandardInput = $true
-            $process.StartInfo.RedirectStandardOutput = $true
-            $process.StartInfo.CreateNoWindow = $true
-            [void]$process.Start()
-            $process.StandardInput.WriteLine("protocol=https")
-            $process.StandardInput.WriteLine("host=github.com")
-            $process.StandardInput.WriteLine("")
-            $process.StandardInput.Close()
-            $output = $process.StandardOutput.ReadToEnd()
-            $process.WaitForExit()
-            if ($output) {
-                foreach ($line in ($output -split "`r?`n")) {
-                    if ($line.Trim().StartsWith("password=")) {
-                        $Token = $line.Trim().Substring(9).Trim()
-                        break
+        $gcmPaths = @(
+            "C:\Program Files\Git\mingw64\bin\git-credential-manager.exe",
+            "git-credential-manager"
+        )
+        foreach ($gcm in $gcmPaths) {
+            try {
+                $process = New-Object System.Diagnostics.Process
+                $process.StartInfo.FileName = $gcm
+                $process.StartInfo.Arguments = "get"
+                $process.StartInfo.UseShellExecute = $false
+                $process.StartInfo.RedirectStandardInput = $true
+                $process.StartInfo.RedirectStandardOutput = $true
+                $process.StartInfo.CreateNoWindow = $true
+                [void]$process.Start()
+                $process.StandardInput.WriteLine("protocol=https")
+                $process.StandardInput.WriteLine("host=github.com")
+                $process.StandardInput.WriteLine("")
+                $process.StandardInput.Close()
+                $output = $process.StandardOutput.ReadToEnd()
+                $process.WaitForExit()
+                if ($output) {
+                    foreach ($line in ($output -split "`r?`n")) {
+                        if ($line.Trim().StartsWith("password=")) {
+                            $Token = $line.Trim().Substring(9).Trim()
+                            break
+                        }
                     }
                 }
-            }
-        } catch {
-            Write-Warning "Could not extract GitHub token from git credentials: $_"
+                if ($Token) { break }
+            } catch {}
         }
     }
 }
