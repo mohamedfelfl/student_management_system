@@ -1,5 +1,5 @@
 param(
-    [string]$Version = "1.0.8",
+    [string]$Version = "1.0.7",
     [string]$Token,
     [string]$RepoUrl = "https://github.com/mohamedfelfl/student_management_system"
 )

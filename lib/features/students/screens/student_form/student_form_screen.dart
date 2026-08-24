@@ -200,11 +200,12 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
                   // Auto-Generated Serial Number (Bottom Field)
                   TextFormField(
                     controller: _serialController,
-                    readOnly: !_isEditing,
+                    readOnly: true,
                     decoration: InputDecoration(
                       labelText: LocaleKeys.serial_number.tr(),
                       prefixIcon: const Icon(Icons.tag),
-                      filled: !_isEditing,
+                      suffixIcon: const Icon(Icons.lock_outline, size: 18),
+                      filled: true,
                     ),
                     validator: (v) =>
                         v == null || v.isEmpty ? LocaleKeys.required_field.tr() : null,
