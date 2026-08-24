@@ -151,6 +151,10 @@ class _QrCardGeneratorScreenState extends State<QrCardGeneratorScreen> {
                   selectedStage: state.selectedStage,
                   onStageChanged: (stage) =>
                       context.read<QrCardCubit>().selectStageFilter(stage),
+                  selectedStartDate: state.selectedStartDate,
+                  selectedEndDate: state.selectedEndDate,
+                  onDateRangeChanged: (start, end) =>
+                      context.read<QrCardCubit>().selectDateRangeFilter(start, end),
                 ),
 
                 SizedBox(height: AppDimens.h16),

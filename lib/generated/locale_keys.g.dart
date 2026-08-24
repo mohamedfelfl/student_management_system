@@ -494,10 +494,19 @@ abstract class  LocaleKeys {
   static const student_selected_mode = 'student_selected_mode';
   static const group_mode = 'group_mode';
   static const stage_mode = 'stage_mode';
+  static const date_mode = 'date_mode';
   static const all_students_mode = 'all_students_mode';
   static const all_groups = 'all_groups';
   static const select_stage = 'select_stage';
   static const all_stages = 'all_stages';
+  static const select_date_range = 'select_date_range';
+  static const select_date_added = 'select_date_added';
+  static const filter_today = 'filter_today';
+  static const filter_yesterday = 'filter_yesterday';
+  static const filter_last_7_days = 'filter_last_7_days';
+  static const filter_this_month = 'filter_this_month';
+  static const clear_date_filter = 'clear_date_filter';
+  static const added_on_date = 'added_on_date';
   static const search_student_or_code_hint = 'search_student_or_code_hint';
   static const card_preview = 'card_preview';
   static const save_student_card = 'save_student_card';
@@ -549,5 +558,7 @@ abstract class  LocaleKeys {
   static const group_name_exists = 'group_name_exists';
   static const please_select_stage_first = 'please_select_stage_first';
   static const student_name_exists = 'student_name_exists';
+  static const student_notes = 'student_notes';
+  static const student_notes_hint = 'student_notes_hint';
 
 }

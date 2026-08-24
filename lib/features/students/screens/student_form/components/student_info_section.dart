@@ -14,6 +14,7 @@ class StudentInfoSection extends StatelessWidget {
   final TextEditingController fatherJobController;
   final TextEditingController schoolController;
   final TextEditingController previousTeacherController;
+  final TextEditingController? notesController;
   final String? Function(String?)? nameValidator;
 
   const StudentInfoSection({
@@ -25,6 +26,7 @@ class StudentInfoSection extends StatelessWidget {
     required this.fatherJobController,
     required this.schoolController,
     required this.previousTeacherController,
+    this.notesController,
     this.nameValidator,
   });
 
@@ -119,6 +121,22 @@ class StudentInfoSection extends StatelessWidget {
           ),
         ),
         SizedBox(height: AppDimens.h24),
+
+        // Student Notes
+        if (notesController != null) ...[
+          TextFormField(
+            controller: notesController,
+            minLines: 2,
+            maxLines: 4,
+            decoration: InputDecoration(
+              labelText: LocaleKeys.student_notes.tr(),
+              hintText: LocaleKeys.student_notes_hint.tr(),
+              prefixIcon: const Icon(Icons.note_alt_outlined),
+              alignLabelWithHint: true,
+            ),
+          ),
+          SizedBox(height: AppDimens.h24),
+        ],
       ],
     );
   }

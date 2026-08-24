@@ -43,6 +43,8 @@ class QrCardCubit extends Cubit<QrCardState> {
         selectionMode: mode,
         selectedGroupId: null,
         selectedStage: null,
+        selectedStartDate: null,
+        selectedEndDate: null,
       ),
     );
     _applyFilters();
@@ -60,6 +62,26 @@ class QrCardCubit extends Cubit<QrCardState> {
 
   void selectStageFilter(String? stage) {
     emit(state.copyWith(selectedStage: stage));
+    _applyFilters();
+  }
+
+  void selectDateRangeFilter(DateTime? startDate, DateTime? endDate) {
+    emit(
+      state.copyWith(
+        selectedStartDate: startDate,
+        selectedEndDate: endDate,
+      ),
+    );
+    _applyFilters();
+  }
+
+  void clearDateFilter() {
+    emit(
+      state.copyWith(
+        selectedStartDate: null,
+        selectedEndDate: null,
+      ),
+    );
     _applyFilters();
   }
 
@@ -133,6 +155,34 @@ class QrCardCubit extends Cubit<QrCardState> {
           results = results.where((s) {
             return s.stageName == state.selectedStage ||
                 s.stageName == targetFormatted;
+          }).toList();
+        }
+        break;
+      case QRCardSelectionMode.date:
+        if (state.selectedStartDate != null) {
+          final startBoundary = DateTime(
+            state.selectedStartDate!.year,
+            state.selectedStartDate!.month,
+            state.selectedStartDate!.day,
+            0,
+            0,
+            0,
+          );
+          final end = state.selectedEndDate ?? state.selectedStartDate!;
+          final endBoundary = DateTime(
+            end.year,
+            end.month,
+            end.day,
+            23,
+            59,
+            59,
+            999,
+          );
+
+          results = results.where((s) {
+            if (s.createdAt == null) return false;
+            return !s.createdAt!.isBefore(startBoundary) &&
+                !s.createdAt!.isAfter(endBoundary);
           }).toList();
         }
         break;

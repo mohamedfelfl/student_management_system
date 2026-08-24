@@ -24,6 +24,7 @@ abstract class Student with _$Student {
     String? groupName,
     @Default('normal') String studentStatus,
     String? attendanceDay,
+    @Default('') String notes,
     DateTime? createdAt,
   }) = _Student;
 

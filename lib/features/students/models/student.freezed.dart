@@ -17,7 +17,7 @@ mixin _$Student {
 
  int? get id; String get serialNumber; String get name; String get address; String get phone1; String get phone2; String get fatherJob; String get school; String get previousTeacher; String? get grade;/// Foreign key to the Group table
  int? get groupId;/// Populated as a join field — not stored in student table
- String? get groupName; String get studentStatus; String? get attendanceDay; DateTime? get createdAt;
+ String? get groupName; String get studentStatus; String? get attendanceDay; String get notes; DateTime? get createdAt;
 /// Create a copy of Student
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,16 +30,16 @@ $StudentCopyWith<Student> get copyWith => _$StudentCopyWithImpl<Student>(this as
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Student&&(identical(other.id, id) || other.id == id)&&(identical(other.serialNumber, serialNumber) || other.serialNumber == serialNumber)&&(identical(other.name, name) || other.name == name)&&(identical(other.address, address) || other.address == address)&&(identical(other.phone1, phone1) || other.phone1 == phone1)&&(identical(other.phone2, phone2) || other.phone2 == phone2)&&(identical(other.fatherJob, fatherJob) || other.fatherJob == fatherJob)&&(identical(other.school, school) || other.school == school)&&(identical(other.previousTeacher, previousTeacher) || other.previousTeacher == previousTeacher)&&(identical(other.grade, grade) || other.grade == grade)&&(identical(other.groupId, groupId) || other.groupId == groupId)&&(identical(other.groupName, groupName) || other.groupName == groupName)&&(identical(other.studentStatus, studentStatus) || other.studentStatus == studentStatus)&&(identical(other.attendanceDay, attendanceDay) || other.attendanceDay == attendanceDay)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Student&&(identical(other.id, id) || other.id == id)&&(identical(other.serialNumber, serialNumber) || other.serialNumber == serialNumber)&&(identical(other.name, name) || other.name == name)&&(identical(other.address, address) || other.address == address)&&(identical(other.phone1, phone1) || other.phone1 == phone1)&&(identical(other.phone2, phone2) || other.phone2 == phone2)&&(identical(other.fatherJob, fatherJob) || other.fatherJob == fatherJob)&&(identical(other.school, school) || other.school == school)&&(identical(other.previousTeacher, previousTeacher) || other.previousTeacher == previousTeacher)&&(identical(other.grade, grade) || other.grade == grade)&&(identical(other.groupId, groupId) || other.groupId == groupId)&&(identical(other.groupName, groupName) || other.groupName == groupName)&&(identical(other.studentStatus, studentStatus) || other.studentStatus == studentStatus)&&(identical(other.attendanceDay, attendanceDay) || other.attendanceDay == attendanceDay)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,serialNumber,name,address,phone1,phone2,fatherJob,school,previousTeacher,grade,groupId,groupName,studentStatus,attendanceDay,createdAt);
+int get hashCode => Object.hash(runtimeType,id,serialNumber,name,address,phone1,phone2,fatherJob,school,previousTeacher,grade,groupId,groupName,studentStatus,attendanceDay,notes,createdAt);
 
 @override
 String toString() {
-  return 'Student(id: $id, serialNumber: $serialNumber, name: $name, address: $address, phone1: $phone1, phone2: $phone2, fatherJob: $fatherJob, school: $school, previousTeacher: $previousTeacher, grade: $grade, groupId: $groupId, groupName: $groupName, studentStatus: $studentStatus, attendanceDay: $attendanceDay, createdAt: $createdAt)';
+  return 'Student(id: $id, serialNumber: $serialNumber, name: $name, address: $address, phone1: $phone1, phone2: $phone2, fatherJob: $fatherJob, school: $school, previousTeacher: $previousTeacher, grade: $grade, groupId: $groupId, groupName: $groupName, studentStatus: $studentStatus, attendanceDay: $attendanceDay, notes: $notes, createdAt: $createdAt)';
 }
 
 
@@ -50,7 +50,7 @@ abstract mixin class $StudentCopyWith<$Res>  {
   factory $StudentCopyWith(Student value, $Res Function(Student) _then) = _$StudentCopyWithImpl;
 @useResult
 $Res call({
- int? id, String serialNumber, String name, String address, String phone1, String phone2, String fatherJob, String school, String previousTeacher, String? grade, int? groupId, String? groupName, String studentStatus, String? attendanceDay, DateTime? createdAt
+ int? id, String serialNumber, String name, String address, String phone1, String phone2, String fatherJob, String school, String previousTeacher, String? grade, int? groupId, String? groupName, String studentStatus, String? attendanceDay, String notes, DateTime? createdAt
 });
 
 
@@ -67,7 +67,7 @@ class _$StudentCopyWithImpl<$Res>
 
 /// Create a copy of Student
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? serialNumber = null,Object? name = null,Object? address = null,Object? phone1 = null,Object? phone2 = null,Object? fatherJob = null,Object? school = null,Object? previousTeacher = null,Object? grade = freezed,Object? groupId = freezed,Object? groupName = freezed,Object? studentStatus = null,Object? attendanceDay = freezed,Object? createdAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? serialNumber = null,Object? name = null,Object? address = null,Object? phone1 = null,Object? phone2 = null,Object? fatherJob = null,Object? school = null,Object? previousTeacher = null,Object? grade = freezed,Object? groupId = freezed,Object? groupName = freezed,Object? studentStatus = null,Object? attendanceDay = freezed,Object? notes = null,Object? createdAt = freezed,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int?,serialNumber: null == serialNumber ? _self.serialNumber : serialNumber // ignore: cast_nullable_to_non_nullable
@@ -83,7 +83,8 @@ as String?,groupId: freezed == groupId ? _self.groupId : groupId // ignore: cast
 as int?,groupName: freezed == groupName ? _self.groupName : groupName // ignore: cast_nullable_to_non_nullable
 as String?,studentStatus: null == studentStatus ? _self.studentStatus : studentStatus // ignore: cast_nullable_to_non_nullable
 as String,attendanceDay: freezed == attendanceDay ? _self.attendanceDay : attendanceDay // ignore: cast_nullable_to_non_nullable
-as String?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as String?,notes: null == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
+as String,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
 }
@@ -169,10 +170,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  String serialNumber,  String name,  String address,  String phone1,  String phone2,  String fatherJob,  String school,  String previousTeacher,  String? grade,  int? groupId,  String? groupName,  String studentStatus,  String? attendanceDay,  DateTime? createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  String serialNumber,  String name,  String address,  String phone1,  String phone2,  String fatherJob,  String school,  String previousTeacher,  String? grade,  int? groupId,  String? groupName,  String studentStatus,  String? attendanceDay,  String notes,  DateTime? createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Student() when $default != null:
-return $default(_that.id,_that.serialNumber,_that.name,_that.address,_that.phone1,_that.phone2,_that.fatherJob,_that.school,_that.previousTeacher,_that.grade,_that.groupId,_that.groupName,_that.studentStatus,_that.attendanceDay,_that.createdAt);case _:
+return $default(_that.id,_that.serialNumber,_that.name,_that.address,_that.phone1,_that.phone2,_that.fatherJob,_that.school,_that.previousTeacher,_that.grade,_that.groupId,_that.groupName,_that.studentStatus,_that.attendanceDay,_that.notes,_that.createdAt);case _:
   return orElse();
 
 }
@@ -190,10 +191,10 @@ return $default(_that.id,_that.serialNumber,_that.name,_that.address,_that.phone
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  String serialNumber,  String name,  String address,  String phone1,  String phone2,  String fatherJob,  String school,  String previousTeacher,  String? grade,  int? groupId,  String? groupName,  String studentStatus,  String? attendanceDay,  DateTime? createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  String serialNumber,  String name,  String address,  String phone1,  String phone2,  String fatherJob,  String school,  String previousTeacher,  String? grade,  int? groupId,  String? groupName,  String studentStatus,  String? attendanceDay,  String notes,  DateTime? createdAt)  $default,) {final _that = this;
 switch (_that) {
 case _Student():
-return $default(_that.id,_that.serialNumber,_that.name,_that.address,_that.phone1,_that.phone2,_that.fatherJob,_that.school,_that.previousTeacher,_that.grade,_that.groupId,_that.groupName,_that.studentStatus,_that.attendanceDay,_that.createdAt);case _:
+return $default(_that.id,_that.serialNumber,_that.name,_that.address,_that.phone1,_that.phone2,_that.fatherJob,_that.school,_that.previousTeacher,_that.grade,_that.groupId,_that.groupName,_that.studentStatus,_that.attendanceDay,_that.notes,_that.createdAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -210,10 +211,10 @@ return $default(_that.id,_that.serialNumber,_that.name,_that.address,_that.phone
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  String serialNumber,  String name,  String address,  String phone1,  String phone2,  String fatherJob,  String school,  String previousTeacher,  String? grade,  int? groupId,  String? groupName,  String studentStatus,  String? attendanceDay,  DateTime? createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  String serialNumber,  String name,  String address,  String phone1,  String phone2,  String fatherJob,  String school,  String previousTeacher,  String? grade,  int? groupId,  String? groupName,  String studentStatus,  String? attendanceDay,  String notes,  DateTime? createdAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Student() when $default != null:
-return $default(_that.id,_that.serialNumber,_that.name,_that.address,_that.phone1,_that.phone2,_that.fatherJob,_that.school,_that.previousTeacher,_that.grade,_that.groupId,_that.groupName,_that.studentStatus,_that.attendanceDay,_that.createdAt);case _:
+return $default(_that.id,_that.serialNumber,_that.name,_that.address,_that.phone1,_that.phone2,_that.fatherJob,_that.school,_that.previousTeacher,_that.grade,_that.groupId,_that.groupName,_that.studentStatus,_that.attendanceDay,_that.notes,_that.createdAt);case _:
   return null;
 
 }
@@ -225,7 +226,7 @@ return $default(_that.id,_that.serialNumber,_that.name,_that.address,_that.phone
 @JsonSerializable()
 
 class _Student implements Student {
-  const _Student({this.id, required this.serialNumber, required this.name, this.address = '', this.phone1 = '', this.phone2 = '', this.fatherJob = '', this.school = '', this.previousTeacher = '', this.grade, this.groupId, this.groupName, this.studentStatus = 'normal', this.attendanceDay, this.createdAt});
+  const _Student({this.id, required this.serialNumber, required this.name, this.address = '', this.phone1 = '', this.phone2 = '', this.fatherJob = '', this.school = '', this.previousTeacher = '', this.grade, this.groupId, this.groupName, this.studentStatus = 'normal', this.attendanceDay, this.notes = '', this.createdAt});
   factory _Student.fromJson(Map<String, dynamic> json) => _$StudentFromJson(json);
 
 @override final  int? id;
@@ -244,6 +245,7 @@ class _Student implements Student {
 @override final  String? groupName;
 @override@JsonKey() final  String studentStatus;
 @override final  String? attendanceDay;
+@override@JsonKey() final  String notes;
 @override final  DateTime? createdAt;
 
 /// Create a copy of Student
@@ -259,16 +261,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Student&&(identical(other.id, id) || other.id == id)&&(identical(other.serialNumber, serialNumber) || other.serialNumber == serialNumber)&&(identical(other.name, name) || other.name == name)&&(identical(other.address, address) || other.address == address)&&(identical(other.phone1, phone1) || other.phone1 == phone1)&&(identical(other.phone2, phone2) || other.phone2 == phone2)&&(identical(other.fatherJob, fatherJob) || other.fatherJob == fatherJob)&&(identical(other.school, school) || other.school == school)&&(identical(other.previousTeacher, previousTeacher) || other.previousTeacher == previousTeacher)&&(identical(other.grade, grade) || other.grade == grade)&&(identical(other.groupId, groupId) || other.groupId == groupId)&&(identical(other.groupName, groupName) || other.groupName == groupName)&&(identical(other.studentStatus, studentStatus) || other.studentStatus == studentStatus)&&(identical(other.attendanceDay, attendanceDay) || other.attendanceDay == attendanceDay)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Student&&(identical(other.id, id) || other.id == id)&&(identical(other.serialNumber, serialNumber) || other.serialNumber == serialNumber)&&(identical(other.name, name) || other.name == name)&&(identical(other.address, address) || other.address == address)&&(identical(other.phone1, phone1) || other.phone1 == phone1)&&(identical(other.phone2, phone2) || other.phone2 == phone2)&&(identical(other.fatherJob, fatherJob) || other.fatherJob == fatherJob)&&(identical(other.school, school) || other.school == school)&&(identical(other.previousTeacher, previousTeacher) || other.previousTeacher == previousTeacher)&&(identical(other.grade, grade) || other.grade == grade)&&(identical(other.groupId, groupId) || other.groupId == groupId)&&(identical(other.groupName, groupName) || other.groupName == groupName)&&(identical(other.studentStatus, studentStatus) || other.studentStatus == studentStatus)&&(identical(other.attendanceDay, attendanceDay) || other.attendanceDay == attendanceDay)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,serialNumber,name,address,phone1,phone2,fatherJob,school,previousTeacher,grade,groupId,groupName,studentStatus,attendanceDay,createdAt);
+int get hashCode => Object.hash(runtimeType,id,serialNumber,name,address,phone1,phone2,fatherJob,school,previousTeacher,grade,groupId,groupName,studentStatus,attendanceDay,notes,createdAt);
 
 @override
 String toString() {
-  return 'Student(id: $id, serialNumber: $serialNumber, name: $name, address: $address, phone1: $phone1, phone2: $phone2, fatherJob: $fatherJob, school: $school, previousTeacher: $previousTeacher, grade: $grade, groupId: $groupId, groupName: $groupName, studentStatus: $studentStatus, attendanceDay: $attendanceDay, createdAt: $createdAt)';
+  return 'Student(id: $id, serialNumber: $serialNumber, name: $name, address: $address, phone1: $phone1, phone2: $phone2, fatherJob: $fatherJob, school: $school, previousTeacher: $previousTeacher, grade: $grade, groupId: $groupId, groupName: $groupName, studentStatus: $studentStatus, attendanceDay: $attendanceDay, notes: $notes, createdAt: $createdAt)';
 }
 
 
@@ -279,7 +281,7 @@ abstract mixin class _$StudentCopyWith<$Res> implements $StudentCopyWith<$Res> {
   factory _$StudentCopyWith(_Student value, $Res Function(_Student) _then) = __$StudentCopyWithImpl;
 @override @useResult
 $Res call({
- int? id, String serialNumber, String name, String address, String phone1, String phone2, String fatherJob, String school, String previousTeacher, String? grade, int? groupId, String? groupName, String studentStatus, String? attendanceDay, DateTime? createdAt
+ int? id, String serialNumber, String name, String address, String phone1, String phone2, String fatherJob, String school, String previousTeacher, String? grade, int? groupId, String? groupName, String studentStatus, String? attendanceDay, String notes, DateTime? createdAt
 });
 
 
@@ -296,7 +298,7 @@ class __$StudentCopyWithImpl<$Res>
 
 /// Create a copy of Student
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? serialNumber = null,Object? name = null,Object? address = null,Object? phone1 = null,Object? phone2 = null,Object? fatherJob = null,Object? school = null,Object? previousTeacher = null,Object? grade = freezed,Object? groupId = freezed,Object? groupName = freezed,Object? studentStatus = null,Object? attendanceDay = freezed,Object? createdAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? serialNumber = null,Object? name = null,Object? address = null,Object? phone1 = null,Object? phone2 = null,Object? fatherJob = null,Object? school = null,Object? previousTeacher = null,Object? grade = freezed,Object? groupId = freezed,Object? groupName = freezed,Object? studentStatus = null,Object? attendanceDay = freezed,Object? notes = null,Object? createdAt = freezed,}) {
   return _then(_Student(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int?,serialNumber: null == serialNumber ? _self.serialNumber : serialNumber // ignore: cast_nullable_to_non_nullable
@@ -312,7 +314,8 @@ as String?,groupId: freezed == groupId ? _self.groupId : groupId // ignore: cast
 as int?,groupName: freezed == groupName ? _self.groupName : groupName // ignore: cast_nullable_to_non_nullable
 as String?,studentStatus: null == studentStatus ? _self.studentStatus : studentStatus // ignore: cast_nullable_to_non_nullable
 as String,attendanceDay: freezed == attendanceDay ? _self.attendanceDay : attendanceDay // ignore: cast_nullable_to_non_nullable
-as String?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as String?,notes: null == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
+as String,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
 }

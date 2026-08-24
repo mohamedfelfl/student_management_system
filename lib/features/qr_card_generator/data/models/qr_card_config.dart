@@ -2,6 +2,7 @@ enum QRCardSelectionMode {
   student,
   group,
   stage,
+  date,
   all,
 }
 
@@ -10,6 +11,8 @@ class QRCardConfig {
   final String searchQuery;
   final int? selectedGroupId;
   final String? selectedStage;
+  final DateTime? selectedStartDate;
+  final DateTime? selectedEndDate;
   final Set<int> selectedStudentIds;
   final int? activePreviewStudentId;
   final bool isExporting;
@@ -20,6 +23,8 @@ class QRCardConfig {
     this.searchQuery = '',
     this.selectedGroupId,
     this.selectedStage,
+    this.selectedStartDate,
+    this.selectedEndDate,
     this.selectedStudentIds = const {},
     this.activePreviewStudentId,
     this.isExporting = false,
@@ -31,6 +36,8 @@ class QRCardConfig {
     String? searchQuery,
     int? selectedGroupId,
     String? selectedStage,
+    DateTime? selectedStartDate,
+    DateTime? selectedEndDate,
     Set<int>? selectedStudentIds,
     int? activePreviewStudentId,
     bool? isExporting,
@@ -41,6 +48,8 @@ class QRCardConfig {
       searchQuery: searchQuery ?? this.searchQuery,
       selectedGroupId: selectedGroupId ?? this.selectedGroupId,
       selectedStage: selectedStage ?? this.selectedStage,
+      selectedStartDate: selectedStartDate ?? this.selectedStartDate,
+      selectedEndDate: selectedEndDate ?? this.selectedEndDate,
       selectedStudentIds: selectedStudentIds ?? this.selectedStudentIds,
       activePreviewStudentId:
           activePreviewStudentId ?? this.activePreviewStudentId,

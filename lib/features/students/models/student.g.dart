@@ -21,6 +21,7 @@ _Student _$StudentFromJson(Map<String, dynamic> json) => _Student(
   groupName: json['groupName'] as String?,
   studentStatus: json['studentStatus'] as String? ?? 'normal',
   attendanceDay: json['attendanceDay'] as String?,
+  notes: json['notes'] as String? ?? '',
   createdAt: json['createdAt'] == null
       ? null
       : DateTime.parse(json['createdAt'] as String),
@@ -41,5 +42,6 @@ Map<String, dynamic> _$StudentToJson(_Student instance) => <String, dynamic>{
   'groupName': instance.groupName,
   'studentStatus': instance.studentStatus,
   'attendanceDay': instance.attendanceDay,
+  'notes': instance.notes,
   'createdAt': instance.createdAt?.toIso8601String(),
 };

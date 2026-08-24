@@ -12,6 +12,8 @@ abstract class QrCardState with _$QrCardState {
     @Default('') String searchQuery,
     int? selectedGroupId,
     String? selectedStage,
+    DateTime? selectedStartDate,
+    DateTime? selectedEndDate,
     @Default([]) List<StudentCardData> allStudents,
     @Default([]) List<StudentCardData> filteredStudents,
     @Default({}) Set<int> selectedStudentIds,

@@ -15,6 +15,9 @@ _StudentCardData _$StudentCardDataFromJson(Map<String, dynamic> json) =>
       groupName: json['groupName'] as String? ?? '',
       groupSchedule: json['groupSchedule'] as String? ?? '',
       qrPayload: json['qrPayload'] as String,
+      createdAt: json['createdAt'] == null
+          ? null
+          : DateTime.parse(json['createdAt'] as String),
     );
 
 Map<String, dynamic> _$StudentCardDataToJson(_StudentCardData instance) =>
@@ -26,4 +29,5 @@ Map<String, dynamic> _$StudentCardDataToJson(_StudentCardData instance) =>
       'groupName': instance.groupName,
       'groupSchedule': instance.groupSchedule,
       'qrPayload': instance.qrPayload,
+      'createdAt': instance.createdAt?.toIso8601String(),
     };

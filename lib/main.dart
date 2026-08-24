@@ -11,16 +11,18 @@ import 'app/services/update_service.dart';
 import 'generated/codegen_loader.g.dart';
 
 void main(List<String> args) async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // Velopack startup lifecycle hooks
+  // Velopack startup lifecycle hooks - must exit immediately with code 0
   final veloExitCommands = [
+    '--veloapp-install',
+    '--veloapp-updated',
     '--veloapp-obsolete',
     '--veloapp-uninstall',
   ];
   if (veloExitCommands.any((cmd) => args.contains(cmd))) {
     exit(0);
   }
+
+  WidgetsFlutterBinding.ensureInitialized();
 
   await EasyLocalization.ensureInitialized();
 

@@ -248,7 +248,7 @@ class CodegenLoader extends AssetLoader{
   "no_students": "لا يوجد طلاب في هذه المجموعة",
   "daily_payments": "المدفوعات اليومية",
   "paid_date": "تاريخ الدفع",
-  "grade": "المرحلة الدراسة",
+  "grade": "المرحلة الدراسية",
   "prep_1": "الصف الأول الإعدادي",
   "prep_2": "الصف الثاني الإعدادي",
   "prep_3": "الصف الثالث الإعدادي",
@@ -506,10 +506,19 @@ class CodegenLoader extends AssetLoader{
   "student_selected_mode": "طالب محدد",
   "group_mode": "مجموعة شعبة",
   "stage_mode": "المرحلة الدراسية",
+  "date_mode": "تاريخ الإضافة",
   "all_students_mode": "جميع الطلاب",
   "all_groups": "كل المجموعات",
   "select_stage": "اختر المرحلة",
   "all_stages": "كل المراحل",
+  "select_date_range": "اختر الفترة الزمنية",
+  "select_date_added": "اختر تاريخ الإضافة",
+  "filter_today": "اليوم",
+  "filter_yesterday": "أمس",
+  "filter_last_7_days": "آخر 7 أيام",
+  "filter_this_month": "هذا الشهر",
+  "clear_date_filter": "مسح التاريخ",
+  "added_on_date": "تاريخ الإضافة: {}",
   "search_student_or_code_hint": "بحث باسم الطالب أو الكود...",
   "card_preview": "معاينة البطاقة",
   "save_student_card": "حفظ بطاقة الطالب",
@@ -560,7 +569,9 @@ class CodegenLoader extends AssetLoader{
   "retry": "إعادة المحاولة",
   "group_name_exists": "توجد مجموعة بهذا الاسم بالفعل",
   "please_select_stage_first": "يرجى اختيار المرحلة الدراسية أولاً لإضافة الطلاب",
-  "student_name_exists": "يوجد طالب بهذا الاسم بالفعل"
+  "student_name_exists": "يوجد طالب بهذا الاسم بالفعل",
+  "student_notes": "ملاحظات الطالب",
+  "student_notes_hint": "أدخل ملاحظات أو تعليمات خاصة بالطالب..."
 };
 static const Map<String,dynamic> _en = {
   "app_title": "Legendary Eagle",
@@ -1054,10 +1065,19 @@ static const Map<String,dynamic> _en = {
   "student_selected_mode": "Specific Student",
   "group_mode": "Group / Section",
   "stage_mode": "Academic Stage",
+  "date_mode": "Date Added",
   "all_students_mode": "All Students",
   "all_groups": "All Groups",
   "select_stage": "Select Stage",
   "all_stages": "All Stages",
+  "select_date_range": "Select Date Range",
+  "select_date_added": "Select Date Added",
+  "filter_today": "Today",
+  "filter_yesterday": "Yesterday",
+  "filter_last_7_days": "Last 7 Days",
+  "filter_this_month": "This Month",
+  "clear_date_filter": "Clear Date",
+  "added_on_date": "Added: {}",
   "search_student_or_code_hint": "Search by student name or code...",
   "card_preview": "Card Preview",
   "save_student_card": "Save Student Card",
@@ -1108,7 +1128,9 @@ static const Map<String,dynamic> _en = {
   "retry": "Retry",
   "group_name_exists": "A group with this name already exists",
   "please_select_stage_first": "Please select an academic stage first to add students",
-  "student_name_exists": "A student with this name already exists"
+  "student_name_exists": "A student with this name already exists",
+  "student_notes": "Student Notes",
+  "student_notes_hint": "Enter student notes or remarks..."
 };
 static const Map<String, Map<String,dynamic>> mapLocales = {"ar": _ar, "en": _en};
 }

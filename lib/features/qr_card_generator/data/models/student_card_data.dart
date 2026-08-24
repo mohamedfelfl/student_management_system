@@ -15,6 +15,7 @@ abstract class StudentCardData with _$StudentCardData {
     @Default('') String groupName,
     @Default('') String groupSchedule,
     required String qrPayload,
+    DateTime? createdAt,
   }) = _StudentCardData;
 
   factory StudentCardData.fromJson(Map<String, dynamic> json) =>
@@ -49,6 +50,12 @@ abstract class StudentCardData with _$StudentCardData {
     final rawGrade =
         map['grade'] as String? ?? map['stage_name'] as String? ?? '';
 
+    final createdAtRaw = map['created_at'] as String?;
+    DateTime? createdAt;
+    if (createdAtRaw != null && createdAtRaw.isNotEmpty) {
+      createdAt = DateTime.tryParse(createdAtRaw);
+    }
+
     return StudentCardData(
       id: map['id'] as int? ?? 0,
       studentCode: code,
@@ -59,6 +66,7 @@ abstract class StudentCardData with _$StudentCardData {
           map['group_schedule'] as String? ??
           '',
       qrPayload: code,
+      createdAt: createdAt,
     );
   }
 }

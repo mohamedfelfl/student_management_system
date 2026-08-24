@@ -190,16 +190,8 @@ class VelopackUpdateService implements UpdateService {
         }
         return packagesDir;
       }
-
-      // For portable/standalone app, save inside an 'updates' subdirectory in the app folder
-      final updatesDir = Directory(p.join(currentExeDir, 'updates'));
-      if (!updatesDir.existsSync()) {
-        updatesDir.createSync(recursive: true);
-      }
-      return updatesDir;
-    } catch (_) {
-      return await getTemporaryDirectory();
-    }
+    } catch (_) {}
+    return await getTemporaryDirectory();
   }
 
   @override
@@ -266,23 +258,27 @@ class VelopackUpdateService implements UpdateService {
         final currentPid = pid;
 
         if (updateExe != null && pkgPath.endsWith('.nupkg')) {
-          final rootDir = p.basename(currentExeDir).toLowerCase() == 'current'
-              ? p.dirname(currentExeDir)
-              : currentExeDir;
+          final isCurrentFolder = p.basename(currentExeDir).toLowerCase() == 'current';
+          final rootDir = isCurrentFolder ? p.dirname(currentExeDir) : currentExeDir;
 
-          // Use Velopack Update.exe to apply .nupkg to the current app root and restart
+          // Velopack Update.exe global options come before the 'apply' command
+          final List<String> updateArgs = [
+            '--silent',
+          ];
+          if (isCurrentFolder) {
+            updateArgs.addAll(['--rootDir', rootDir]);
+          }
+          updateArgs.addAll([
+            'apply',
+            '--waitPid',
+            currentPid.toString(),
+            '-p',
+            pkgPath,
+          ]);
+
           await Process.start(
             updateExe,
-            [
-              'apply',
-              '--silent',
-              '--rootDir',
-              rootDir,
-              '--waitPid',
-              currentPid.toString(),
-              '-p',
-              pkgPath,
-            ],
+            updateArgs,
             mode: ProcessStartMode.detached,
           );
         } else if (pkgPath.endsWith('.zip')) {
@@ -323,21 +319,25 @@ class VelopackUpdateService implements UpdateService {
         final currentExeDir = p.dirname(Platform.resolvedExecutable);
         final updateExe = _findUpdateExe();
         if (updateExe != null && pkgPath.endsWith('.nupkg')) {
-          final rootDir = p.basename(currentExeDir).toLowerCase() == 'current'
-              ? p.dirname(currentExeDir)
-              : currentExeDir;
+          final isCurrentFolder = p.basename(currentExeDir).toLowerCase() == 'current';
+          final rootDir = isCurrentFolder ? p.dirname(currentExeDir) : currentExeDir;
+
+          final List<String> updateArgs = [
+            '--silent',
+          ];
+          if (isCurrentFolder) {
+            updateArgs.addAll(['--rootDir', rootDir]);
+          }
+          updateArgs.addAll([
+            'apply',
+            '--norestart',
+            '-p',
+            pkgPath,
+          ]);
 
           await Process.start(
             updateExe,
-            [
-              'apply',
-              '--silent',
-              '--rootDir',
-              rootDir,
-              '--norestart',
-              '-p',
-              pkgPath,
-            ],
+            updateArgs,
             mode: ProcessStartMode.detached,
           );
         }
@@ -345,7 +345,7 @@ class VelopackUpdateService implements UpdateService {
     }
   }
 
-  /// Locates Velopack's `Update.exe` in the application directory.
+  /// Locates Velopack's `Update.exe` in the parent or current directory of an installed app.
   String? _findUpdateExe() {
     try {
       final currentExeDir = p.dirname(Platform.resolvedExecutable);
@@ -354,10 +354,6 @@ class VelopackUpdateService implements UpdateService {
 
       final candidate2 = p.normalize(p.join(currentExeDir, 'Update.exe'));
       if (File(candidate2).existsSync()) return candidate2;
-
-      final localAppData = Platform.environment['LOCALAPPDATA'] ?? '';
-      final candidate3 = p.normalize(p.join(localAppData, 'StudentManagementSystem', 'Update.exe'));
-      if (File(candidate3).existsSync()) return candidate3;
     } catch (_) {}
     return null;
   }

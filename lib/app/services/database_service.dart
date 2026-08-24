@@ -200,6 +200,9 @@ class DatabaseService {
     try {
       await db.execute(DBQueries.alterStudentsAddAttendanceDay);
     } catch (_) {}
+    try {
+      await db.execute(DBQueries.alterStudentsAddNotes);
+    } catch (_) {}
 
     // Ensure indexes exist
     try {

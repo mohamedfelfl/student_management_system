@@ -70,6 +70,7 @@ class DBQueries {
       grade TEXT,
       student_status TEXT NOT NULL DEFAULT 'normal',
       attendance_day TEXT,
+      notes TEXT NOT NULL DEFAULT '',
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE SET NULL
     )
@@ -240,6 +241,8 @@ class DBQueries {
       "ALTER TABLE students ADD COLUMN student_status TEXT NOT NULL DEFAULT 'normal'";
   static const String alterStudentsAddAttendanceDay =
       'ALTER TABLE students ADD COLUMN attendance_day TEXT';
+  static const String alterStudentsAddNotes =
+      "ALTER TABLE students ADD COLUMN notes TEXT NOT NULL DEFAULT ''";
 
   // ---------------------------------------------------------------------------
   // Auth Queries
@@ -255,11 +258,11 @@ class DBQueries {
 
   static const String countStudents = 'SELECT COUNT(*) as cnt FROM students';
   static const String insertStudent = '''
-    INSERT INTO students (serial_number, name, address, phone1, phone2, father_job, school, previous_teacher, group_id, grade, student_status, attendance_day)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO students (serial_number, name, address, phone1, phone2, father_job, school, previous_teacher, group_id, grade, student_status, attendance_day, notes)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   ''';
   static const String updateStudent = '''
-    UPDATE students SET serial_number = ?, name = ?, address = ?, phone1 = ?, phone2 = ?, father_job = ?, school = ?, previous_teacher = ?, group_id = ?, grade = ?, student_status = ?, attendance_day = ?
+    UPDATE students SET serial_number = ?, name = ?, address = ?, phone1 = ?, phone2 = ?, father_job = ?, school = ?, previous_teacher = ?, group_id = ?, grade = ?, student_status = ?, attendance_day = ?, notes = ?
     WHERE id = ?
   ''';
   static const String deleteStudent = 'DELETE FROM students WHERE id = ?';

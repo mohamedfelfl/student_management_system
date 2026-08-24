@@ -52,7 +52,7 @@ if (-not $Token) {
     elseif ($env:GH_TOKEN) { $Token = $env:GH_TOKEN }
     else {
         try {
-            $credIn = "protocol=https`nhost=github.com`n"
+            $credIn = "protocol=https`nhost=github.com`n`n"
             $credOut = $credIn | git credential fill 2>$null
             if ($credOut) {
                 foreach ($line in ($credOut -split "`n")) {

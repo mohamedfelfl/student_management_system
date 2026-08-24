@@ -102,6 +102,17 @@ class InfoTab extends StatelessWidget {
                 colorScheme,
                 isDark,
               ),
+              _divider(),
+              _infoRow(
+                LocaleKeys.student_notes.tr(),
+                (student['notes'] != null && student['notes'].toString().trim().isNotEmpty)
+                    ? student['notes'].toString()
+                    : '-',
+                Icons.note_alt_outlined,
+                textTheme,
+                colorScheme,
+                isDark,
+              ),
             ],
           ),
         ),

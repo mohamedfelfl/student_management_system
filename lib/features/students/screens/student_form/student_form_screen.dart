@@ -30,6 +30,7 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
   final TextEditingController _schoolController = TextEditingController();
   final TextEditingController _previousTeacherController =
       TextEditingController();
+  final TextEditingController _notesController = TextEditingController();
   int? _selectedGroupId;
   String _selectedGrade = 'prep_1';
   String _selectedStatus = 'normal';
@@ -75,6 +76,7 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
       _schoolController.text = student['school']?.toString() ?? '';
       _previousTeacherController.text =
           student['previous_teacher']?.toString() ?? '';
+      _notesController.text = student['notes']?.toString() ?? '';
       _selectedGroupId = student['group_id'] as int?;
 
       final String? gradeValue = student['grade']?.toString();
@@ -116,6 +118,7 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
     _fatherJobController.dispose();
     _schoolController.dispose();
     _previousTeacherController.dispose();
+    _notesController.dispose();
     super.dispose();
   }
 
@@ -155,6 +158,7 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
                     fatherJobController: _fatherJobController,
                     schoolController: _schoolController,
                     previousTeacherController: _previousTeacherController,
+                    notesController: _notesController,
                     nameValidator: (v) {
                       if (v == null || v.trim().isEmpty) {
                         return LocaleKeys.required_field.tr();
@@ -256,6 +260,7 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
       'father_job': _fatherJobController.text.trim(),
       'school': _schoolController.text.trim(),
       'previous_teacher': _previousTeacherController.text.trim(),
+      'notes': _notesController.text.trim(),
       'group_id': _selectedGroupId,
       'grade': _selectedGrade,
       'student_status': _selectedStatus,

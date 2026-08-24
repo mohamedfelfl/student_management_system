@@ -152,6 +152,9 @@ class StudentSelectionPanel extends StatelessWidget {
                       final groupText = student.groupName.isNotEmpty
                           ? ' • ${student.groupName}'
                           : '';
+                      final dateText = student.createdAt != null
+                          ? ' • ${DateFormat('yyyy-MM-dd').format(student.createdAt!)}'
+                          : '';
 
                       return Material(
                         color: Colors.transparent,
@@ -177,7 +180,7 @@ class StudentSelectionPanel extends StatelessWidget {
                             ),
                           ),
                           subtitle: Text(
-                            '${student.studentCode} • ${student.stageName}$groupText',
+                            '${student.studentCode} • ${student.stageName}$groupText$dateText',
                             style: textTheme.bodySmall?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                             ),

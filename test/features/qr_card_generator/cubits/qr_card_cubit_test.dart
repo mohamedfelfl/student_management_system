@@ -27,7 +27,7 @@ class MockQrCardRepository implements IQrCardRepository {
 
 void main() {
   group('StudentCardData Model Tests', () {
-    test('fromMap parses raw database map correctly', () {
+    test('fromMap parses raw database map with created_at correctly', () {
       final rawMap = {
         'id': 101,
         'serial_number': 'EM000101',
@@ -35,6 +35,7 @@ void main() {
         'grade': 'prep_1',
         'group_name': 'المجموعة 12',
         'attendance_day': 'السبت و الثلاثاء الساعة 12',
+        'created_at': '2026-08-20 14:30:00',
       };
 
       final studentCard = StudentCardData.fromMap(rawMap);
@@ -44,6 +45,7 @@ void main() {
       expect(studentCard.fullName, equals('إياد أحمد صبري'));
       expect(studentCard.groupSchedule, equals('السبت و الثلاثاء الساعة 12'));
       expect(studentCard.qrPayload, equals('EM000101'));
+      expect(studentCard.createdAt, equals(DateTime(2026, 8, 20, 14, 30)));
     });
 
     test('QRCardConfig copyWith maintains immutability', () {
@@ -66,21 +68,23 @@ void main() {
     late QrCardCubit cubit;
 
     final mockStudents = [
-      const StudentCardData(
+      StudentCardData(
         id: 1,
         studentCode: 'EM000001',
         fullName: 'أحمد علي',
         stageName: 'الصف الأول الثانوي',
         groupName: 'مجموعة أ',
         qrPayload: 'EM000001',
+        createdAt: DateTime(2026, 8, 10, 10, 0),
       ),
-      const StudentCardData(
+      StudentCardData(
         id: 2,
         studentCode: 'EM000002',
         fullName: 'محمود حسن',
         stageName: 'الصف الثاني الثانوي',
         groupName: 'مجموعة ب',
         qrPayload: 'EM000002',
+        createdAt: DateTime(2026, 8, 24, 15, 30),
       ),
     ];
 
@@ -116,6 +120,48 @@ void main() {
 
       expect(cubit.state.filteredStudents.length, equals(1));
       expect(cubit.state.filteredStudents.first.fullName, equals('محمود حسن'));
+    });
+
+    test('selectDateRangeFilter filters student list by date range', () async {
+      await cubit.loadInitialData();
+      cubit.setSelectionMode(QRCardSelectionMode.date);
+
+      // Filter for 2026-08-24
+      cubit.selectDateRangeFilter(
+        DateTime(2026, 8, 24),
+        DateTime(2026, 8, 24),
+      );
+
+      expect(cubit.state.filteredStudents.length, equals(1));
+      expect(cubit.state.filteredStudents.first.id, equals(2));
+      expect(cubit.state.activePreviewStudent?.id, equals(2));
+
+      // Filter for range covering both
+      cubit.selectDateRangeFilter(
+        DateTime(2026, 8, 1),
+        DateTime(2026, 8, 30),
+      );
+      expect(cubit.state.filteredStudents.length, equals(2));
+
+      // Filter for date with no students
+      cubit.selectDateRangeFilter(
+        DateTime(2026, 8, 15),
+        DateTime(2026, 8, 15),
+      );
+      expect(cubit.state.filteredStudents.length, equals(0));
+      expect(cubit.state.activePreviewStudent, isNull);
+    });
+
+    test('clearDateFilter resets date range in state and unfiltered list', () async {
+      await cubit.loadInitialData();
+      cubit.setSelectionMode(QRCardSelectionMode.date);
+      cubit.selectDateRangeFilter(DateTime(2026, 8, 24), DateTime(2026, 8, 24));
+      expect(cubit.state.filteredStudents.length, equals(1));
+
+      cubit.clearDateFilter();
+      expect(cubit.state.selectedStartDate, isNull);
+      expect(cubit.state.selectedEndDate, isNull);
+      expect(cubit.state.filteredStudents.length, equals(2));
     });
   });
 }
