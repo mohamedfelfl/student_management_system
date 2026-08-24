@@ -119,41 +119,38 @@ class TransactionTile extends StatelessWidget {
               child: Align(
                 alignment: AlignmentDirectional.centerStart,
                 child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 6.h),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: isPaid
-                        ? Colors.green.withValues(alpha: 0.1)
-                        : Colors.orange.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(100.r),
+                        ? Colors.green.withValues(alpha: 0.12)
+                        : Colors.orange.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: isPaid
-                          ? Colors.green.withValues(alpha: 0.2)
-                          : Colors.orange.withValues(alpha: 0.2),
+                          ? Colors.green.withValues(alpha: 0.3)
+                          : Colors.orange.withValues(alpha: 0.3),
+                      width: 1.2,
                     ),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        isPaid ? Icons.check_circle : Icons.pending,
+                        isPaid ? Icons.check_circle_rounded : Icons.pending_rounded,
                         color: isPaid
                             ? Colors.green.shade700
-                            : Colors.orange.shade700,
-                        size: 10.w,
+                            : Colors.orange.shade800,
+                        size: 18,
                       ),
-                      SizedBox(width: 4.w),
-                      Flexible(
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            isPaid ? 'مكتمل' : 'غير مكتمل',
-                            style: textTheme.displayLarge?.copyWith(
-                              color: isPaid
-                                  ? Colors.green.shade700
-                                  : Colors.orange.shade700,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                      const SizedBox(width: 6),
+                      Text(
+                        isPaid ? 'مكتمل' : 'غير مكتمل',
+                        style: textTheme.bodyLarge?.copyWith(
+                          color: isPaid
+                              ? Colors.green.shade700
+                              : Colors.orange.shade800,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
                         ),
                       ),
                     ],
@@ -164,13 +161,13 @@ class TransactionTile extends StatelessWidget {
 
             // 5. Actions
             SizedBox(
-              width: 48.w,
+              width: 48,
               child: Center(
                 child: IconButton(
-                  icon: const Icon(Icons.delete_outline),
-                  iconSize: 10.w,
+                  icon: const Icon(Icons.delete_outline_rounded),
+                  iconSize: 20,
                   color: colorScheme.error.withValues(alpha: 0.8),
-                  padding: EdgeInsets.all(8.r),
+                  padding: const EdgeInsets.all(8),
                   constraints: const BoxConstraints(),
                   onPressed: onDelete,
                   style: IconButton.styleFrom(

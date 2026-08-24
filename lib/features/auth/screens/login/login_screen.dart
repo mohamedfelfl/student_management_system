@@ -14,6 +14,7 @@ import '../../../../app/shared/animations/app_animations.dart';
 import '../../../../app/shared/animations/pressable_scale.dart';
 import '../../../../app/shared/widgets/theme_mask/animated_theme_switch.dart';
 import '../../../../generated/locale_keys.g.dart';
+import '../../../../features/settings/widgets/update_banner.dart';
 import '../../../settings/services/device_binding_service.dart';
 import '../../cubits/auth_cubit.dart';
 
@@ -173,28 +174,32 @@ class _LoginScreenState extends State<LoginScreen> {
             },
           );
         },
-        child: Stack(
+        child: Column(
           children: [
-            // Background Decorative Blurs
-            Positioned(
-              top: -size.height * 0.1,
-              left: -size.width * 0.1,
-              child: Container(
-                width: size.width * 0.4,
-                height: size.width * 0.4,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: colorScheme.primary.withValues(alpha: 0.05),
-                  boxShadow: [
-                    BoxShadow(
-                      color: colorScheme.primary.withValues(alpha: 0.05),
-                      blurRadius: 120,
-                      spreadRadius: 120,
+            const UpdateNotificationBanner(),
+            Expanded(
+              child: Stack(
+                children: [
+                  // Background Decorative Blurs
+                  Positioned(
+                    top: -size.height * 0.1,
+                    left: -size.width * 0.1,
+                    child: Container(
+                      width: size.width * 0.4,
+                      height: size.width * 0.4,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: colorScheme.primary.withValues(alpha: 0.05),
+                        boxShadow: [
+                          BoxShadow(
+                            color: colorScheme.primary.withValues(alpha: 0.05),
+                            blurRadius: 120,
+                            spreadRadius: 120,
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
-                ),
-              ),
-            ),
+                  ),
             Positioned(
               bottom: -size.height * 0.1,
               right: -size.width * 0.1,
@@ -545,7 +550,10 @@ class _LoginScreenState extends State<LoginScreen> {
           ],
         ),
       ),
-    );
+    ],
+  ),
+),
+);
   }
 
   Widget _buildInputLabel(String text, ColorScheme colorScheme) {
