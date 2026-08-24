@@ -39,6 +39,7 @@ class VelopackUpdateService implements UpdateService {
 
   String _cachedVersion = '1.0.0';
   String? _downloadedPackagePath;
+  String? _downloadedFileName;
   String? _latestDownloadUrl;
 
   VelopackUpdateService({
@@ -97,37 +98,41 @@ class VelopackUpdateService implements UpdateService {
 
         int? packageSize;
         String? assetDownloadUrl;
+        String? targetFileName;
 
         if (_isInstalledApp) {
-          // 1. Prefer delta nupkg package matching target version
+          // 1. Prefer full nupkg package (guarantees all binaries exist across any version jump)
           for (final asset in assets) {
             final name = (asset['name'] as String? ?? '').toLowerCase();
-            if (name.contains(cleanTag.toLowerCase()) && name.endsWith('delta.nupkg')) {
+            if (name.contains(cleanTag.toLowerCase()) && name.endsWith('full.nupkg')) {
               assetDownloadUrl = asset['browser_download_url'] as String?;
               packageSize = asset['size'] as int?;
+              targetFileName = asset['name'] as String?;
               break;
             }
           }
 
-          // 2. Prefer full nupkg package
+          // 2. Fallback to any full nupkg
           if (assetDownloadUrl == null) {
             for (final asset in assets) {
               final name = (asset['name'] as String? ?? '').toLowerCase();
-              if (name.contains(cleanTag.toLowerCase()) && name.endsWith('full.nupkg')) {
+              if (name.endsWith('full.nupkg')) {
                 assetDownloadUrl = asset['browser_download_url'] as String?;
                 packageSize = asset['size'] as int?;
+                targetFileName = asset['name'] as String?;
                 break;
               }
             }
           }
 
-          // 3. Fallback to any nupkg
+          // 3. Fallback to non-delta nupkg
           if (assetDownloadUrl == null) {
             for (final asset in assets) {
               final name = (asset['name'] as String? ?? '').toLowerCase();
-              if (name.endsWith('.nupkg')) {
+              if (name.endsWith('.nupkg') && !name.endsWith('delta.nupkg')) {
                 assetDownloadUrl = asset['browser_download_url'] as String?;
                 packageSize = asset['size'] as int?;
+                targetFileName = asset['name'] as String?;
                 break;
               }
             }
@@ -141,6 +146,7 @@ class VelopackUpdateService implements UpdateService {
             if (name.contains('setup') && name.endsWith('.exe')) {
               assetDownloadUrl = asset['browser_download_url'] as String?;
               packageSize = asset['size'] as int?;
+              targetFileName = asset['name'] as String?;
               break;
             }
           }
@@ -149,15 +155,17 @@ class VelopackUpdateService implements UpdateService {
         if (assetDownloadUrl == null) {
           for (final asset in assets) {
             final name = (asset['name'] as String? ?? '').toLowerCase();
-            if (name.endsWith('.exe') || name.endsWith('.nupkg')) {
+            if (name.endsWith('.exe') || (name.endsWith('.nupkg') && !name.endsWith('delta.nupkg'))) {
               assetDownloadUrl = asset['browser_download_url'] as String?;
               packageSize = asset['size'] as int?;
+              targetFileName = asset['name'] as String?;
               break;
             }
           }
         }
 
         _latestDownloadUrl = assetDownloadUrl;
+        _downloadedFileName = targetFileName;
 
         if (cleanTag.isNotEmpty && _isNewerVersion(current, cleanTag, allowDowngrade)) {
           return AppUpdateInfo(
@@ -218,13 +226,12 @@ class VelopackUpdateService implements UpdateService {
       final contentLength = response.contentLength ?? (info.packageSize ?? 0);
       final updateDir = await _getUpdateDirectory();
 
-      // Preserve actual file extension from download URL (e.g. .exe or .nupkg)
-      String extension = p.extension(uri.path).toLowerCase();
-      if (extension.isEmpty || (!extension.endsWith('.exe') && !extension.endsWith('.nupkg') && !extension.endsWith('.zip'))) {
-        extension = '.exe';
-      }
+      final fileName = _downloadedFileName ??
+          (p.basename(uri.path).isNotEmpty
+              ? p.basename(uri.path)
+              : 'StudentManagementSystem-${info.targetVersion}-full.nupkg');
 
-      final updateFile = File(p.join(updateDir.path, 'update_${info.targetVersion}$extension'));
+      final updateFile = File(p.join(updateDir.path, fileName));
       final sink = updateFile.openWrite();
 
       int bytesReceived = 0;
