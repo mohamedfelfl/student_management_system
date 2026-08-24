@@ -178,8 +178,9 @@ class TransactionListSection extends StatelessWidget {
 
   Widget _buildTableHeader(TextTheme textTheme, ColorScheme colorScheme) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.2),
         border: Border(
           bottom: BorderSide(
             color: colorScheme.outlineVariant.withValues(alpha: 0.2),
@@ -187,14 +188,14 @@ class TransactionListSection extends StatelessWidget {
         ),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           _headerCell(LocaleKeys.date_month.tr(), 2, textTheme, colorScheme),
-          _headerCell(LocaleKeys.description.tr(), 2, textTheme, colorScheme),
-          SizedBox(width: 16.w),
+          _headerCell(LocaleKeys.description.tr(), 3, textTheme, colorScheme),
           _headerCell(LocaleKeys.total_amount.tr(), 2, textTheme, colorScheme),
           _headerCell(LocaleKeys.paid_amount.tr(), 2, textTheme, colorScheme),
           _headerCell(LocaleKeys.status.tr(), 2, textTheme, colorScheme),
-          SizedBox(width: 48.w), // actions spacing
+          const SizedBox(width: 48), // actions spacing
         ],
       ),
     );
@@ -210,6 +211,7 @@ class TransactionListSection extends StatelessWidget {
       flex: flex,
       child: Text(
         text,
+        textAlign: TextAlign.start,
         style: textTheme.titleSmall?.copyWith(
           fontWeight: FontWeight.bold,
           color: colorScheme.onSurfaceVariant,

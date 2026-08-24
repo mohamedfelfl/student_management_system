@@ -1,6 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:student_management_system/generated/locale_keys.g.dart';
 
 class TransactionTile extends StatelessWidget {
@@ -48,7 +47,7 @@ class TransactionTile extends StatelessWidget {
       onTap: onTap,
       hoverColor: colorScheme.primary.withValues(alpha: 0.05),
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
@@ -64,6 +63,7 @@ class TransactionTile extends StatelessWidget {
               flex: 2,
               child: Text(
                 '$monthName ${payment['year']}',
+                textAlign: TextAlign.start,
                 style: textTheme.bodyLarge?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
@@ -72,28 +72,23 @@ class TransactionTile extends StatelessWidget {
 
             // 2. Description
             Expanded(
-              flex: 2,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    LocaleKeys.semester_fee.tr(args: ['']),
-                    style: textTheme.titleMedium?.copyWith(
-                      color: colorScheme.onSurface,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+              flex: 3,
+              child: Text(
+                LocaleKeys.semester_fee.tr(args: ['']),
+                textAlign: TextAlign.start,
+                style: textTheme.titleMedium?.copyWith(
+                  color: colorScheme.onSurface,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-            SizedBox(width: 16.w),
 
             // 3. Total Amount
             Expanded(
               flex: 2,
               child: Text(
                 '${LocaleKeys.currency_symbol.tr()} ${NumberFormat('#,##0.00').format((payment['total_amount'] as num).toDouble())}',
+                textAlign: TextAlign.start,
                 style: textTheme.titleMedium?.copyWith(
                   color: colorScheme.onSurface,
                   fontWeight: FontWeight.w700,
@@ -106,6 +101,7 @@ class TransactionTile extends StatelessWidget {
               flex: 2,
               child: Text(
                 '${LocaleKeys.currency_symbol.tr()} ${NumberFormat('#,##0.00').format(paid)}',
+                textAlign: TextAlign.start,
                 style: textTheme.titleLarge?.copyWith(
                   color: colorScheme.primary,
                   fontWeight: FontWeight.w800,
