@@ -52,17 +52,31 @@ if (-not $Token) {
     elseif ($env:GH_TOKEN) { $Token = $env:GH_TOKEN }
     else {
         try {
-            $credIn = "protocol=https`nhost=github.com`n`n"
-            $credOut = $credIn | git credential fill 2>$null
-            if ($credOut) {
-                foreach ($line in ($credOut -split "`n")) {
+            $process = New-Object System.Diagnostics.Process
+            $process.StartInfo.FileName = "git"
+            $process.StartInfo.Arguments = "credential fill"
+            $process.StartInfo.UseShellExecute = $false
+            $process.StartInfo.RedirectStandardInput = $true
+            $process.StartInfo.RedirectStandardOutput = $true
+            $process.StartInfo.CreateNoWindow = $true
+            [void]$process.Start()
+            $process.StandardInput.WriteLine("protocol=https")
+            $process.StandardInput.WriteLine("host=github.com")
+            $process.StandardInput.WriteLine("")
+            $process.StandardInput.Close()
+            $output = $process.StandardOutput.ReadToEnd()
+            $process.WaitForExit()
+            if ($output) {
+                foreach ($line in ($output -split "`r?`n")) {
                     if ($line.Trim().StartsWith("password=")) {
                         $Token = $line.Trim().Substring(9).Trim()
                         break
                     }
                 }
             }
-        } catch {}
+        } catch {
+            Write-Warning "Could not extract GitHub token from git credentials: $_"
+        }
     }
 }
 
