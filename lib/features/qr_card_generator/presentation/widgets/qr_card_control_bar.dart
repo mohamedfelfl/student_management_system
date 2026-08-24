@@ -275,39 +275,59 @@ class QrCardControlBar extends StatelessWidget {
                     borderRadius: BorderRadius.circular(AppDimens.r10),
                     child: InputDecorator(
                       decoration: InputDecoration(
+                        filled: selectedStartDate != null,
+                        fillColor: selectedStartDate != null
+                            ? colorScheme.primaryContainer.withValues(alpha: 0.2)
+                            : null,
                         labelText: LocaleKeys.date_mode.tr(),
-                        labelStyle: textTheme.bodyMedium,
+                        labelStyle: textTheme.bodyMedium?.copyWith(
+                          color: selectedStartDate != null
+                              ? colorScheme.primary
+                              : colorScheme.onSurfaceVariant,
+                          fontWeight: selectedStartDate != null
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
                         prefixIcon: Icon(
                           Icons.calendar_month_rounded,
                           size: AppDimens.iconSize20,
-                          color: colorScheme.primary,
+                          color: selectedStartDate != null
+                              ? colorScheme.primary
+                              : colorScheme.onSurfaceVariant,
                         ),
-                        suffixIcon: selectedStartDate != null
-                            ? IconButton(
-                                icon: Icon(
-                                  Icons.close_rounded,
-                                  size: AppDimens.iconSize18,
-                                ),
-                                onPressed: () => onDateRangeChanged(null, null),
-                                tooltip: LocaleKeys.clear_date_filter.tr(),
-                              )
-                            : null,
                         contentPadding: EdgeInsets.symmetric(
                           horizontal: AppDimens.p12,
                           vertical: AppDimens.p10,
                         ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(AppDimens.r10),
+                          borderSide: BorderSide(
+                            color: selectedStartDate != null
+                                ? colorScheme.primary
+                                : colorScheme.outlineVariant.withValues(
+                                    alpha: AppDimens.opacityHalf,
+                                  ),
+                            width: selectedStartDate != null ? 1.5 : 1.0,
+                          ),
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(AppDimens.r10),
+                          borderSide: BorderSide(
+                            color: selectedStartDate != null
+                                ? colorScheme.primary
+                                : colorScheme.outlineVariant,
+                            width: selectedStartDate != null ? 1.5 : 1.0,
+                          ),
                         ),
                       ),
                       child: Text(
                         _formatDateRangeText(),
                         style: textTheme.bodyMedium?.copyWith(
                           fontWeight: selectedStartDate != null
-                              ? FontWeight.w600
+                              ? FontWeight.bold
                               : FontWeight.normal,
                           color: selectedStartDate != null
-                              ? colorScheme.onSurface
+                              ? colorScheme.primary
                               : colorScheme.onSurfaceVariant,
                         ),
                         maxLines: 1,
@@ -353,40 +373,145 @@ class QrCardControlBar extends StatelessWidget {
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 FilterChip(
-                  label: Text(LocaleKeys.filter_today.tr()),
-                  selected: isTodaySelected,
-                  onSelected: (_) => onDateRangeChanged(today, today),
-                  avatar: const Icon(Icons.today_rounded, size: 16),
-                  visualDensity: VisualDensity.compact,
-                ),
-                FilterChip(
-                  label: Text(LocaleKeys.filter_yesterday.tr()),
-                  selected: isYesterdaySelected,
-                  onSelected: (_) => onDateRangeChanged(yesterday, yesterday),
-                  avatar: const Icon(Icons.history_rounded, size: 16),
-                  visualDensity: VisualDensity.compact,
-                ),
-                FilterChip(
-                  label: Text(LocaleKeys.filter_last_7_days.tr()),
-                  selected: is7DaysSelected,
-                  onSelected: (_) => onDateRangeChanged(sevenDaysAgo, today),
-                  avatar: const Icon(Icons.date_range_rounded, size: 16),
-                  visualDensity: VisualDensity.compact,
-                ),
-                FilterChip(
-                  label: Text(LocaleKeys.filter_this_month.tr()),
-                  selected: isMonthSelected,
-                  onSelected: (_) => onDateRangeChanged(firstOfMonth, today),
-                  avatar: const Icon(Icons.calendar_view_month_rounded, size: 16),
-                  visualDensity: VisualDensity.compact,
-                ),
-                if (selectedStartDate != null)
-                  ActionChip(
-                    label: Text(LocaleKeys.clear_date_filter.tr()),
-                    onPressed: () => onDateRangeChanged(null, null),
-                    avatar: const Icon(Icons.clear_rounded, size: 16),
-                    visualDensity: VisualDensity.compact,
+                  label: Text(
+                    LocaleKeys.filter_today.tr(),
+                    style: TextStyle(
+                      color: isTodaySelected
+                          ? Colors.white
+                          : colorScheme.onSurface,
+                      fontWeight: isTodaySelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                    ),
                   ),
+                  selected: isTodaySelected,
+                  selectedColor: colorScheme.primary,
+                  showCheckmark: false,
+                  side: BorderSide(
+                    color: isTodaySelected
+                        ? colorScheme.primary
+                        : colorScheme.outlineVariant.withValues(
+                            alpha: AppDimens.opacityHalf,
+                          ),
+                  ),
+                  onSelected: (selected) => onDateRangeChanged(
+                    selected ? today : null,
+                    selected ? today : null,
+                  ),
+                  avatar: Icon(
+                    Icons.today_rounded,
+                    size: 16,
+                    color: isTodaySelected
+                        ? Colors.white
+                        : colorScheme.onSurfaceVariant,
+                  ),
+                  visualDensity: VisualDensity.compact,
+                ),
+                FilterChip(
+                  label: Text(
+                    LocaleKeys.filter_yesterday.tr(),
+                    style: TextStyle(
+                      color: isYesterdaySelected
+                          ? Colors.white
+                          : colorScheme.onSurface,
+                      fontWeight: isYesterdaySelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                    ),
+                  ),
+                  selected: isYesterdaySelected,
+                  selectedColor: colorScheme.primary,
+                  showCheckmark: false,
+                  side: BorderSide(
+                    color: isYesterdaySelected
+                        ? colorScheme.primary
+                        : colorScheme.outlineVariant.withValues(
+                            alpha: AppDimens.opacityHalf,
+                          ),
+                  ),
+                  onSelected: (selected) => onDateRangeChanged(
+                    selected ? yesterday : null,
+                    selected ? yesterday : null,
+                  ),
+                  avatar: Icon(
+                    Icons.history_rounded,
+                    size: 16,
+                    color: isYesterdaySelected
+                        ? Colors.white
+                        : colorScheme.onSurfaceVariant,
+                  ),
+                  visualDensity: VisualDensity.compact,
+                ),
+                FilterChip(
+                  label: Text(
+                    LocaleKeys.filter_last_7_days.tr(),
+                    style: TextStyle(
+                      color: is7DaysSelected
+                          ? Colors.white
+                          : colorScheme.onSurface,
+                      fontWeight: is7DaysSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                    ),
+                  ),
+                  selected: is7DaysSelected,
+                  selectedColor: colorScheme.primary,
+                  showCheckmark: false,
+                  side: BorderSide(
+                    color: is7DaysSelected
+                        ? colorScheme.primary
+                        : colorScheme.outlineVariant.withValues(
+                            alpha: AppDimens.opacityHalf,
+                          ),
+                  ),
+                  onSelected: (selected) => onDateRangeChanged(
+                    selected ? sevenDaysAgo : null,
+                    selected ? today : null,
+                  ),
+                  avatar: Icon(
+                    Icons.date_range_rounded,
+                    size: 16,
+                    color: is7DaysSelected
+                        ? Colors.white
+                        : colorScheme.onSurfaceVariant,
+                  ),
+                  visualDensity: VisualDensity.compact,
+                ),
+                FilterChip(
+                  label: Text(
+                    LocaleKeys.filter_this_month.tr(),
+                    style: TextStyle(
+                      color: isMonthSelected
+                          ? Colors.white
+                          : colorScheme.onSurface,
+                      fontWeight: isMonthSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                    ),
+                  ),
+                  selected: isMonthSelected,
+                  selectedColor: colorScheme.primary,
+                  showCheckmark: false,
+                  side: BorderSide(
+                    color: isMonthSelected
+                        ? colorScheme.primary
+                        : colorScheme.outlineVariant.withValues(
+                            alpha: AppDimens.opacityHalf,
+                          ),
+                  ),
+                  onSelected: (selected) => onDateRangeChanged(
+                    selected ? firstOfMonth : null,
+                    selected ? today : null,
+                  ),
+                  avatar: Icon(
+                    Icons.calendar_view_month_rounded,
+                    size: 16,
+                    color: isMonthSelected
+                        ? Colors.white
+                        : colorScheme.onSurfaceVariant,
+                  ),
+                  visualDensity: VisualDensity.compact,
+                ),
               ],
             ),
           ],
