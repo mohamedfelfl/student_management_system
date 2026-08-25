@@ -18,6 +18,7 @@ import 'components/highest_marks_report_form.dart';
 import 'components/notes_delivery_report_form.dart';
 import 'components/payment_report_forms.dart';
 import 'components/student_report_form.dart';
+import 'components/lesson_attendance_report_form.dart';
 
 @RoutePage()
 class ReportScreen extends StatefulWidget {
@@ -182,6 +183,18 @@ class _ReportScreenState extends State<ReportScreen> {
           onSelected: (_) =>
               setState(() => _selectedType = ReportType.notesDelivery),
         ),
+        ChoiceChip(
+          label: Text(LocaleKeys.lesson_report.tr()),
+          selected: _selectedType == ReportType.lessonSession,
+          onSelected: (_) =>
+              setState(() => _selectedType = ReportType.lessonSession),
+        ),
+        ChoiceChip(
+          label: Text(LocaleKeys.group_summary_report.tr()),
+          selected: _selectedType == ReportType.groupAttendanceSummary,
+          onSelected: (_) =>
+              setState(() => _selectedType = ReportType.groupAttendanceSummary),
+        ),
       ],
     );
   }
@@ -202,6 +215,10 @@ class _ReportScreenState extends State<ReportScreen> {
         return const AssistantReportForm();
       case ReportType.notesDelivery:
         return const NotesDeliveryReportForm();
+      case ReportType.lessonSession:
+      case ReportType.absenteeFollowUp:
+      case ReportType.groupAttendanceSummary:
+        return LessonAttendanceReportForm(reportType: _selectedType);
       default:
         return const SizedBox.shrink();
     }

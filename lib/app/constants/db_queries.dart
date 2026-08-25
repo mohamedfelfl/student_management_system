@@ -7,6 +7,7 @@ class DBQueries {
   static const String tableGroupSchedules = 'group_schedules';
   static const String tableStudents = 'students';
   static const String tablePayments = 'payments';
+  static const String tableLessons = 'lessons';
   static const String tableAttendance = 'attendance';
   static const String tableAssistants = 'assistants';
   static const String tableAssistantAttendance = 'assistant_attendance';
@@ -89,13 +90,29 @@ class DBQueries {
     )
   ''';
 
+  static const String createLessonsTable = '''
+    CREATE TABLE IF NOT EXISTS lessons (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      group_id INTEGER NOT NULL,
+      date TEXT NOT NULL,
+      start_time TEXT NOT NULL,
+      end_time TEXT,
+      title TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL DEFAULT 'scheduled',
+      created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
+    )
+  ''';
+
   static const String createAttendanceTable = '''
     CREATE TABLE IF NOT EXISTS attendance (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      lesson_id INTEGER,
       student_id INTEGER NOT NULL,
       date TEXT NOT NULL,
       status TEXT NOT NULL DEFAULT 'attended',
       notes TEXT NOT NULL DEFAULT '',
+      FOREIGN KEY (lesson_id) REFERENCES lessons(id) ON DELETE CASCADE,
       FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
     )
   ''';
@@ -224,6 +241,14 @@ class DBQueries {
       'CREATE INDEX IF NOT EXISTS idx_assistant_attendance_date ON assistant_attendance(date)';
   static const String createIdxLoginAttemptsUsername =
       'CREATE INDEX IF NOT EXISTS idx_login_attempts_username ON login_attempts(username)';
+  static const String createIdxLessonsGroup =
+      'CREATE INDEX IF NOT EXISTS idx_lessons_group ON lessons(group_id)';
+  static const String createIdxLessonsDate =
+      'CREATE INDEX IF NOT EXISTS idx_lessons_date ON lessons(date)';
+  static const String createIdxLessonsStatus =
+      'CREATE INDEX IF NOT EXISTS idx_lessons_status ON lessons(status)';
+  static const String createIdxAttendanceLesson =
+      'CREATE INDEX IF NOT EXISTS idx_attendance_lesson ON attendance(lesson_id)';
 
   // ---------------------------------------------------------------------------
   // DDL Queries - Alter Tables
@@ -243,6 +268,8 @@ class DBQueries {
       'ALTER TABLE students ADD COLUMN attendance_day TEXT';
   static const String alterStudentsAddNotes =
       "ALTER TABLE students ADD COLUMN notes TEXT NOT NULL DEFAULT ''";
+  static const String alterAttendanceAddLessonId =
+      'ALTER TABLE attendance ADD COLUMN lesson_id INTEGER';
 
   // ---------------------------------------------------------------------------
   // Auth Queries
@@ -448,21 +475,74 @@ class DBQueries {
   static const String availableStudentsSearchCondition = ' AND (name LIKE ? OR serial_number LIKE ?)';
 
   // ---------------------------------------------------------------------------
-  // Attendance Queries
+  // Lesson & Attendance Queries
   // ---------------------------------------------------------------------------
 
-  static const String loadStudentAttendance = '''
-        SELECT a.*, s.name as student_name 
+  static const String loadLessonsForDate = '''
+        SELECT l.*, g.name as group_name,
+          (SELECT COUNT(*) FROM students s WHERE s.group_id = l.group_id) as enrolled_count,
+          (SELECT COUNT(*) FROM attendance a WHERE a.lesson_id = l.id AND a.status = 'attended') as attended_count,
+          (SELECT COUNT(*) FROM attendance a WHERE a.lesson_id = l.id AND a.status = 'otherLesson') as other_group_count
+        FROM lessons l
+        JOIN groups g ON l.group_id = g.id
+        WHERE l.date = ?
+        ORDER BY l.start_time ASC, l.id ASC
+  ''';
+
+  static const String loadLessonById = '''
+        SELECT l.*, g.name as group_name,
+          (SELECT COUNT(*) FROM students s WHERE s.group_id = l.group_id) as enrolled_count,
+          (SELECT COUNT(*) FROM attendance a WHERE a.lesson_id = l.id AND a.status = 'attended') as attended_count,
+          (SELECT COUNT(*) FROM attendance a WHERE a.lesson_id = l.id AND a.status = 'otherLesson') as other_group_count
+        FROM lessons l
+        JOIN groups g ON l.group_id = g.id
+        WHERE l.id = ?
+  ''';
+
+  static const String loadLessonAttendance = '''
+        SELECT a.*, s.name as student_name, s.serial_number, s.phone1, s.phone2, s.father_job, g.name as group_name
         FROM attendance a
         JOIN students s ON a.student_id = s.id
+        LEFT JOIN groups g ON s.group_id = g.id
+        WHERE a.lesson_id = ?
+        ORDER BY a.id DESC
+  ''';
+
+  static const String loadEnrolledStudentsForGroup = '''
+        SELECT s.*, g.name as group_name
+        FROM students s
+        LEFT JOIN groups g ON s.group_id = g.id
+        WHERE s.group_id = ?
+        ORDER BY s.name ASC
+  ''';
+
+  static const String reportAbsentStudentsForLesson = '''
+        SELECT s.*, g.name as group_name
+        FROM students s
+        JOIN groups g ON s.group_id = g.id
+        WHERE s.group_id = ?
+          AND s.id NOT IN (
+            SELECT a.student_id FROM attendance a WHERE a.lesson_id = ? AND a.status = 'attended'
+          )
+        ORDER BY s.name ASC
+  ''';
+
+  static const String loadStudentAttendance = '''
+        SELECT a.*, s.name as student_name, l.start_time as lesson_time, lg.name as lesson_group_name
+        FROM attendance a
+        JOIN students s ON a.student_id = s.id
+        LEFT JOIN lessons l ON a.lesson_id = l.id
+        LEFT JOIN groups lg ON l.group_id = lg.id
         WHERE a.student_id = ?
         ORDER BY a.date DESC, a.id DESC
   ''';
 
   static const String loadAllAttendance = '''
-        SELECT a.*, s.name as student_name 
+        SELECT a.*, s.name as student_name, l.start_time as lesson_time, lg.name as lesson_group_name
         FROM attendance a
         JOIN students s ON a.student_id = s.id
+        LEFT JOIN lessons l ON a.lesson_id = l.id
+        LEFT JOIN groups lg ON l.group_id = lg.id
         ORDER BY a.date DESC, a.id DESC
   ''';
 
@@ -474,7 +554,7 @@ class DBQueries {
   ''';
 
   static const String getGroupsToday = '''
-        SELECT g.name, gs.time 
+        SELECT g.id as group_id, g.name, gs.time 
         FROM group_schedules gs
         JOIN groups g ON gs.group_id = g.id
         WHERE gs.day_of_week IN (?, ?, ?)
@@ -511,10 +591,15 @@ class DBQueries {
   ''';
 
   static const String exportAttendanceCsv = '''
-        SELECT a.*, s.name as student_name, s.serial_number 
-        FROM attendance a 
-        JOIN students s ON a.student_id = s.id 
-        ORDER BY a.date DESC
+        SELECT a.date, l.start_time as lesson_time, lg.name as lesson_group,
+               s.serial_number, s.name as student_name, sg.name as student_group,
+               a.status, a.notes
+        FROM attendance a
+        JOIN students s ON a.student_id = s.id
+        LEFT JOIN groups sg ON s.group_id = sg.id
+        LEFT JOIN lessons l ON a.lesson_id = l.id
+        LEFT JOIN groups lg ON l.group_id = lg.id
+        ORDER BY a.date DESC, a.id DESC
   ''';
 
   static const String exportMarksCsv = '''

@@ -129,6 +129,7 @@ class DatabaseService {
     batch.execute(DBQueries.createGroupSchedulesTable);
     batch.execute(DBQueries.createStudentsTable);
     batch.execute(DBQueries.createPaymentsTable);
+    batch.execute(DBQueries.createLessonsTable);
     batch.execute(DBQueries.createAttendanceTable);
     batch.execute(DBQueries.createAssistantsTable);
     batch.execute(DBQueries.createAssistantAttendanceTable);
@@ -154,6 +155,10 @@ class DatabaseService {
     await db.execute(DBQueries.createIdxAssistantAttendanceAssistant);
     await db.execute(DBQueries.createIdxAssistantAttendanceDate);
     await db.execute(DBQueries.createIdxLoginAttemptsUsername);
+    await db.execute(DBQueries.createIdxLessonsGroup);
+    await db.execute(DBQueries.createIdxLessonsDate);
+    await db.execute(DBQueries.createIdxLessonsStatus);
+    await db.execute(DBQueries.createIdxAttendanceLesson);
   }
 
   /// Ensure all required tables exist on every open.
@@ -169,6 +174,7 @@ class DatabaseService {
     await db.execute(DBQueries.createGroupSchedulesTable);
     await db.execute(DBQueries.createStudentsTable);
     await db.execute(DBQueries.createPaymentsTable);
+    await db.execute(DBQueries.createLessonsTable);
     await db.execute(DBQueries.createAttendanceTable);
     await db.execute(DBQueries.createAssistantsTable);
     await db.execute(DBQueries.createAssistantAttendanceTable);
@@ -203,6 +209,9 @@ class DatabaseService {
     try {
       await db.execute(DBQueries.alterStudentsAddNotes);
     } catch (_) {}
+    try {
+      await db.execute(DBQueries.alterAttendanceAddLessonId);
+    } catch (_) {}
 
     // Ensure indexes exist
     try {
@@ -216,7 +225,58 @@ class DatabaseService {
       await db.execute(DBQueries.createIdxAssistantAttendanceAssistant);
       await db.execute(DBQueries.createIdxAssistantAttendanceDate);
       await db.execute(DBQueries.createIdxLoginAttemptsUsername);
+      await db.execute(DBQueries.createIdxLessonsGroup);
+      await db.execute(DBQueries.createIdxLessonsDate);
+      await db.execute(DBQueries.createIdxLessonsStatus);
+      await db.execute(DBQueries.createIdxAttendanceLesson);
     } catch (_) {}
+
+    // Auto-migrate legacy attendance records without a lesson_id
+    try {
+      final List<Map<String, Object?>> unlinked = await db.rawQuery('''
+        SELECT DISTINCT a.date, s.group_id
+        FROM attendance a
+        JOIN students s ON a.student_id = s.id
+        WHERE a.lesson_id IS NULL AND s.group_id IS NOT NULL
+      ''');
+
+      for (final row in unlinked) {
+        final String date = row['date'] as String;
+        final int groupId = row['group_id'] as int;
+
+        final List<Map<String, Object?>> existingLesson = await db.query(
+          DBQueries.tableLessons,
+          where: 'group_id = ? AND date = ?',
+          whereArgs: [groupId, date],
+          limit: 1,
+        );
+
+        int lessonId;
+        if (existingLesson.isNotEmpty) {
+          lessonId = existingLesson.first['id'] as int;
+        } else {
+          lessonId = await db.insert(DBQueries.tableLessons, {
+            'group_id': groupId,
+            'date': date,
+            'start_time': '00:00',
+            'status': 'completed',
+            'title': 'Legacy Session',
+          });
+        }
+
+        await db.rawUpdate('''
+          UPDATE attendance
+          SET lesson_id = ?
+          WHERE date = ? AND lesson_id IS NULL AND student_id IN (
+            SELECT id FROM students WHERE group_id = ?
+          )
+        ''', [lessonId, date, groupId]);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Legacy attendance migration notice: $e');
+      }
+    }
   }
 
   /// Close the database connection.

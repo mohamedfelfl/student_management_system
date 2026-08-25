@@ -5,19 +5,31 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../cubits/attendance_cubit.dart';
-import '../qr_scanner_screen.dart';
 import 'scanner_laser_beam.dart';
 
 /// Mobile scanner view with camera, controls, and manual entry fallback.
 class MobileScannerView extends StatelessWidget {
   final MobileScannerController cameraController;
   final TextEditingController manualController;
+  final ValueChanged<String>? onScan;
 
   const MobileScannerView({
     super.key,
     required this.cameraController,
     required this.manualController,
+    this.onScan,
   });
+
+  void _handleScan(BuildContext context, String rawValue) {
+    final serial = rawValue.trim();
+    if (serial.isEmpty) return;
+
+    if (onScan != null) {
+      onScan!(serial);
+    } else {
+      context.read<AttendanceCubit>().recordAttendanceBySerial(serial);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,9 +58,7 @@ class MobileScannerView extends StatelessWidget {
                   final List<Barcode> barcodes = capture.barcodes;
                   for (final Barcode barcode in barcodes) {
                     if (barcode.rawValue != null) {
-                      context.read<AttendanceCubit>().recordAttendanceBySerial(
-                        barcode.rawValue!,
-                      );
+                      _handleScan(context, barcode.rawValue!);
                       break;
                     }
                   }
@@ -90,15 +100,16 @@ class MobileScannerView extends StatelessWidget {
                         width: 8,
                         height: 8,
                         decoration: const BoxDecoration(
-                          color: Colors.greenAccent,
+                          color: Colors.red,
                           shape: BoxShape.circle,
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       Text(
                         LocaleKeys.active_now.tr(),
                         style: textTheme.labelSmall?.copyWith(
                           color: Colors.white,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ],
@@ -108,71 +119,145 @@ class MobileScannerView extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
 
-        // Camera Controls
+        // Controls bar: Torch & Switch Camera
         Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: () => cameraController.toggleTorch(),
-                icon: const Icon(Icons.flash_on_rounded),
-                label: Text(LocaleKeys.toggle_flash.tr()),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: colorScheme.primaryContainer.withValues(
-                    alpha: 0.5,
-                  ),
-                  foregroundColor: colorScheme.onPrimaryContainer,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-              ),
+            IconButton.filledTonal(
+              onPressed: () => cameraController.toggleTorch(),
+              icon: const Icon(Icons.flash_on),
             ),
             const SizedBox(width: 16),
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: () => cameraController.switchCamera(),
-                icon: const Icon(Icons.cameraswitch_rounded),
-                label: Text(LocaleKeys.switch_camera.tr()),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isDark
-                      ? colorScheme.surfaceContainerHigh
-                      : colorScheme.surfaceContainerHighest,
-                  foregroundColor: colorScheme.onSurface,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-              ),
+            IconButton.filledTonal(
+              onPressed: () => cameraController.switchCamera(),
+              icon: const Icon(Icons.cameraswitch),
             ),
           ],
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
 
-        // Manual Entry Fallback
-        TextField(
-          controller: manualController,
-          decoration: InputDecoration(
-            labelText: LocaleKeys.manual_entry.tr(),
-            hintText: LocaleKeys.enter_serial_hint.tr(),
-            prefixIcon: const Icon(Icons.keyboard),
-            filled: true,
-            fillColor: isDark
-                ? colorScheme.surfaceContainerHigh
-                : colorScheme.surfaceContainerLowest,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide.none,
+        // Manual Entry Fallback Field
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isDark
+                ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.3)
+                : Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.5),
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-          onSubmitted: (value) {
-            if (value.isNotEmpty) {
-              context.read<AttendanceCubit>().recordAttendanceBySerial(
-                value.trim(),
-              );
-            }
-          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                LocaleKeys.student_serial_number.tr(),
+                style: textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: manualController,
+                      decoration: InputDecoration(
+                        hintText: LocaleKeys.scan_hint.tr(),
+                        prefixIcon: const Icon(Icons.dialpad),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                      ),
+                      keyboardType: TextInputType.number,
+                      onSubmitted: (val) => _handleScan(context, val),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  FilledButton(
+                    onPressed: () => _handleScan(context, manualController.text),
+                    style: FilledButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 14,
+                      ),
+                    ),
+                    child: Text(LocaleKeys.save.tr()),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ],
     );
   }
+}
+
+class ScannerOverlayPainter extends CustomPainter {
+  final Color color;
+
+  ScannerOverlayPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color.withValues(alpha: 0.8)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4;
+
+    const length = 30.0;
+
+    // Top Left
+    canvas.drawLine(const Offset(0, 0), const Offset(length, 0), paint);
+    canvas.drawLine(const Offset(0, 0), const Offset(0, length), paint);
+
+    // Top Right
+    canvas.drawLine(
+      Offset(size.width, 0),
+      Offset(size.width - length, 0),
+      paint,
+    );
+    canvas.drawLine(Offset(size.width, 0), Offset(size.width, length), paint);
+
+    // Bottom Left
+    canvas.drawLine(Offset(0, size.height), Offset(length, size.height), paint);
+    canvas.drawLine(
+      Offset(0, size.height),
+      Offset(0, size.height - length),
+      paint,
+    );
+
+    // Bottom Right
+    canvas.drawLine(
+      Offset(size.width, size.height),
+      Offset(size.width - length, size.height),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(size.width, size.height),
+      Offset(size.width, size.height - length),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

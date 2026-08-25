@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:intl/intl.dart';
 import '../../features/settings/services/settings_service.dart';
 
 part 'locale_cubit.freezed.dart';
@@ -31,6 +32,8 @@ class LocaleCubit extends Cubit<LocaleState> {
       'ar',
     );
 
+    Intl.defaultLocale = lang;
+
     ThemeMode mode;
     switch (themeStr) {
       case 'dark':
@@ -48,6 +51,7 @@ class LocaleCubit extends Cubit<LocaleState> {
 
   Future<void> setLanguage(String languageCode) async {
     await _settingsService.set(SettingsKeys.language, languageCode);
+    Intl.defaultLocale = languageCode;
     emit(state.copyWith(languageCode: languageCode));
   }
 

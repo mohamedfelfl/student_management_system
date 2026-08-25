@@ -2,8 +2,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../../generated/locale_keys.g.dart';
 import '../../../../../app/constants/dimens.dart';
+import '../../../../../generated/locale_keys.g.dart';
 import '../../../../attendance/cubits/attendance_cubit.dart';
 
 class AttendanceTab extends StatelessWidget {
@@ -29,9 +29,11 @@ class AttendanceTab extends StatelessWidget {
             final a = state.records[i];
             final status = a['status']?.toString() ?? '';
             final notes = a['notes']?.toString() ?? '';
+            final date = a['date']?.toString() ?? '';
+            final lessonTime = a['lesson_time']?.toString() ?? '';
+            final lessonGroup = a['lesson_group_name']?.toString() ?? '';
 
-            final isDark =
-                Theme.of(context).brightness == Brightness.dark;
+            final isDark = Theme.of(context).brightness == Brightness.dark;
 
             return Padding(
               padding: EdgeInsets.symmetric(vertical: AppDimens.h6),
@@ -41,7 +43,9 @@ class AttendanceTab extends StatelessWidget {
                   color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(AppDimens.r12),
                   border: Border.all(
-                    color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outlineVariant.withValues(alpha: 0.3),
                   ),
                 ),
                 child: Row(
@@ -51,12 +55,27 @@ class AttendanceTab extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            a['date']?.toString() ?? '',
+                            date,
                             style: textTheme.bodyMedium?.copyWith(
                               color: isDark ? Colors.white : null,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
+                          if (lessonTime.isNotEmpty ||
+                              lessonGroup.isNotEmpty) ...[
+                            SizedBox(height: AppDimens.h2),
+                            Text(
+                              [
+                                if (lessonTime.isNotEmpty) lessonTime,
+                                if (lessonGroup.isNotEmpty) lessonGroup,
+                              ].join(' • '),
+                              style: textTheme.bodySmall?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -77,8 +96,8 @@ class AttendanceTab extends StatelessWidget {
         ? (status == 'attended'
             ? LocaleKeys.attended_his_group.tr()
             : status == 'missed'
-                ? LocaleKeys.missed.tr()
-                : LocaleKeys.other_lesson.tr())
+            ? LocaleKeys.missed.tr()
+            : LocaleKeys.other_lesson.tr())
         : notes;
 
     Color badgeColor;

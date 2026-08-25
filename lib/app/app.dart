@@ -21,6 +21,7 @@ import '../features/students/cubits/student_cubit.dart';
 import '../features/groups/cubits/group_cubit.dart';
 import '../features/payments/cubits/payment_cubit.dart';
 import '../features/attendance/cubits/attendance_cubit.dart';
+import '../features/attendance/cubits/lesson_cubit.dart';
 import '../features/exams/cubits/exam_cubit.dart';
 import '../features/reports/cubits/report_cubit.dart';
 import '../features/assistants/cubits/assistant_cubit.dart';
@@ -117,6 +118,9 @@ class _StudentsManagementAppState extends State<StudentsManagementApp>
         BlocProvider(create: (_) => PaymentCubit(databaseService: dbService)),
         BlocProvider(
           create: (_) => AttendanceCubit(databaseService: dbService),
+        ),
+        BlocProvider(
+          create: (_) => LessonCubit(databaseService: dbService),
         ),
         BlocProvider(create: (_) => ExamCubit(databaseService: dbService)),
         BlocProvider(create: (_) => ReportCubit(databaseService: dbService)),

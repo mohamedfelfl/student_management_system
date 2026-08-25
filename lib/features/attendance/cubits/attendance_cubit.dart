@@ -49,7 +49,9 @@ class AttendanceCubit extends Cubit<AttendanceState> {
     emit(state.copyWith(isLoading: true, error: null));
     try {
       final Database db = await _databaseService.database;
-      final List<Map<String, Object?>> results = await db.rawQuery(DBQueries.loadAllAttendance);
+      final List<Map<String, Object?>> results = await db.rawQuery(
+        DBQueries.loadAllAttendance,
+      );
       emit(state.copyWith(records: results, isLoading: false));
     } catch (e) {
       emit(state.copyWith(error: e.toString(), isLoading: false));
@@ -57,10 +59,24 @@ class AttendanceCubit extends Cubit<AttendanceState> {
   }
 
   /// Load recent global scans for the scanner screen.
-  Future<void> loadRecentScans() async {
+  Future<void> loadRecentScans({int? lessonId}) async {
     try {
       final Database db = await _databaseService.database;
-      final List<Map<String, Object?>> latestRecords = await db.rawQuery(DBQueries.loadRecentScans);
+      List<Map<String, Object?>> latestRecords;
+      if (lessonId != null) {
+        latestRecords = await db.rawQuery(
+          '''
+          SELECT a.*, s.name as student_name 
+          FROM attendance a
+          JOIN students s ON a.student_id = s.id
+          WHERE a.lesson_id = ?
+          ORDER BY a.id DESC LIMIT 10
+        ''',
+          [lessonId],
+        );
+      } else {
+        latestRecords = await db.rawQuery(DBQueries.loadRecentScans);
+      }
       emit(state.copyWith(records: latestRecords));
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
@@ -69,8 +85,10 @@ class AttendanceCubit extends Cubit<AttendanceState> {
 
   /// Record attendance via QR scan or manual ID entry.
   /// [serialNumber] is the student's serial number from the QR code.
+  /// [lessonId] is the optional active lesson session ID.
   Future<void> recordAttendanceBySerial(
     String serialNumber, {
+    int? lessonId,
     AttendanceStatus status = AttendanceStatus.attended,
     String notes = '',
   }) async {
@@ -81,13 +99,15 @@ class AttendanceCubit extends Cubit<AttendanceState> {
       final List<Map<String, Object?>> students = await db.query(
         DBQueries.tableStudents,
         where: 'serial_number = ?',
-        whereArgs: <Object?>[serialNumber],
+        whereArgs: <Object?>[serialNumber.trim()],
       );
 
       if (students.isEmpty) {
         emit(
           state.copyWith(
-            error: LocaleKeys.student_not_found_with_serial.tr(args: [serialNumber]),
+            error: LocaleKeys.student_not_found_with_serial.tr(
+              args: [serialNumber],
+            ),
             scanSuccess: false,
           ),
         );
@@ -97,7 +117,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
       final Map<String, Object?> student = students.first;
       final int studentId = student['id'] as int;
       final String studentName = student['name'] as String;
-      final int? groupId = student['group_id'] as int?;
+      final int? studentGroupId = student['group_id'] as int?;
       final now = DateTime.now();
       final String currentDayName = DateFormat('EEEE', 'en_US').format(now);
       final String currentDayNameAr = _getArabicDayName(currentDayName);
@@ -106,83 +126,138 @@ class AttendanceCubit extends Cubit<AttendanceState> {
           .replaceAll('إ', 'ا');
       final String today = now.toIso8601String().split('T').first;
 
-      // Determine attendance type based on group schedule
+      // Determine attendance status & notes
       AttendanceStatus finalStatus = status;
       String notesToInsert = notes;
 
-      if (groupId != null) {
-        // Get the student's own group schedule days
-        final List<Map<String, Object?>> groupSchedules = await db.query(
-          DBQueries.tableGroupSchedules,
-          where: 'group_id = ?',
-          whereArgs: [groupId],
+      if (lessonId != null) {
+        // Query lesson group
+        final List<Map<String, Object?>> lessonRows = await db.query(
+          DBQueries.tableLessons,
+          where: 'id = ?',
+          whereArgs: [lessonId],
         );
 
-        final bool isStudentGroupDay = groupSchedules.any((s) {
-          final day = s['day_of_week']?.toString() ?? '';
-          return day == currentDayName ||
-              day == currentDayNameAr ||
-              day == currentDayNameArAlt;
-        });
-
-        if (isStudentGroupDay) {
-          // Case 1: Today is one of the student's group scheduled days
-          // → "attended in his group"
-          finalStatus = AttendanceStatus.attended;
-          notesToInsert = LocaleKeys.attended_his_group.tr();
-        } else {
-          // Case 2: Today is NOT the student's group day
-          // → Find which group meets today closest to current time
-          finalStatus = AttendanceStatus.otherLesson;
-          final List<Map<String, Object?>> otherGroupsToday = await db.rawQuery(
-            DBQueries.getGroupsToday,
-            [currentDayName, currentDayNameAr, currentDayNameArAlt],
-          );
-
-          if (otherGroupsToday.isNotEmpty) {
-            final String groupName = _findClosestGroup(otherGroupsToday, now);
+        if (lessonRows.isNotEmpty) {
+          final int lessonGroupId = lessonRows.first['group_id'] as int;
+          if (studentGroupId == lessonGroupId) {
+            finalStatus = AttendanceStatus.attended;
+            notesToInsert = LocaleKeys.attended_his_group.tr();
+          } else {
+            finalStatus = AttendanceStatus.otherLesson;
+            final List<Map<String, Object?>> groupRow = await db.query(
+              DBQueries.tableGroups,
+              columns: ['name'],
+              where: 'id = ?',
+              whereArgs: [lessonGroupId],
+            );
+            final String groupName =
+                groupRow.isNotEmpty ? (groupRow.first['name'] as String) : '';
             notesToInsert = LocaleKeys.attended_another_group.tr(
               args: [groupName],
             );
-          } else {
-            // No groups scheduled today at all — generic other lesson
-            finalStatus = AttendanceStatus.otherLesson;
-            notesToInsert =
-                ''; // Empty notes will fall back to "LocaleKeys.other_lesson" in UI
           }
         }
-      } else {
-        // No group assigned to student — mark as attended with no group
-        finalStatus = AttendanceStatus.attended;
-        notesToInsert = LocaleKeys.attended_no_group.tr();
-      }
 
-      // Check if already recorded today
-      final List<Map<String, Object?>> existing = await db.query(
-        DBQueries.tableAttendance,
-        where: 'student_id = ? AND date = ?',
-        whereArgs: <Object?>[studentId, today],
-      );
-
-      if (existing.isNotEmpty) {
-        emit(
-          state.copyWith(
-            error: LocaleKeys.attendance_already_recorded_today.tr(args: [studentName]),
-            scanSuccess: false,
-          ),
+        // Check duplicate within the active lesson
+        final List<Map<String, Object?>> existing = await db.query(
+          DBQueries.tableAttendance,
+          where: 'lesson_id = ? AND student_id = ?',
+          whereArgs: <Object?>[lessonId, studentId],
         );
-        return;
+
+        if (existing.isNotEmpty) {
+          emit(
+            state.copyWith(
+              error: LocaleKeys.already_attended_lesson.tr(args: [studentName]),
+              scanSuccess: false,
+            ),
+          );
+          return;
+        }
+      } else {
+        // Fallback global daily check
+        if (studentGroupId != null) {
+          final List<Map<String, Object?>> groupSchedules = await db.query(
+            DBQueries.tableGroupSchedules,
+            where: 'group_id = ?',
+            whereArgs: [studentGroupId],
+          );
+
+          final bool isStudentGroupDay = groupSchedules.any((s) {
+            final day = s['day_of_week']?.toString() ?? '';
+            return day == currentDayName ||
+                day == currentDayNameAr ||
+                day == currentDayNameArAlt;
+          });
+
+          if (isStudentGroupDay) {
+            finalStatus = AttendanceStatus.attended;
+            notesToInsert = LocaleKeys.attended_his_group.tr();
+          } else {
+            finalStatus = AttendanceStatus.otherLesson;
+            final List<Map<String, Object?>> otherGroupsToday = await db
+                .rawQuery(DBQueries.getGroupsToday, [
+                  currentDayName,
+                  currentDayNameAr,
+                  currentDayNameArAlt,
+                ]);
+
+            if (otherGroupsToday.isNotEmpty) {
+              final String groupName = _findClosestGroup(otherGroupsToday, now);
+              notesToInsert = LocaleKeys.attended_another_group.tr(
+                args: [groupName],
+              );
+            } else {
+              finalStatus = AttendanceStatus.otherLesson;
+              notesToInsert = '';
+            }
+          }
+        } else {
+          finalStatus = AttendanceStatus.attended;
+          notesToInsert = LocaleKeys.attended_no_group.tr();
+        }
+
+        final List<Map<String, Object?>> existing = await db.query(
+          DBQueries.tableAttendance,
+          where: 'student_id = ? AND date = ? AND lesson_id IS NULL',
+          whereArgs: <Object?>[studentId, today],
+        );
+
+        if (existing.isNotEmpty) {
+          emit(
+            state.copyWith(
+              error: LocaleKeys.attendance_already_recorded_today.tr(
+                args: [studentName],
+              ),
+              scanSuccess: false,
+            ),
+          );
+          return;
+        }
       }
 
       await db.insert(DBQueries.tableAttendance, <String, Object?>{
+        'lesson_id': ?lessonId,
         'student_id': studentId,
         'date': today,
         'status': finalStatus.name,
         'notes': notesToInsert,
       });
 
-      // Reload attendance history so UI gets the latest
-      final List<Map<String, Object?>> latestRecords = await db.rawQuery(DBQueries.loadRecentScans);
+      // Reload attendance history
+      final List<Map<String, Object?>> latestRecords = lessonId != null
+          ? await db.rawQuery(
+              '''
+              SELECT a.*, s.name as student_name 
+              FROM attendance a
+              JOIN students s ON a.student_id = s.id
+              WHERE a.lesson_id = ?
+              ORDER BY a.id DESC LIMIT 10
+            ''',
+              [lessonId],
+            )
+          : await db.rawQuery(DBQueries.loadRecentScans);
 
       emit(
         state.copyWith(
@@ -202,11 +277,13 @@ class AttendanceCubit extends Cubit<AttendanceState> {
     required int studentId,
     required DateTime date,
     required AttendanceStatus status,
+    int? lessonId,
     String notes = '',
   }) async {
     try {
       final Database db = await _databaseService.database;
       await db.insert(DBQueries.tableAttendance, <String, Object?>{
+        'lesson_id': ?lessonId,
         'student_id': studentId,
         'date': date.toIso8601String().split('T').first,
         'status': status.name,
@@ -245,7 +322,11 @@ class AttendanceCubit extends Cubit<AttendanceState> {
   Future<void> deleteAttendance(int id, {int? studentId}) async {
     try {
       final Database db = await _databaseService.database;
-      await db.delete(DBQueries.tableAttendance, where: 'id = ?', whereArgs: <Object?>[id]);
+      await db.delete(
+        DBQueries.tableAttendance,
+        where: 'id = ?',
+        whereArgs: <Object?>[id],
+      );
       if (studentId != null) {
         await loadAttendance(studentId);
       } else {

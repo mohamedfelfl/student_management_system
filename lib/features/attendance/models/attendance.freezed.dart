@@ -15,8 +15,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Attendance {
 
- int? get id; int get studentId; DateTime get date; AttendanceStatus get status;/// Optional notes (e.g., which other lesson was attended)
- String get notes;
+ int? get id; int? get lessonId; int get studentId; DateTime get date; AttendanceStatus get status;/// Optional notes (e.g., which other lesson was attended)
+ String get notes; String? get studentName; String? get serialNumber; String? get groupName;
 /// Create a copy of Attendance
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,16 +29,16 @@ $AttendanceCopyWith<Attendance> get copyWith => _$AttendanceCopyWithImpl<Attenda
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Attendance&&(identical(other.id, id) || other.id == id)&&(identical(other.studentId, studentId) || other.studentId == studentId)&&(identical(other.date, date) || other.date == date)&&(identical(other.status, status) || other.status == status)&&(identical(other.notes, notes) || other.notes == notes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Attendance&&(identical(other.id, id) || other.id == id)&&(identical(other.lessonId, lessonId) || other.lessonId == lessonId)&&(identical(other.studentId, studentId) || other.studentId == studentId)&&(identical(other.date, date) || other.date == date)&&(identical(other.status, status) || other.status == status)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.studentName, studentName) || other.studentName == studentName)&&(identical(other.serialNumber, serialNumber) || other.serialNumber == serialNumber)&&(identical(other.groupName, groupName) || other.groupName == groupName));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,studentId,date,status,notes);
+int get hashCode => Object.hash(runtimeType,id,lessonId,studentId,date,status,notes,studentName,serialNumber,groupName);
 
 @override
 String toString() {
-  return 'Attendance(id: $id, studentId: $studentId, date: $date, status: $status, notes: $notes)';
+  return 'Attendance(id: $id, lessonId: $lessonId, studentId: $studentId, date: $date, status: $status, notes: $notes, studentName: $studentName, serialNumber: $serialNumber, groupName: $groupName)';
 }
 
 
@@ -49,7 +49,7 @@ abstract mixin class $AttendanceCopyWith<$Res>  {
   factory $AttendanceCopyWith(Attendance value, $Res Function(Attendance) _then) = _$AttendanceCopyWithImpl;
 @useResult
 $Res call({
- int? id, int studentId, DateTime date, AttendanceStatus status, String notes
+ int? id, int? lessonId, int studentId, DateTime date, AttendanceStatus status, String notes, String? studentName, String? serialNumber, String? groupName
 });
 
 
@@ -66,14 +66,18 @@ class _$AttendanceCopyWithImpl<$Res>
 
 /// Create a copy of Attendance
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? studentId = null,Object? date = null,Object? status = null,Object? notes = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? lessonId = freezed,Object? studentId = null,Object? date = null,Object? status = null,Object? notes = null,Object? studentName = freezed,Object? serialNumber = freezed,Object? groupName = freezed,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as int?,lessonId: freezed == lessonId ? _self.lessonId : lessonId // ignore: cast_nullable_to_non_nullable
 as int?,studentId: null == studentId ? _self.studentId : studentId // ignore: cast_nullable_to_non_nullable
 as int,date: null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
 as DateTime,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as AttendanceStatus,notes: null == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
-as String,
+as String,studentName: freezed == studentName ? _self.studentName : studentName // ignore: cast_nullable_to_non_nullable
+as String?,serialNumber: freezed == serialNumber ? _self.serialNumber : serialNumber // ignore: cast_nullable_to_non_nullable
+as String?,groupName: freezed == groupName ? _self.groupName : groupName // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -158,10 +162,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  int studentId,  DateTime date,  AttendanceStatus status,  String notes)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  int? lessonId,  int studentId,  DateTime date,  AttendanceStatus status,  String notes,  String? studentName,  String? serialNumber,  String? groupName)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Attendance() when $default != null:
-return $default(_that.id,_that.studentId,_that.date,_that.status,_that.notes);case _:
+return $default(_that.id,_that.lessonId,_that.studentId,_that.date,_that.status,_that.notes,_that.studentName,_that.serialNumber,_that.groupName);case _:
   return orElse();
 
 }
@@ -179,10 +183,10 @@ return $default(_that.id,_that.studentId,_that.date,_that.status,_that.notes);ca
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  int studentId,  DateTime date,  AttendanceStatus status,  String notes)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  int? lessonId,  int studentId,  DateTime date,  AttendanceStatus status,  String notes,  String? studentName,  String? serialNumber,  String? groupName)  $default,) {final _that = this;
 switch (_that) {
 case _Attendance():
-return $default(_that.id,_that.studentId,_that.date,_that.status,_that.notes);case _:
+return $default(_that.id,_that.lessonId,_that.studentId,_that.date,_that.status,_that.notes,_that.studentName,_that.serialNumber,_that.groupName);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -199,10 +203,10 @@ return $default(_that.id,_that.studentId,_that.date,_that.status,_that.notes);ca
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  int studentId,  DateTime date,  AttendanceStatus status,  String notes)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  int? lessonId,  int studentId,  DateTime date,  AttendanceStatus status,  String notes,  String? studentName,  String? serialNumber,  String? groupName)?  $default,) {final _that = this;
 switch (_that) {
 case _Attendance() when $default != null:
-return $default(_that.id,_that.studentId,_that.date,_that.status,_that.notes);case _:
+return $default(_that.id,_that.lessonId,_that.studentId,_that.date,_that.status,_that.notes,_that.studentName,_that.serialNumber,_that.groupName);case _:
   return null;
 
 }
@@ -214,15 +218,19 @@ return $default(_that.id,_that.studentId,_that.date,_that.status,_that.notes);ca
 @JsonSerializable()
 
 class _Attendance implements Attendance {
-  const _Attendance({this.id, required this.studentId, required this.date, required this.status, this.notes = ''});
+  const _Attendance({this.id, this.lessonId, required this.studentId, required this.date, required this.status, this.notes = '', this.studentName, this.serialNumber, this.groupName});
   factory _Attendance.fromJson(Map<String, dynamic> json) => _$AttendanceFromJson(json);
 
 @override final  int? id;
+@override final  int? lessonId;
 @override final  int studentId;
 @override final  DateTime date;
 @override final  AttendanceStatus status;
 /// Optional notes (e.g., which other lesson was attended)
 @override@JsonKey() final  String notes;
+@override final  String? studentName;
+@override final  String? serialNumber;
+@override final  String? groupName;
 
 /// Create a copy of Attendance
 /// with the given fields replaced by the non-null parameter values.
@@ -237,16 +245,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Attendance&&(identical(other.id, id) || other.id == id)&&(identical(other.studentId, studentId) || other.studentId == studentId)&&(identical(other.date, date) || other.date == date)&&(identical(other.status, status) || other.status == status)&&(identical(other.notes, notes) || other.notes == notes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Attendance&&(identical(other.id, id) || other.id == id)&&(identical(other.lessonId, lessonId) || other.lessonId == lessonId)&&(identical(other.studentId, studentId) || other.studentId == studentId)&&(identical(other.date, date) || other.date == date)&&(identical(other.status, status) || other.status == status)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.studentName, studentName) || other.studentName == studentName)&&(identical(other.serialNumber, serialNumber) || other.serialNumber == serialNumber)&&(identical(other.groupName, groupName) || other.groupName == groupName));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,studentId,date,status,notes);
+int get hashCode => Object.hash(runtimeType,id,lessonId,studentId,date,status,notes,studentName,serialNumber,groupName);
 
 @override
 String toString() {
-  return 'Attendance(id: $id, studentId: $studentId, date: $date, status: $status, notes: $notes)';
+  return 'Attendance(id: $id, lessonId: $lessonId, studentId: $studentId, date: $date, status: $status, notes: $notes, studentName: $studentName, serialNumber: $serialNumber, groupName: $groupName)';
 }
 
 
@@ -257,7 +265,7 @@ abstract mixin class _$AttendanceCopyWith<$Res> implements $AttendanceCopyWith<$
   factory _$AttendanceCopyWith(_Attendance value, $Res Function(_Attendance) _then) = __$AttendanceCopyWithImpl;
 @override @useResult
 $Res call({
- int? id, int studentId, DateTime date, AttendanceStatus status, String notes
+ int? id, int? lessonId, int studentId, DateTime date, AttendanceStatus status, String notes, String? studentName, String? serialNumber, String? groupName
 });
 
 
@@ -274,14 +282,18 @@ class __$AttendanceCopyWithImpl<$Res>
 
 /// Create a copy of Attendance
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? studentId = null,Object? date = null,Object? status = null,Object? notes = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? lessonId = freezed,Object? studentId = null,Object? date = null,Object? status = null,Object? notes = null,Object? studentName = freezed,Object? serialNumber = freezed,Object? groupName = freezed,}) {
   return _then(_Attendance(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as int?,lessonId: freezed == lessonId ? _self.lessonId : lessonId // ignore: cast_nullable_to_non_nullable
 as int?,studentId: null == studentId ? _self.studentId : studentId // ignore: cast_nullable_to_non_nullable
 as int,date: null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
 as DateTime,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as AttendanceStatus,notes: null == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
-as String,
+as String,studentName: freezed == studentName ? _self.studentName : studentName // ignore: cast_nullable_to_non_nullable
+as String?,serialNumber: freezed == serialNumber ? _self.serialNumber : serialNumber // ignore: cast_nullable_to_non_nullable
+as String?,groupName: freezed == groupName ? _self.groupName : groupName // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

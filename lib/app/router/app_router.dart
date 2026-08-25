@@ -34,7 +34,6 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: StudentDetailRoute.page),
     AutoRoute(page: GroupFormRoute.page),
     AutoRoute(page: PaymentFormRoute.page),
-    AutoRoute(page: AttendanceListRoute.page),
     AutoRoute(page: ExamsManagementRoute.page),
     AutoRoute(page: ExamFormRoute.page),
     AutoRoute(page: ExamDetailRoute.page),

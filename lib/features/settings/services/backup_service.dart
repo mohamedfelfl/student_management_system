@@ -292,15 +292,20 @@ class BackupService {
     final rows = await db.rawQuery(DBQueries.exportAttendanceCsv);
 
     final buffer = StringBuffer();
-    buffer.writeln('Student Name,Serial Number,Date,Status,Notes');
+    buffer.writeln(
+      'Date,Lesson Time,Lesson Group,Student Serial,Student Name,Student Group,Status,Notes',
+    );
 
     for (final row in rows) {
       buffer.writeln(
-        '"${row['student_name']}",'
-        '"${row['serial_number']}",'
-        '"${row['date']}",'
-        '"${row['status']}",'
-        '"${row['notes']}"',
+        '"${row['date'] ?? ''}",'
+        '"${row['lesson_time'] ?? ''}",'
+        '"${row['lesson_group'] ?? ''}",'
+        '"${row['serial_number'] ?? ''}",'
+        '"${row['student_name'] ?? ''}",'
+        '"${row['student_group'] ?? ''}",'
+        '"${row['status'] ?? ''}",'
+        '"${row['notes'] ?? ''}"',
       );
     }
 

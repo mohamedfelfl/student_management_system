@@ -116,7 +116,7 @@ class ShellScreen extends StatelessWidget {
               destination: NavigationRailDestination(
                 icon: const Icon(Icons.menu_book_outlined),
                 selectedIcon: const Icon(Icons.menu_book),
-                label: Text(LocaleKeys.notes.tr(), style: GoogleFonts.cairo()),
+                label: Text(LocaleKeys.study_notes.tr(), style: GoogleFonts.cairo()),
               ),
             ),
           if (user.can(UserPermission.viewReports))

@@ -149,7 +149,7 @@ class _NotesDeliveryReportFormState extends State<NotesDeliveryReportForm> {
                 return DropdownMenu<int?>(
                   width: constraints.maxWidth,
                   initialSelection: _selectedNoteId,
-                  label: Text(LocaleKeys.notes.tr()),
+                  label: Text(LocaleKeys.select_note.tr()),
                   leadingIcon: const Icon(Icons.book),
                   enableSearch: true,
                   enableFilter: true,

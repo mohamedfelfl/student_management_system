@@ -85,7 +85,7 @@ class QuickActionsGrid extends StatelessWidget {
           if (user?.can(UserPermission.manageNotes) ?? false)
             ActionCard(
               icon: Icons.menu_book_rounded,
-              label: LocaleKeys.notes.tr(),
+              label: LocaleKeys.study_notes.tr(),
               onTap: () => onNavigate(NotesRoute()),
               color: AppColors.actionNotes,
             ),
