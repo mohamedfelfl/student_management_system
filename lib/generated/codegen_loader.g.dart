@@ -621,7 +621,10 @@ class CodegenLoader extends AssetLoader{
   "filter_by_group": "تصفية بالمجموعة",
   "select_lesson_report_hint": "اختر الحصة لإنشاء التقرير",
   "confirm_end": "تأكيد وإنهاء",
-  "continue_scanning": "متابعة المسح"
+  "continue_scanning": "متابعة المسح",
+  "active_lesson_already_running": "توجد حصة جارية حالياً",
+  "another_lesson_running_warning": "الحصة \"{}\" جارية حالياً. لا يمكن تشغيل أكثر من حصة واحدة في نفس الوقت. هل ترغب في إنهاء الحصة الحالية أولاً وبدء هذه الحصة؟",
+  "end_current_and_start_new": "إنهاء الحالية وبدء الجديدة"
 };
 static const Map<String,dynamic> _en = {
   "app_title": "Legendary Eagle",
@@ -1230,7 +1233,10 @@ static const Map<String,dynamic> _en = {
   "filter_by_group": "Filter by Group",
   "select_lesson_report_hint": "Select a lesson to generate report",
   "confirm_end": "Confirm & End",
-  "continue_scanning": "Continue Scanning"
+  "continue_scanning": "Continue Scanning",
+  "active_lesson_already_running": "Another Lesson is Currently Running",
+  "another_lesson_running_warning": "The lesson \"{}\" is currently in progress. Only one lesson can run at a time. Do you want to end the current lesson and start this one?",
+  "end_current_and_start_new": "End Current & Start New"
 };
 static const Map<String, Map<String,dynamic>> mapLocales = {"ar": _ar, "en": _en};
 }

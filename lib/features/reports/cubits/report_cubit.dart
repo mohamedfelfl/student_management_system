@@ -1176,7 +1176,7 @@ class ReportCubit extends Cubit<ReportState> {
                     ),
                   ),
                   pw.Text(
-                    '${lesson['date']} | ${lesson['start_time']}',
+                    '${lesson['date']} | ${lesson['start_time']}${lesson['end_time'] != null && lesson['end_time'].toString().isNotEmpty && lesson['end_time'].toString() != 'null' ? ' - ${lesson['end_time']}' : ''}',
                     style: const pw.TextStyle(fontSize: 13),
                   ),
                 ],

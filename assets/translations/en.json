@@ -608,5 +608,8 @@
     "filter_by_group": "Filter by Group",
     "select_lesson_report_hint": "Select a lesson to generate report",
     "confirm_end": "Confirm & End",
-    "continue_scanning": "Continue Scanning"
+    "continue_scanning": "Continue Scanning",
+    "active_lesson_already_running": "Another Lesson is Currently Running",
+    "another_lesson_running_warning": "The lesson \"{}\" is currently in progress. Only one lesson can run at a time. Do you want to end the current lesson and start this one?",
+    "end_current_and_start_new": "End Current & Start New"
 }

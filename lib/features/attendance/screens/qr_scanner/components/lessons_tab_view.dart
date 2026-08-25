@@ -11,6 +11,7 @@ import '../../../models/lesson.dart';
 import 'add_edit_lesson_dialog.dart';
 import 'end_lesson_dialog.dart';
 import 'lesson_card.dart';
+import 'lesson_conflict_dialog.dart';
 
 /// Lessons Management Tab View for adding, editing, starting, ending, and managing lessons.
 class LessonsTabView extends StatefulWidget {
@@ -55,6 +56,63 @@ class _LessonsTabViewState extends State<LessonsTabView> {
     if (picked != null) {
       _changeDate(picked);
     }
+  }
+
+  Future<void> _handleStartLesson(Lesson lesson) async {
+    final activeLesson = context.read<LessonCubit>().state.activeLesson;
+    if (activeLesson != null &&
+        activeLesson.id != null &&
+        activeLesson.id != lesson.id &&
+        activeLesson.status == LessonStatus.inProgress) {
+      final confirmed = await LessonConflictDialog.show(
+        context,
+        currentRunningLesson: activeLesson,
+        newLessonToStart: lesson,
+      );
+      if (!confirmed || !mounted) return;
+      await context.read<LessonCubit>().endLesson(activeLesson.id!);
+    }
+    if (!mounted) return;
+    await context.read<LessonCubit>().startLesson(lesson);
+    widget.onSwitchToScanner();
+  }
+
+  Future<void> _handleResumeLesson(Lesson lesson) async {
+    final activeLesson = context.read<LessonCubit>().state.activeLesson;
+    if (activeLesson != null &&
+        activeLesson.id != null &&
+        activeLesson.id != lesson.id &&
+        activeLesson.status == LessonStatus.inProgress) {
+      final confirmed = await LessonConflictDialog.show(
+        context,
+        currentRunningLesson: activeLesson,
+        newLessonToStart: lesson,
+      );
+      if (!confirmed || !mounted) return;
+      await context.read<LessonCubit>().endLesson(activeLesson.id!);
+    }
+    if (!mounted) return;
+    context.read<LessonCubit>().setActiveLesson(lesson);
+    widget.onSwitchToScanner();
+  }
+
+  Future<void> _handleReopenLesson(Lesson lesson) async {
+    final activeLesson = context.read<LessonCubit>().state.activeLesson;
+    if (activeLesson != null &&
+        activeLesson.id != null &&
+        activeLesson.id != lesson.id &&
+        activeLesson.status == LessonStatus.inProgress) {
+      final confirmed = await LessonConflictDialog.show(
+        context,
+        currentRunningLesson: activeLesson,
+        newLessonToStart: lesson,
+      );
+      if (!confirmed || !mounted) return;
+      await context.read<LessonCubit>().endLesson(activeLesson.id!);
+    }
+    if (!mounted) return;
+    await context.read<LessonCubit>().reopenLesson(lesson);
+    widget.onSwitchToScanner();
   }
 
   void _confirmDeleteLesson(BuildContext context, int lessonId) {
@@ -353,14 +411,8 @@ class _LessonsTabViewState extends State<LessonsTabView> {
                       final lesson = lessons[index];
                       return LessonCard(
                         lesson: lesson,
-                        onStart: () {
-                          context.read<LessonCubit>().startLesson(lesson);
-                          widget.onSwitchToScanner();
-                        },
-                        onResume: () {
-                          context.read<LessonCubit>().setActiveLesson(lesson);
-                          widget.onSwitchToScanner();
-                        },
+                        onStart: () => _handleStartLesson(lesson),
+                        onResume: () => _handleResumeLesson(lesson),
                         onEnd: () {
                           if (lesson.id != null) {
                             EndLessonDialog.show(
@@ -374,10 +426,7 @@ class _LessonsTabViewState extends State<LessonsTabView> {
                             );
                           }
                         },
-                        onReopen: () {
-                          context.read<LessonCubit>().reopenLesson(lesson);
-                          widget.onSwitchToScanner();
-                        },
+                        onReopen: () => _handleReopenLesson(lesson),
                         onEdit: () {
                           AddEditLessonDialog.show(
                             context,

@@ -214,7 +214,11 @@ class ActiveLessonBanner extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '${activeLesson!.startTime} - ${activeLesson!.endTime}',
+                          activeLesson!.endTime != null &&
+                                  activeLesson!.endTime!.isNotEmpty &&
+                                  activeLesson!.endTime != 'null'
+                              ? '${activeLesson!.startTime} - ${activeLesson!.endTime}'
+                              : activeLesson!.startTime,
                           style: textTheme.labelMedium?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.w600,
@@ -321,7 +325,11 @@ class ActiveLessonBanner extends StatelessWidget {
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       Text(
-                        '${lesson.startTime} (${lesson.status.name})',
+                        lesson.endTime != null &&
+                                lesson.endTime!.isNotEmpty &&
+                                lesson.endTime != 'null'
+                            ? '${lesson.startTime} - ${lesson.endTime}'
+                            : lesson.startTime,
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],

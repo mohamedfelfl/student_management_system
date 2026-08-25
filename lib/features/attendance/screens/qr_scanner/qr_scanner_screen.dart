@@ -17,6 +17,7 @@ import 'components/active_lesson_banner.dart';
 import 'components/add_edit_lesson_dialog.dart';
 import 'components/desktop_scanner_view.dart';
 import 'components/end_lesson_dialog.dart';
+import 'components/lesson_conflict_dialog.dart';
 import 'components/lessons_tab_view.dart';
 import 'components/live_roster_view.dart';
 import 'components/mobile_scanner_view.dart';
@@ -237,7 +238,21 @@ class _QrScannerScreenState extends State<QrScannerScreen>
               ActiveLessonBanner(
                 activeLesson: activeLesson,
                 availableLessons: lessonState.dailyLessons,
-                onSelectLesson: (lesson) {
+                onSelectLesson: (lesson) async {
+                  final currentActive = context.read<LessonCubit>().state.activeLesson;
+                  if (currentActive != null &&
+                      currentActive.id != null &&
+                      currentActive.id != lesson.id &&
+                      currentActive.status == LessonStatus.inProgress) {
+                    final confirmed = await LessonConflictDialog.show(
+                      context,
+                      currentRunningLesson: currentActive,
+                      newLessonToStart: lesson,
+                    );
+                    if (!confirmed || !context.mounted) return;
+                    await context.read<LessonCubit>().endLesson(currentActive.id!);
+                  }
+                  if (!context.mounted) return;
                   if (lesson.status == LessonStatus.scheduled) {
                     context.read<LessonCubit>().startLesson(lesson);
                   } else {

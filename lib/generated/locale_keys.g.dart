@@ -610,5 +610,8 @@ abstract class  LocaleKeys {
   static const select_lesson_report_hint = 'select_lesson_report_hint';
   static const confirm_end = 'confirm_end';
   static const continue_scanning = 'continue_scanning';
+  static const active_lesson_already_running = 'active_lesson_already_running';
+  static const another_lesson_running_warning = 'another_lesson_running_warning';
+  static const end_current_and_start_new = 'end_current_and_start_new';
 
 }

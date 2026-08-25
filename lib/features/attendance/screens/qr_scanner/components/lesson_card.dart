@@ -125,7 +125,9 @@ class LessonCard extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    if (lesson.endTime != null && lesson.endTime!.isNotEmpty) ...[
+                    if (lesson.endTime != null &&
+                        lesson.endTime!.isNotEmpty &&
+                        lesson.endTime != 'null') ...[
                       Text(
                         ' - ${lesson.endTime}',
                         style: textTheme.bodySmall?.copyWith(

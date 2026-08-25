@@ -604,9 +604,10 @@
     "zero_absences_msg": "لا يوجد أي غياب في هذه الحصة!",
     "no_lessons_today": "لا توجد حصص مجدولة لهذا التاريخ",
     "no_absent_students": "لا يوجد طلاب غائبون في هذه الحصة",
-    "all_enrolled_attended": "جميع الطلاب المسجلين حضروا!",
-    "filter_by_group": "تصفية بالمجموعة",
     "select_lesson_report_hint": "اختر الحصة لإنشاء التقرير",
     "confirm_end": "تأكيد وإنهاء",
-    "continue_scanning": "متابعة المسح"
+    "continue_scanning": "متابعة المسح",
+    "active_lesson_already_running": "توجد حصة جارية حالياً",
+    "another_lesson_running_warning": "الحصة \"{}\" جارية حالياً. لا يمكن تشغيل أكثر من حصة واحدة في نفس الوقت. هل ترغب في إنهاء الحصة الحالية أولاً وبدء هذه الحصة؟",
+    "end_current_and_start_new": "إنهاء الحالية وبدء الجديدة"
 }

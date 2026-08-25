@@ -184,6 +184,14 @@ class LessonCubit extends Cubit<LessonState> {
         status: LessonStatus.inProgress,
       );
 
+      // Guarantee only one lesson is in progress across the database
+      await db.update(
+        DBQueries.tableLessons,
+        <String, Object?>{'status': 'completed'},
+        where: 'status = ? AND id != ?',
+        whereArgs: ['inProgress', lessonId],
+      );
+
       emit(state.copyWith(activeLesson: updatedLesson, isLoading: false));
 
       if (state.selectedDate != null) {
