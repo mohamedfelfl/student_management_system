@@ -8,6 +8,8 @@ class StudentSearchHeader extends StatelessWidget {
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onAddPressed;
   final VoidCallback? onBulkDeletePressed;
+  final VoidCallback? onManageDuplicatesPressed;
+  final VoidCallback? onMergeSelectedPressed;
   final int? selectedCount;
 
   final int rowsPerPage;
@@ -21,6 +23,8 @@ class StudentSearchHeader extends StatelessWidget {
     required this.rowsPerPage,
     required this.onRowsPerPageChanged,
     this.onBulkDeletePressed,
+    this.onManageDuplicatesPressed,
+    this.onMergeSelectedPressed,
     this.selectedCount,
   });
 
@@ -81,6 +85,19 @@ class StudentSearchHeader extends StatelessWidget {
           ),
         ),
         SizedBox(width: 12.w),
+        if (hasSelection && (selectedCount ?? 0) >= 2 && onMergeSelectedPressed != null) ...[
+          ElevatedButton.icon(
+            onPressed: onMergeSelectedPressed,
+            icon: const Icon(Icons.merge_type_rounded),
+            label: Text('${LocaleKeys.merge_selected.tr()} ($selectedCount)'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colorScheme.secondary,
+              foregroundColor: colorScheme.onSecondary,
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 24.h),
+            ),
+          ),
+          SizedBox(width: 12.w),
+        ],
         if (hasSelection && onBulkDeletePressed != null) ...[
           ElevatedButton.icon(
             onPressed: onBulkDeletePressed,
@@ -89,6 +106,17 @@ class StudentSearchHeader extends StatelessWidget {
             style: ElevatedButton.styleFrom(
               backgroundColor: colorScheme.error,
               foregroundColor: colorScheme.onError,
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 24.h),
+            ),
+          ),
+          SizedBox(width: 12.w),
+        ],
+        if (onManageDuplicatesPressed != null) ...[
+          OutlinedButton.icon(
+            onPressed: onManageDuplicatesPressed,
+            icon: const Icon(Icons.copy_all_rounded),
+            label: Text(LocaleKeys.manage_duplicates.tr()),
+            style: OutlinedButton.styleFrom(
               padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 24.h),
             ),
           ),

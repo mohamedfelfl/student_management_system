@@ -9,7 +9,6 @@ import '../../../../generated/locale_keys.g.dart';
 import '../../../assistants/cubits/assistant_cubit.dart';
 import '../../../groups/cubits/group_cubit.dart';
 import '../../../notes/cubits/notes_cubit.dart';
-import '../../../students/cubits/student_cubit.dart';
 import '../../../exams/cubits/exam_cubit.dart';
 import '../../cubits/report_cubit.dart';
 import 'components/assistant_report_form.dart';
@@ -34,7 +33,6 @@ class _ReportScreenState extends State<ReportScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<StudentCubit>().loadStudents();
     context.read<GroupCubit>().loadGroups();
     context.read<AssistantCubit>().loadAssistants();
     context.read<NotesCubit>().loadNotes();

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../app/theme/app_theme.dart';
+import '../../../../app/utils/arabic_name_helper.dart';
 import '../../../../generated/locale_keys.g.dart';
 import '../../../groups/cubits/group_cubit.dart';
 import '../../cubits/student_cubit.dart';
@@ -38,13 +39,15 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
   bool _isEditing = false;
   bool _isSubmitting = false;
 
+  List<Map<String, dynamic>> _allStudents = [];
+  List<NameDuplicateMatch> _duplicateMatches = [];
+
   @override
   void initState() {
     super.initState();
     context.read<GroupCubit>().loadGroups();
-    _nameController.addListener(() {
-      setState(() {});
-    });
+    _loadAllStudents();
+    _nameController.addListener(_onNameChanged);
     if (widget.id != null) {
       _isEditing = true;
       _loadStudent();
@@ -52,6 +55,31 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
       _selectedGrade = 'prep_1';
       _updateNextSerial('prep_1');
     }
+  }
+
+  Future<void> _loadAllStudents() async {
+    final students =
+        await context.read<StudentCubit>().getAllStudentsWithGroups();
+    if (mounted) {
+      setState(() {
+        _allStudents = students;
+        _checkDuplicates();
+      });
+    }
+  }
+
+  void _onNameChanged() {
+    _checkDuplicates();
+    setState(() {});
+  }
+
+  void _checkDuplicates() {
+    final input = _nameController.text;
+    _duplicateMatches = ArabicNameHelper.checkDuplicates(
+      input,
+      _allStudents,
+      excludeId: widget.id,
+    );
   }
 
   Future<void> _updateNextSerial(String grade) async {
@@ -112,6 +140,7 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
 
   @override
   void dispose() {
+    _nameController.removeListener(_onNameChanged);
     _serialController.dispose();
     _nameController.dispose();
     _addressController.dispose();
@@ -195,25 +224,10 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
                                 previousTeacherController:
                                     _previousTeacherController,
                                 notesController: _notesController,
+                                duplicateMatches: _duplicateMatches,
                                 nameValidator: (v) {
                                   if (v == null || v.trim().isEmpty) {
                                     return LocaleKeys.required_field.tr();
-                                  }
-                                  final name = v.trim().toLowerCase();
-                                  final students =
-                                      context.read<StudentCubit>().state.students;
-                                  final isDuplicate = students.any((s) {
-                                    final sName = (s['name'] as String?)
-                                        ?.trim()
-                                        .toLowerCase();
-                                    if (sName != name) return false;
-                                    if (_isEditing && s['id'] == widget.id) {
-                                      return false;
-                                    }
-                                    return true;
-                                  });
-                                  if (isDuplicate) {
-                                    return LocaleKeys.student_name_exists.tr();
                                   }
                                   return null;
                                 },
@@ -337,9 +351,108 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
+    NameDuplicateMatch? exactOrNormalizedMatch;
+    for (final m in _duplicateMatches) {
+      if (m.matchLevel == NameMatchLevel.exact ||
+          m.matchLevel == NameMatchLevel.normalizedExact) {
+        exactOrNormalizedMatch = m;
+        break;
+      }
+    }
+
+    bool allowDuplicateName = false;
+
+    if (exactOrNormalizedMatch != null) {
+      final matchStudent = exactOrNormalizedMatch.student;
+      final matchName = matchStudent['name']?.toString() ?? '';
+      final matchSerial = matchStudent['serial_number']?.toString() ?? '';
+      final matchGroup = matchStudent['group_name']?.toString() ?? '';
+
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialogCtx) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.warning_amber_rounded,
+                color: Theme.of(dialogCtx).colorScheme.error,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  LocaleKeys.duplicate_name_warning_title.tr(),
+                  style: const TextStyle(fontSize: 18),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(LocaleKeys.duplicate_name_warning_confirm.tr()),
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(dialogCtx)
+                      .colorScheme
+                      .surfaceContainerHighest
+                      .withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: Theme.of(dialogCtx).colorScheme.outlineVariant,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      matchName,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${LocaleKeys.serial_number.tr()}: $matchSerial${matchGroup.isNotEmpty ? " • $matchGroup" : ""}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(dialogCtx).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogCtx).pop(false),
+              child: Text(LocaleKeys.cancel.tr()),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogCtx).pop(true),
+              style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(dialogCtx).colorScheme.error,
+              ),
+              child: Text(LocaleKeys.proceed_anyway.tr()),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed != true) return;
+      if (!mounted) return;
+      allowDuplicateName = true;
+    }
+
     setState(() => _isSubmitting = true);
 
     try {
+      final studentCubit = context.read<StudentCubit>();
       final Map<String, dynamic> data = <String, dynamic>{
         'name': _nameController.text.trim(),
         'address': _addressController.text.trim(),
@@ -356,9 +469,16 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
       };
 
       if (_isEditing) {
-        await context.read<StudentCubit>().updateStudent(widget.id!, data);
+        await studentCubit.updateStudent(
+              widget.id!,
+              data,
+              allowDuplicateName: allowDuplicateName,
+            );
       } else {
-        await context.read<StudentCubit>().createStudent(data);
+        await studentCubit.createStudent(
+              data,
+              allowDuplicateName: allowDuplicateName,
+            );
       }
 
       if (mounted) {

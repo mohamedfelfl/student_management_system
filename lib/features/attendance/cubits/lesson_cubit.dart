@@ -344,10 +344,15 @@ class LessonCubit extends Cubit<LessonState> {
         'notes': notes,
       });
 
+      final bool isFree = student['student_status']?.toString() == 'free';
+      final String lastScannedDisplay = isFree
+          ? '$studentName (${LocaleKeys.free_student.tr()})'
+          : studentName;
+
       emit(
         state.copyWith(
           scanSuccess: true,
-          lastScannedStudent: studentName,
+          lastScannedStudent: lastScannedDisplay,
           error: null,
         ),
       );

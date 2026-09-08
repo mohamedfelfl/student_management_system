@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../../app/constants/dimens.dart';
 import '../../../../../generated/locale_keys.g.dart';
@@ -8,21 +9,69 @@ import '../../../../attendance/cubits/attendance_cubit.dart';
 
 class AttendanceTab extends StatelessWidget {
   final int studentId;
-  const AttendanceTab({super.key, required this.studentId});
+  final String studentStatus;
+
+  const AttendanceTab({
+    super.key,
+    required this.studentId,
+    this.studentStatus = 'normal',
+  });
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final bool isFree = studentStatus == 'free';
 
     return BlocBuilder<AttendanceCubit, AttendanceState>(
       builder: (context, state) {
         if (state.isLoading) {
           return const Center(child: CircularProgressIndicator());
         }
-        if (state.records.isEmpty) {
-          return Center(child: Text(LocaleKeys.no_attendance_records.tr()));
-        }
-        return ListView.builder(
+
+        return Column(
+          children: [
+            if (isFree)
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppDimens.cardPadding,
+                  vertical: AppDimens.h8,
+                ),
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: AppDimens.p16,
+                    vertical: AppDimens.p10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.shade50,
+                    borderRadius: BorderRadius.circular(AppDimens.r12),
+                    border: Border.all(color: Colors.amber.shade300),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.card_giftcard_rounded,
+                        color: Colors.amber.shade800,
+                        size: 20.r,
+                      ),
+                      SizedBox(width: AppDimens.w10),
+                      Expanded(
+                        child: Text(
+                          LocaleKeys.free_student_attendance_notice.tr(),
+                          style: TextStyle(
+                            color: Colors.amber.shade900,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12.sp,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            Expanded(
+              child: state.records.isEmpty
+                  ? Center(child: Text(LocaleKeys.no_attendance_records.tr()))
+                  : ListView.builder(
           padding: EdgeInsets.all(AppDimens.cardPadding),
           itemCount: state.records.length,
           itemBuilder: (context, i) {
@@ -86,7 +135,10 @@ class AttendanceTab extends StatelessWidget {
               ),
             );
           },
-        );
+        ),
+      ),
+    ],
+  );
       },
     );
   }

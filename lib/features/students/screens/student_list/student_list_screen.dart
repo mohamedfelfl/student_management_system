@@ -7,10 +7,12 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../app/router/app_router.gr.dart';
 import '../../../../generated/locale_keys.g.dart';
 import '../../cubits/student_cubit.dart';
+import 'components/duplicate_students_dialog.dart';
 import 'components/empty_student_state.dart';
 import 'components/search_results_indicator.dart';
 import 'components/student_data_table.dart';
 import 'components/student_list_banner.dart';
+import 'components/student_merge_confirm_dialog.dart';
 import 'components/student_search_header.dart';
 
 @RoutePage()
@@ -81,6 +83,12 @@ class _StudentListScreenState extends State<StudentListScreen> {
                   onBulkDeletePressed: hasSelection
                       ? () => _confirmBulkDelete(state.selectedIds)
                       : null,
+                  onManageDuplicatesPressed: () =>
+                      DuplicateStudentsDialog.show(context),
+                  onMergeSelectedPressed:
+                      (hasSelection && state.selectedIds.length >= 2)
+                          ? () => _openMergeSelected(state.selectedIds)
+                          : null,
                   selectedCount: state.selectedIds.length,
                 ),
 
@@ -184,6 +192,13 @@ class _StudentListScreenState extends State<StudentListScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void _openMergeSelected(Set<int> ids) {
+    StudentMergeConfirmDialog.show(
+      context,
+      candidateStudentIds: ids.toList(),
     );
   }
 }

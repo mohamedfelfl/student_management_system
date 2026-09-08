@@ -5,6 +5,9 @@ import 'package:flutter/services.dart';
 import '../../../../../app/theme/app_theme.dart';
 import '../../../../../generated/locale_keys.g.dart';
 
+import '../../../../../app/utils/arabic_name_helper.dart';
+import 'student_duplicate_warning_card.dart';
+
 /// Personal Information & Educational History sections for Student Form.
 /// Split into two clearly organized cards:
 /// 1. Personal & Contact Details (Name, Phones, Address, Father's job)
@@ -19,6 +22,7 @@ class StudentInfoSection extends StatelessWidget {
   final TextEditingController previousTeacherController;
   final TextEditingController? notesController;
   final String? Function(String?)? nameValidator;
+  final List<NameDuplicateMatch> duplicateMatches;
 
   const StudentInfoSection({
     super.key,
@@ -31,6 +35,7 @@ class StudentInfoSection extends StatelessWidget {
     required this.previousTeacherController,
     this.notesController,
     this.nameValidator,
+    this.duplicateMatches = const [],
   });
 
   @override
@@ -127,6 +132,9 @@ class StudentInfoSection extends StatelessWidget {
                         ? LocaleKeys.required_field.tr()
                         : null,
               ),
+
+              if (duplicateMatches.isNotEmpty)
+                StudentDuplicateWarningCard(matches: duplicateMatches),
 
               const SizedBox(height: 18),
 

@@ -167,7 +167,11 @@ class _StudentDetailScreenState extends State<StudentDetailScreen>
                     studentStatus:
                         _student!['student_status']?.toString() ?? 'normal',
                   ),
-                AttendanceTab(studentId: widget.id),
+                AttendanceTab(
+                  studentId: widget.id,
+                  studentStatus:
+                      _student!['student_status']?.toString() ?? 'normal',
+                ),
                 MarksTab(studentId: widget.id, onRefresh: _loadData),
               ],
             ),

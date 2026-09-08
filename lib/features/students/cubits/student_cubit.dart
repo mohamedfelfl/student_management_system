@@ -4,6 +4,7 @@ import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import '../../../app/services/database_service.dart';
 import '../../../app/constants/db_queries.dart';
+import '../services/student_merge_service.dart';
 
 part 'student_cubit.freezed.dart';
 
@@ -22,10 +23,14 @@ abstract class StudentState with _$StudentState {
 
 class StudentCubit extends Cubit<StudentState> {
   final DatabaseService _databaseService;
+  final StudentMergeService _mergeService;
 
-  StudentCubit({required DatabaseService databaseService})
-    : _databaseService = databaseService,
-      super(const StudentState());
+  StudentCubit({
+    required DatabaseService databaseService,
+    StudentMergeService? mergeService,
+  })  : _databaseService = databaseService,
+        _mergeService = mergeService ?? StudentMergeService(databaseService: databaseService),
+        super(const StudentState());
 
   Future<void> loadStudents() async {
     emit(state.copyWith(isLoading: true, error: null));
@@ -106,11 +111,14 @@ class StudentCubit extends Cubit<StudentState> {
 
   // ── CRUD ──
 
-  Future<String> createStudent(Map<String, dynamic> data) async {
+  Future<String> createStudent(
+    Map<String, dynamic> data, {
+    bool allowDuplicateName = false,
+  }) async {
     try {
       final Database db = await _databaseService.database;
       final name = data['name']?.toString().trim() ?? '';
-      if (name.isNotEmpty) {
+      if (!allowDuplicateName && name.isNotEmpty) {
         final existing = await db.query(
           DBQueries.tableStudents,
           where: 'LOWER(TRIM(name)) = LOWER(TRIM(?))',
@@ -172,11 +180,15 @@ class StudentCubit extends Cubit<StudentState> {
     }
   }
 
-  Future<void> updateStudent(int id, Map<String, dynamic> data) async {
+  Future<void> updateStudent(
+    int id,
+    Map<String, dynamic> data, {
+    bool allowDuplicateName = false,
+  }) async {
     try {
       final Database db = await _databaseService.database;
       final name = data['name']?.toString().trim() ?? '';
-      if (name.isNotEmpty) {
+      if (!allowDuplicateName && name.isNotEmpty) {
         final existing = await db.query(
           DBQueries.tableStudents,
           where: 'LOWER(TRIM(name)) = LOWER(TRIM(?)) AND id != ?',
@@ -227,6 +239,101 @@ class StudentCubit extends Cubit<StudentState> {
       await loadStudents();
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
+    }
+  }
+
+  /// Fetches all students with their group names (unfiltered) for duplicate checks and references.
+  Future<List<Map<String, dynamic>>> getAllStudentsWithGroups() async {
+    try {
+      final Database db = await _databaseService.database;
+      final List<Map<String, Object?>> results = await db.rawQuery(
+        '''
+        ${DBQueries.getStudentsBase}
+        ORDER BY s.name ASC
+        ''',
+      );
+      return results.map((r) => Map<String, dynamic>.from(r)).toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /// Searches for students matching [query] (name, serial number, or phone)
+  /// with an optional [limit]. Does NOT alter the cubit's global state.
+  Future<List<Map<String, dynamic>>> searchStudentsQuick(
+    String query, {
+    int limit = 10,
+  }) async {
+    final clean = query.trim();
+    if (clean.isEmpty) return const [];
+    try {
+      final Database db = await _databaseService.database;
+
+      // Variants for Arabic alif normalization
+      final normAlif = clean
+          .replaceAll('أ', 'ا')
+          .replaceAll('إ', 'ا')
+          .replaceAll('آ', 'ا');
+      final hamzaAbove = clean.replaceAll('ا', 'أ');
+
+      final variants = <String>{clean, normAlif, hamzaAbove}
+          .where((v) => v.isNotEmpty)
+          .toList();
+
+      final orClauses = variants
+          .map((_) => DBQueries.studentSearchCondition)
+          .join(' OR ');
+      final args = <Object?>[];
+      for (final v in variants) {
+        final w = '%$v%';
+        args.addAll([w, w, w]);
+      }
+      args.add(limit);
+
+      final String sql = '''
+        ${DBQueries.getStudentsBase}
+        WHERE ($orClauses)
+        ORDER BY s.name ASC
+        LIMIT ?
+      ''';
+      final List<Map<String, Object?>> results = await db.rawQuery(sql, args);
+      return results.map((r) => Map<String, dynamic>.from(r)).toList();
+    } catch (e) {
+      return const [];
+    }
+  }
+
+  // ── Duplicate Management & Merge ──
+
+  Future<List<DuplicateStudentGroup>> findDuplicates() {
+    return _mergeService.findDuplicates();
+  }
+
+  Future<MergeSummary> previewMerge({
+    required int primaryId,
+    required List<int> duplicateIds,
+  }) {
+    return _mergeService.previewMerge(
+      primaryId: primaryId,
+      duplicateIds: duplicateIds,
+    );
+  }
+
+  Future<void> mergeStudents({
+    required int primaryId,
+    required List<int> duplicateIds,
+  }) async {
+    emit(state.copyWith(isLoading: true, error: null));
+    try {
+      await _mergeService.mergeStudents(
+        primaryId: primaryId,
+        duplicateIds: duplicateIds,
+      );
+      emit(state.copyWith(selectedIds: const {}));
+      await loadStudents();
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, error: e.toString()));
+      rethrow;
     }
   }
 
