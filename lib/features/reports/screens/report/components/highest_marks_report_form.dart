@@ -12,7 +12,7 @@ import '../../../cubits/report_cubit.dart';
 enum HRFilterType { exam, group }
 enum HRMarksMode { topMarks, fullMark }
 
-const List<int> _limitOptions = [3, 5, 10, 20, 50, 100];
+const List<int> _limitOptions = [3, 5, 10, 20, 50, 100, 500, 1000, 2000];
 
 /// Highest marks report form: select exam/group, choose top marks (limit) or full mark (no limit) → generate PDF.
 class HighestMarksReportForm extends StatefulWidget {

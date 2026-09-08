@@ -28,7 +28,7 @@ class _HonoredStudentsScreenState extends State<HonoredStudentsScreen> {
   int _limit = 10;
   late ExamCubit _examCubit;
 
-  final List<int> _limitOptions = [3, 5, 10, 20, 50, 100];
+  final List<int> _limitOptions = [3, 5, 10, 20, 50, 100, 500, 1000, 2000];
 
   @override
   void didChangeDependencies() {

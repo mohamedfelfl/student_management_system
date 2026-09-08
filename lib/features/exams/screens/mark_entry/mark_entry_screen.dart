@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -31,6 +32,7 @@ class _MarkEntryScreenState extends State<MarkEntryScreen> {
 
   // Search & Filter State
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _groupsScrollController = ScrollController();
   String _searchQuery = '';
   String? _selectedGroupFilter; // null means "All Groups"
   bool _onlyUngraded = false;
@@ -56,6 +58,7 @@ class _MarkEntryScreenState extends State<MarkEntryScreen> {
   @override
   void dispose() {
     _searchController.dispose();
+    _groupsScrollController.dispose();
     for (final TextEditingController c in _scoreControllers.values) {
       c.dispose();
     }
@@ -472,42 +475,118 @@ class _MarkEntryScreenState extends State<MarkEntryScreen> {
 
         const SizedBox(height: 12),
 
-        // Group Filter Chips Row
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              Padding(
-                padding: const EdgeInsetsDirectional.only(end: 8),
-                child: ChoiceChip(
-                  label: Text('${LocaleKeys.all_groups.tr()} ($allStudentsCount)'),
-                  selected: _selectedGroupFilter == null,
-                  onSelected: (_) => setState(() => _selectedGroupFilter = null),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppTheme.chipRadius),
+        // Group Filter Chips Row with mouse wheel, drag, and button scrolling
+        Row(
+          children: [
+            Expanded(
+              child: Listener(
+                onPointerSignal: (pointerSignal) {
+                  if (pointerSignal is PointerScrollEvent && _groupsScrollController.hasClients) {
+                    final double target = (_groupsScrollController.offset + pointerSignal.scrollDelta.dy)
+                        .clamp(0.0, _groupsScrollController.position.maxScrollExtent);
+                    _groupsScrollController.jumpTo(target);
+                  }
+                },
+                child: ScrollConfiguration(
+                  behavior: ScrollConfiguration.of(context).copyWith(
+                    dragDevices: {
+                      PointerDeviceKind.touch,
+                      PointerDeviceKind.mouse,
+                      PointerDeviceKind.trackpad,
+                      PointerDeviceKind.stylus,
+                    },
+                  ),
+                  child: SingleChildScrollView(
+                    controller: _groupsScrollController,
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    child: Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsetsDirectional.only(end: 8),
+                          child: ChoiceChip(
+                            label: Text('${LocaleKeys.all_groups.tr()} ($allStudentsCount)'),
+                            selected: _selectedGroupFilter == null,
+                            onSelected: (_) => setState(() => _selectedGroupFilter = null),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(AppTheme.chipRadius),
+                            ),
+                          ),
+                        ),
+                        ...groups.map((g) {
+                          final isSelected = _selectedGroupFilter == g;
+                          return Padding(
+                            padding: const EdgeInsetsDirectional.only(end: 8),
+                            child: ChoiceChip(
+                              label: Text(g),
+                              selected: isSelected,
+                              onSelected: (_) {
+                                setState(() {
+                                  _selectedGroupFilter = isSelected ? null : g;
+                                });
+                              },
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(AppTheme.chipRadius),
+                              ),
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
                   ),
                 ),
               ),
-              ...groups.map((g) {
-                final isSelected = _selectedGroupFilter == g;
-                return Padding(
-                  padding: const EdgeInsetsDirectional.only(end: 8),
-                  child: ChoiceChip(
-                    label: Text(g),
-                    selected: isSelected,
-                    onSelected: (_) {
-                      setState(() {
-                        _selectedGroupFilter = isSelected ? null : g;
-                      });
-                    },
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppTheme.chipRadius),
+            ),
+            if (groups.length > 2) ...[
+              const SizedBox(width: 4),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  onTap: () {
+                    if (_groupsScrollController.hasClients) {
+                      _groupsScrollController.animateTo(
+                        (_groupsScrollController.offset - 200).clamp(0.0, _groupsScrollController.position.maxScrollExtent),
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.easeInOut,
+                      );
+                    }
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(6),
+                    child: Icon(
+                      Icons.chevron_left_rounded,
+                      size: 22,
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
-                );
-              }),
+                ),
+              ),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  onTap: () {
+                    if (_groupsScrollController.hasClients) {
+                      _groupsScrollController.animateTo(
+                        (_groupsScrollController.offset + 200).clamp(0.0, _groupsScrollController.position.maxScrollExtent),
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.easeInOut,
+                      );
+                    }
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(6),
+                    child: Icon(
+                      Icons.chevron_right_rounded,
+                      size: 22,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ),
             ],
-          ),
+          ],
         ),
       ],
     );
