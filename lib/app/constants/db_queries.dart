@@ -99,7 +99,7 @@ class DBQueries {
       end_time TEXT,
       title TEXT NOT NULL DEFAULT '',
       status TEXT NOT NULL DEFAULT 'scheduled',
-      created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
     )
   ''';
@@ -270,6 +270,8 @@ class DBQueries {
       "ALTER TABLE students ADD COLUMN notes TEXT NOT NULL DEFAULT ''";
   static const String alterAttendanceAddLessonId =
       'ALTER TABLE attendance ADD COLUMN lesson_id INTEGER';
+  static const String alterLessonsAddCreatedAt =
+      'ALTER TABLE lessons ADD COLUMN created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP';
 
   // ---------------------------------------------------------------------------
   // Auth Queries

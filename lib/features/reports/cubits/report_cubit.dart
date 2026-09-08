@@ -262,12 +262,14 @@ class ReportCubit extends Cubit<ReportState> {
 
   Future<void> generateHighestMarksReport({
     int? examId,
+    List<int>? examIds,
     int? groupId,
     int? limit,
     double? minScore,
     double? maxScore,
     DateTime? fromDate,
     DateTime? toDate,
+    bool fullMarkOnly = false,
   }) async {
     if (state.isLoading) return;
     emit(const ReportState(isLoading: true));
@@ -276,21 +278,37 @@ class ReportCubit extends Cubit<ReportState> {
       final conditions = <String>[];
       final args = <dynamic>[];
 
-      if (examId != null) {
-        conditions.add('m.exam_id = ?');
-        args.add(examId);
+      final effectiveExamIds = <int>{
+        ?examId,
+        ...?examIds,
+      }.toList();
+
+      if (effectiveExamIds.isNotEmpty) {
+        if (effectiveExamIds.length == 1) {
+          conditions.add('m.exam_id = ?');
+          args.add(effectiveExamIds.first);
+        } else {
+          conditions.add(
+            'm.exam_id IN (${List.filled(effectiveExamIds.length, '?').join(', ')})',
+          );
+          args.addAll(effectiveExamIds);
+        }
       }
       if (groupId != null) {
         conditions.add('s.group_id = ?');
         args.add(groupId);
       }
-      if (minScore != null) {
-        conditions.add('m.score >= ?');
-        args.add(minScore);
-      }
-      if (maxScore != null) {
-        conditions.add('m.score <= ?');
-        args.add(maxScore);
+      if (fullMarkOnly) {
+        conditions.add('m.score >= e.full_mark');
+      } else {
+        if (minScore != null) {
+          conditions.add('m.score >= ?');
+          args.add(minScore);
+        }
+        if (maxScore != null) {
+          conditions.add('m.score <= ?');
+          args.add(maxScore);
+        }
       }
       if (fromDate != null) {
         conditions.add('e.date >= ?');
@@ -308,15 +326,27 @@ class ReportCubit extends Cubit<ReportState> {
       String query = '''
         ${DBQueries.reportHighestMarksBase}
         $whereClause
-        ORDER BY m.score DESC
+        ORDER BY (CAST(m.score AS REAL) / e.full_mark) DESC, m.score DESC, s.name ASC
       ''';
 
-      if (limit != null) {
+      if (!fullMarkOnly && limit != null) {
         query += '\n        LIMIT ?';
         args.add(limit);
       }
 
       final results = await db.rawQuery(query, args);
+
+      String? examsSubtitle;
+      if (effectiveExamIds.isNotEmpty) {
+        final examRows = await db.rawQuery(
+          'SELECT name FROM exams WHERE id IN (${List.filled(effectiveExamIds.length, '?').join(', ')})',
+          effectiveExamIds,
+        );
+        final names = examRows.map((r) => r['name'].toString()).toList();
+        if (names.isNotEmpty) {
+          examsSubtitle = '${LocaleKeys.exams.tr()}: ${names.join(' - ')}';
+        }
+      }
 
       final pdf = await _createDocument();
       pdf.addPage(
@@ -327,13 +357,25 @@ class ReportCubit extends Cubit<ReportState> {
             pw.Header(
               level: 0,
               child: pw.Text(
-                LocaleKeys.highest_marks_report_title.tr(),
+                fullMarkOnly
+                    ? LocaleKeys.full_mark_students_report_title.tr()
+                    : LocaleKeys.highest_marks_report_title.tr(),
                 style: pw.TextStyle(
                   fontSize: 22,
                   fontWeight: pw.FontWeight.bold,
                 ),
               ),
             ),
+            if (examsSubtitle != null) ...[
+              pw.SizedBox(height: 4),
+              pw.Text(
+                examsSubtitle,
+                style: const pw.TextStyle(
+                  fontSize: 12,
+                  color: PdfColors.blueGrey700,
+                ),
+              ),
+            ],
             pw.SizedBox(height: 12),
             pw.TableHelper.fromTextArray(
               tableDirection: _textDirection,

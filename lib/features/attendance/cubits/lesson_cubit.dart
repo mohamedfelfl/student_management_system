@@ -168,6 +168,7 @@ class LessonCubit extends Cubit<LessonState> {
           'end_time': lesson.endTime,
           'title': lesson.title,
           'status': 'inProgress',
+          'created_at': DateTime.now().toIso8601String(),
         });
       } else {
         lessonId = lesson.id!;
@@ -459,6 +460,7 @@ class LessonCubit extends Cubit<LessonState> {
         'end_time': endTime,
         'title': title,
         'status': 'scheduled',
+        'created_at': DateTime.now().toIso8601String(),
       });
 
       await loadLessonsForDate(date);

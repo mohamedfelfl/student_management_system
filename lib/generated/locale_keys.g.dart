@@ -409,6 +409,13 @@ abstract class  LocaleKeys {
   static const no_payments_today = 'no_payments_today';
   static const month_year = 'month_year';
   static const highest_marks_report_title = 'highest_marks_report_title';
+  static const full_mark_students_report_title = 'full_mark_students_report_title';
+  static const full_mark_no_limit_desc = 'full_mark_no_limit_desc';
+  static const all_full_mark_students = 'all_full_mark_students';
+  static const select_exams_hint = 'select_exams_hint';
+  static const all_exams = 'all_exams';
+  static const no_exams_selected = 'no_exams_selected';
+  static const selected_exams_count = 'selected_exams_count';
   static const exam = 'exam';
   static const percentage = 'percentage';
   static const attendance_report_title = 'attendance_report_title';
@@ -605,13 +612,31 @@ abstract class  LocaleKeys {
   static const zero_absences_msg = 'zero_absences_msg';
   static const no_lessons_today = 'no_lessons_today';
   static const no_absent_students = 'no_absent_students';
-  static const all_enrolled_attended = 'all_enrolled_attended';
-  static const filter_by_group = 'filter_by_group';
   static const select_lesson_report_hint = 'select_lesson_report_hint';
   static const confirm_end = 'confirm_end';
   static const continue_scanning = 'continue_scanning';
+  static const all_enrolled_attended = 'all_enrolled_attended';
   static const active_lesson_already_running = 'active_lesson_already_running';
   static const another_lesson_running_warning = 'another_lesson_running_warning';
   static const end_current_and_start_new = 'end_current_and_start_new';
+  static const graded_students = 'graded_students';
+  static const ungraded_students = 'ungraded_students';
+  static const highest_score = 'highest_score';
+  static const grade_status_excellent = 'grade_status_excellent';
+  static const grade_status_very_good = 'grade_status_very_good';
+  static const grade_status_good = 'grade_status_good';
+  static const grade_status_pass = 'grade_status_pass';
+  static const grade_status_below_pass = 'grade_status_below_pass';
+  static const grade_status_pending = 'grade_status_pending';
+  static const score_exceeds_full_mark = 'score_exceeds_full_mark';
+  static const personal_info_section = 'personal_info_section';
+  static const academic_info_section = 'academic_info_section';
+  static const educational_info_section = 'educational_info_section';
+  static const quick_filters = 'quick_filters';
+  static const search_student_or_serial = 'search_student_or_serial';
+  static const only_ungraded = 'only_ungraded';
+  static const all_marks_saved = 'all_marks_saved';
+  static const unsaved_marks = 'unsaved_marks';
+  static const grade_evaluation = 'grade_evaluation';
 
 }

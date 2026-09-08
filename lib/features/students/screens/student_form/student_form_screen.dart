@@ -3,11 +3,12 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../app/constants/dimens.dart';
+import '../../../../app/theme/app_theme.dart';
 import '../../../../generated/locale_keys.g.dart';
 import '../../../groups/cubits/group_cubit.dart';
 import '../../cubits/student_cubit.dart';
 import 'components/student_academic_section.dart';
+import 'components/student_form_header.dart';
 import 'components/student_info_section.dart';
 
 @RoutePage()
@@ -28,8 +29,7 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
   final TextEditingController _phone2Controller = TextEditingController();
   final TextEditingController _fatherJobController = TextEditingController();
   final TextEditingController _schoolController = TextEditingController();
-  final TextEditingController _previousTeacherController =
-      TextEditingController();
+  final TextEditingController _previousTeacherController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
   int? _selectedGroupId;
   String _selectedGrade = 'prep_1';
@@ -42,6 +42,9 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
   void initState() {
     super.initState();
     context.read<GroupCubit>().loadGroups();
+    _nameController.addListener(() {
+      setState(() {});
+    });
     if (widget.id != null) {
       _isEditing = true;
       _loadStudent();
@@ -63,9 +66,8 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
   }
 
   Future<void> _loadStudent() async {
-    final Map<String, Object?>? student = await context
-        .read<StudentCubit>()
-        .getStudentById(widget.id!);
+    final Map<String, Object?>? student =
+        await context.read<StudentCubit>().getStudentById(widget.id!);
     if (student != null) {
       _serialController.text = student['serial_number']?.toString() ?? '';
       _nameController.text = student['name']?.toString() ?? '';
@@ -124,122 +126,208 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final TextTheme textTheme = Theme.of(context).textTheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          _isEditing
-              ? LocaleKeys.edit_student.tr()
-              : LocaleKeys.add_student.tr(),
-          style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-        ),
-        centerTitle: true,
-        leading: context.router.canPop() ? const BackButton() : null,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: AppDimens.maxFormWidth),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(height: AppDimens.h12),
-                  SizedBox(height: AppDimens.h24),
+      backgroundColor: colorScheme.surface,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1100),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // ─── Header & Profile Identity Hero ───
+                          StudentFormHeader(
+                            isEditing: _isEditing,
+                            studentName: _nameController.text,
+                            selectedGrade: _selectedGrade,
+                            selectedStatus: _selectedStatus,
+                            serialNumber: _serialController.text,
+                            onBack: () => Navigator.of(context).maybePop(),
+                          ),
 
-                  StudentInfoSection(
-                    nameController: _nameController,
-                    addressController: _addressController,
-                    phone1Controller: _phone1Controller,
-                    phone2Controller: _phone2Controller,
-                    fatherJobController: _fatherJobController,
-                    schoolController: _schoolController,
-                    previousTeacherController: _previousTeacherController,
-                    notesController: _notesController,
-                    nameValidator: (v) {
-                      if (v == null || v.trim().isEmpty) {
-                        return LocaleKeys.required_field.tr();
-                      }
-                      final name = v.trim().toLowerCase();
-                      final students = context.read<StudentCubit>().state.students;
-                      final isDuplicate = students.any((s) {
-                        final sName = (s['name'] as String?)?.trim().toLowerCase();
-                        if (sName != name) return false;
-                        if (_isEditing && s['id'] == widget.id) return false;
-                        return true;
-                      });
-                      if (isDuplicate) {
-                        return LocaleKeys.student_name_exists.tr();
-                      }
-                      return null;
-                    },
-                  ),
+                          const SizedBox(height: 24),
 
-                  StudentAcademicSection(
-                    selectedGrade: _selectedGrade,
-                    selectedStatus: _selectedStatus,
-                    selectedGroupId: _selectedGroupId,
-                    selectedAttendanceDay: _selectedAttendanceDay,
-                    onGradeChanged: (v) {
-                      if (v != null) {
-                        setState(() => _selectedGrade = v);
-                        if (!_isEditing) {
-                          _updateNextSerial(v);
-                        }
-                      }
-                    },
-                    onStatusChanged: (v) => setState(() => _selectedStatus = v),
-                    onGroupChanged: (v) => setState(() => _selectedGroupId = v),
-                    onAttendanceDayChanged: (v) =>
-                        setState(() => _selectedAttendanceDay = v),
-                  ),
+                          // ─── Responsive Form Cards (2-Column Grid on Desktop) ───
+                          LayoutBuilder(
+                            builder: (context, constraints) {
+                              final isWide = constraints.maxWidth >= 850;
 
-                  // Auto-Generated Serial Number (Bottom Field)
-                  TextFormField(
-                    controller: _serialController,
-                    readOnly: true,
-                    decoration: InputDecoration(
-                      labelText: LocaleKeys.serial_number.tr(),
-                      prefixIcon: const Icon(Icons.tag),
-                      suffixIcon: const Icon(Icons.lock_outline, size: 18),
-                      filled: true,
-                    ),
-                    validator: (v) =>
-                        v == null || v.isEmpty ? LocaleKeys.required_field.tr() : null,
-                  ),
-                  SizedBox(height: AppDimens.h24),
+                              final academicCard = StudentAcademicSection(
+                                selectedGrade: _selectedGrade,
+                                selectedStatus: _selectedStatus,
+                                selectedGroupId: _selectedGroupId,
+                                selectedAttendanceDay: _selectedAttendanceDay,
+                                serialController: _serialController,
+                                isEditing: _isEditing,
+                                onGradeChanged: (v) {
+                                  if (v != null) {
+                                    setState(() => _selectedGrade = v);
+                                    if (!_isEditing) {
+                                      _updateNextSerial(v);
+                                    }
+                                  }
+                                },
+                                onStatusChanged: (v) =>
+                                    setState(() => _selectedStatus = v),
+                                onGroupChanged: (v) =>
+                                    setState(() => _selectedGroupId = v),
+                                onAttendanceDayChanged: (v) =>
+                                    setState(() => _selectedAttendanceDay = v),
+                              );
 
-                  // Submit Button
-                  SizedBox(
-                    width: double.infinity,
-                    height: AppDimens.buttonHeight,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        textStyle: textTheme.titleLarge,
+                              final infoCard = StudentInfoSection(
+                                nameController: _nameController,
+                                addressController: _addressController,
+                                phone1Controller: _phone1Controller,
+                                phone2Controller: _phone2Controller,
+                                fatherJobController: _fatherJobController,
+                                schoolController: _schoolController,
+                                previousTeacherController:
+                                    _previousTeacherController,
+                                notesController: _notesController,
+                                nameValidator: (v) {
+                                  if (v == null || v.trim().isEmpty) {
+                                    return LocaleKeys.required_field.tr();
+                                  }
+                                  final name = v.trim().toLowerCase();
+                                  final students =
+                                      context.read<StudentCubit>().state.students;
+                                  final isDuplicate = students.any((s) {
+                                    final sName = (s['name'] as String?)
+                                        ?.trim()
+                                        .toLowerCase();
+                                    if (sName != name) return false;
+                                    if (_isEditing && s['id'] == widget.id) {
+                                      return false;
+                                    }
+                                    return true;
+                                  });
+                                  if (isDuplicate) {
+                                    return LocaleKeys.student_name_exists.tr();
+                                  }
+                                  return null;
+                                },
+                              );
+
+                              if (!isWide) {
+                                return Column(
+                                  children: [
+                                    academicCard,
+                                    const SizedBox(height: 24),
+                                    infoCard,
+                                  ],
+                                );
+                              }
+
+                              return Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    flex: 5,
+                                    child: academicCard,
+                                  ),
+                                  const SizedBox(width: 24),
+                                  Expanded(
+                                    flex: 6,
+                                    child: infoCard,
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                        ],
                       ),
-                      onPressed: _isSubmitting ? null : _submit,
-                      child: _isSubmitting
-                          ? SizedBox(
-                              width: AppDimens.p24,
-                              height: AppDimens.p24,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Theme.of(context).colorScheme.onPrimary,
-                              ),
-                            )
-                          : Text(
-                              _isEditing
-                                  ? LocaleKeys.update.tr()
-                                  : LocaleKeys.create.tr(),
-                            ),
                     ),
                   ),
-                ],
+                ),
               ),
             ),
+
+            // ─── Sticky Bottom Action Bar ───
+            _buildBottomActionBar(context),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomActionBar(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainer,
+        border: Border(
+          top: BorderSide(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.35),
+          ),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -3),
+          ),
+        ],
+      ),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1100),
+          child: Row(
+            children: [
+              OutlinedButton.icon(
+                onPressed: () => Navigator.of(context).maybePop(),
+                icon: const Icon(Icons.close_rounded, size: 18),
+                label: Text(LocaleKeys.cancel.tr()),
+                style: OutlinedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.buttonRadius),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                ),
+              ),
+              const Spacer(),
+              FilledButton.icon(
+                onPressed: _isSubmitting ? null : _submit,
+                icon: _isSubmitting
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.check_rounded, size: 20),
+                label: Text(
+                  _isEditing
+                      ? LocaleKeys.save_changes.tr()
+                      : LocaleKeys.create.tr(),
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: colorScheme.onPrimary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                style: FilledButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.buttonRadius),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -247,72 +335,46 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
   }
 
   Future<void> _submit() async {
-    if (_isSubmitting) return;
-    if (!(_formKey.currentState?.validate() ?? false)) return;
+    if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSubmitting = true);
 
-    final Map<String, Object?> data = {
-      'serial_number': _serialController.text.trim(),
-      'name': _nameController.text.trim(),
-      'address': _addressController.text.trim(),
-      'phone1': _phone1Controller.text.trim(),
-      'phone2': _phone2Controller.text.trim(),
-      'father_job': _fatherJobController.text.trim(),
-      'school': _schoolController.text.trim(),
-      'previous_teacher': _previousTeacherController.text.trim(),
-      'notes': _notesController.text.trim(),
-      'group_id': _selectedGroupId,
-      'grade': _selectedGrade,
-      'student_status': _selectedStatus,
-      'attendance_day': _selectedAttendanceDay,
-    };
-
-    final StudentCubit cubit = context.read<StudentCubit>();
     try {
+      final Map<String, dynamic> data = <String, dynamic>{
+        'name': _nameController.text.trim(),
+        'address': _addressController.text.trim(),
+        'phone1': _phone1Controller.text.trim(),
+        'phone2': _phone2Controller.text.trim(),
+        'father_job': _fatherJobController.text.trim(),
+        'school': _schoolController.text.trim(),
+        'previous_teacher': _previousTeacherController.text.trim(),
+        'notes': _notesController.text.trim(),
+        'group_id': _selectedGroupId,
+        'grade': _selectedGrade,
+        'student_status': _selectedStatus,
+        'attendance_day': _selectedAttendanceDay,
+      };
+
       if (_isEditing) {
-        await cubit.updateStudent(widget.id!, data);
+        await context.read<StudentCubit>().updateStudent(widget.id!, data);
       } else {
-        await cubit.createStudent(data);
+        await context.read<StudentCubit>().createStudent(data);
       }
 
       if (mounted) {
-        final messenger = ScaffoldMessenger.of(context);
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text(LocaleKeys.success.tr()),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-        context.router.maybePop();
+        Navigator.of(context).pop(true);
       }
     } catch (e) {
       if (mounted) {
-        String errorMessage = e.toString();
-        if (errorMessage.contains('student_name_exists')) {
-          errorMessage = LocaleKeys.student_name_exists.tr();
-        } else if (errorMessage.contains('UNIQUE constraint failed')) {
-          errorMessage =
-              'This serial number is already in use by another student.';
-        }
-
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(errorMessage),
+            content: Text(e.toString()),
             backgroundColor: Theme.of(context).colorScheme.error,
-            behavior: SnackBarBehavior.floating,
           ),
         );
-
-        if (!_isEditing) {
-          _updateNextSerial(_selectedGrade);
-        }
       }
     } finally {
-      if (mounted) {
-        setState(() => _isSubmitting = false);
-      }
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 }

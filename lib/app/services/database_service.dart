@@ -212,6 +212,9 @@ class DatabaseService {
     try {
       await db.execute(DBQueries.alterAttendanceAddLessonId);
     } catch (_) {}
+    try {
+      await db.execute(DBQueries.alterLessonsAddCreatedAt);
+    } catch (_) {}
 
     // Ensure indexes exist
     try {
@@ -261,6 +264,7 @@ class DatabaseService {
             'start_time': '00:00',
             'status': 'completed',
             'title': 'Legacy Session',
+            'created_at': DateTime.now().toIso8601String(),
           });
         }
 
