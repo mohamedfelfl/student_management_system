@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -5,7 +7,10 @@ import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import '../../../../generated/locale_keys.g.dart';
 import '../../../app/constants/db_queries.dart';
+import '../../../app/di/injection.dart';
+import '../../../app/services/data_sync_service.dart';
 import '../../../app/services/database_service.dart';
+import '../../../app/utils/qr_code_helper.dart';
 import '../models/attendance.dart';
 import '../models/lesson.dart';
 
@@ -28,16 +33,38 @@ abstract class LessonState with _$LessonState {
 
 class LessonCubit extends Cubit<LessonState> {
   final DatabaseService _databaseService;
+  final DataSyncService? _dataSyncService;
+  StreamSubscription<SyncEntity>? _syncSub;
 
-  LessonCubit({required DatabaseService databaseService})
-    : _databaseService = databaseService,
-      super(const LessonState());
+  LessonCubit({
+    required DatabaseService databaseService,
+    DataSyncService? dataSyncService,
+  })  : _databaseService = databaseService,
+        _dataSyncService = dataSyncService ??
+            (getIt.isRegistered<DataSyncService>() ? getIt<DataSyncService>() : null),
+        super(const LessonState()) {
+    _syncSub = _dataSyncService?.syncStream.listen((entity) {
+      if (entity == SyncEntity.attendance || entity == SyncEntity.lessons) {
+        if (state.activeLesson != null) {
+          loadRosterForActiveLesson();
+        }
+        if (state.selectedDate != null) {
+          loadLessonsForDate(state.selectedDate!, silent: true);
+        }
+      }
+    });
+  }
 
   /// Load daily lessons for a selected date.
   /// Combines already-instantiated rows in `lessons` table with dynamic
   /// unstarted schedule slots for groups meeting on this day of the week.
-  Future<void> loadLessonsForDate(DateTime date) async {
-    emit(state.copyWith(isLoading: true, error: null, selectedDate: date));
+  Future<void> loadLessonsForDate(DateTime date, {bool silent = false}) async {
+    if (isClosed) return;
+    if (!silent) {
+      emit(state.copyWith(isLoading: true, error: null, selectedDate: date));
+    } else {
+      emit(state.copyWith(error: null, selectedDate: date));
+    }
     try {
       final Database db = await _databaseService.database;
       final String dateStr = date.toIso8601String().split('T').first;
@@ -254,6 +281,7 @@ class LessonCubit extends Cubit<LessonState> {
         absentCount: absentList.length,
       );
 
+      if (isClosed) return;
       emit(
         state.copyWith(
           activeLesson: updatedActive,
@@ -262,12 +290,12 @@ class LessonCubit extends Cubit<LessonState> {
         ),
       );
     } catch (e) {
-      emit(state.copyWith(error: e.toString()));
+      if (!isClosed) emit(state.copyWith(error: e.toString()));
     }
   }
 
   /// Record a scan inside the active lesson session.
-  Future<void> recordScanInActiveLesson(String serialNumber) async {
+  Future<void> recordScanInActiveLesson(String rawScan) async {
     final active = state.activeLesson;
     if (active == null || active.id == null) {
       emit(
@@ -279,21 +307,26 @@ class LessonCubit extends Cubit<LessonState> {
       return;
     }
 
+    final serialNumber = QrCodeHelper.extractSerialNumber(rawScan);
+    final candidates = QrCodeHelper.extractAllCandidates(rawScan);
+    if (candidates.isEmpty) return;
+
     try {
       final Database db = await _databaseService.database;
 
-      // Find student by serial
-      final List<Map<String, Object?>> students = await db.query(
+      // Find student by candidate serials using index
+      final placeholders = List.filled(candidates.length, '?').join(',');
+      List<Map<String, Object?>> students = await db.query(
         DBQueries.tableStudents,
-        where: 'serial_number = ?',
-        whereArgs: [serialNumber.trim()],
+        where: 'serial_number IN ($placeholders)',
+        whereArgs: candidates,
       );
 
       if (students.isEmpty) {
         emit(
           state.copyWith(
             error: LocaleKeys.student_not_found_with_serial.tr(
-              args: [serialNumber],
+              args: [serialNumber.isNotEmpty ? serialNumber : rawScan.trim()],
             ),
             scanSuccess: false,
           ),
@@ -303,7 +336,7 @@ class LessonCubit extends Cubit<LessonState> {
 
       final student = students.first;
       final int studentId = student['id'] as int;
-      final String studentName = student['name'] as String;
+      final String studentName = student['name'] as String? ?? '';
       final int? studentGroupId = student['group_id'] as int?;
 
       // Check if student already checked into this lesson
@@ -359,14 +392,15 @@ class LessonCubit extends Cubit<LessonState> {
 
       await loadRosterForActiveLesson();
       if (state.selectedDate != null) {
-        await loadLessonsForDate(state.selectedDate!);
+        await loadLessonsForDate(state.selectedDate!, silent: true);
       }
+      _dataSyncService?.notifyAttendanceChanged();
     } catch (e) {
       emit(state.copyWith(error: e.toString(), scanSuccess: false));
     }
   }
 
-  /// 1-tap toggle manual attendance for an absent student.
+  /// 1-tap toggle manual attendance for a student (from roster or search).
   Future<void> markStudentPresent(int studentId) async {
     final active = state.activeLesson;
     if (active == null || active.id == null) return;
@@ -381,21 +415,121 @@ class LessonCubit extends Cubit<LessonState> {
       );
 
       if (existing.isEmpty) {
+        final List<Map<String, Object?>> studentRow = await db.query(
+          DBQueries.tableStudents,
+          columns: ['id', 'name', 'group_id', 'student_status'],
+          where: 'id = ?',
+          whereArgs: [studentId],
+        );
+
+        if (studentRow.isEmpty) return;
+
+        final int? studentGroupId = studentRow.first['group_id'] as int?;
+        final String studentName = studentRow.first['name'] as String? ?? '';
+        final bool isFree = studentRow.first['student_status']?.toString() == 'free';
+
+        AttendanceStatus status;
+        String notes;
+        if (studentGroupId == active.groupId) {
+          status = AttendanceStatus.attended;
+          notes = LocaleKeys.attended_his_group.tr();
+        } else {
+          status = AttendanceStatus.otherLesson;
+          final String activeGroupName = active.groupName ?? '';
+          notes = LocaleKeys.attended_another_group.tr(args: [activeGroupName]);
+        }
+
         await db.insert(DBQueries.tableAttendance, <String, Object?>{
           'lesson_id': active.id,
           'student_id': studentId,
           'date': active.date,
-          'status': AttendanceStatus.attended.name,
-          'notes': LocaleKeys.attended_his_group.tr(),
+          'status': status.name,
+          'notes': notes,
         });
+
+        final String lastScannedDisplay = isFree
+            ? '$studentName (${LocaleKeys.free_student.tr()})'
+            : studentName;
+
+        emit(state.copyWith(
+          scanSuccess: true,
+          lastScannedStudent: lastScannedDisplay,
+          error: null,
+        ));
       }
 
       await loadRosterForActiveLesson();
       if (state.selectedDate != null) {
-        await loadLessonsForDate(state.selectedDate!);
+        await loadLessonsForDate(state.selectedDate!, silent: true);
       }
+      _dataSyncService?.notifyAttendanceChanged();
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
+    }
+  }
+
+  /// Search any student in the database by name, serial number, or phone
+  /// and return them along with their attendance status in the active lesson.
+  Future<List<Map<String, dynamic>>> searchStudentsForActiveLesson(String query) async {
+    final active = state.activeLesson;
+    final clean = query.trim();
+    if (clean.isEmpty) return const [];
+
+    try {
+      final Database db = await _databaseService.database;
+
+      final normAlif = clean
+          .replaceAll('أ', 'ا')
+          .replaceAll('إ', 'ا')
+          .replaceAll('آ', 'ا');
+      final hamzaAbove = clean.replaceAll('ا', 'أ');
+      final variants = <String>{clean, normAlif, hamzaAbove}
+          .where((v) => v.isNotEmpty)
+          .toList();
+
+      final orClauses = variants
+          .map((_) => '(s.name LIKE ? OR s.serial_number LIKE ? OR s.phone1 LIKE ?)')
+          .join(' OR ');
+
+      final args = <Object?>[];
+      for (final v in variants) {
+        final w = '%$v%';
+        args.addAll([w, w, w]);
+      }
+      args.add(25);
+
+      final String sql = '''
+        SELECT s.id, s.name, s.serial_number, s.phone1, s.group_id, s.grade, s.student_status,
+               g.name as group_name
+        FROM students s
+        LEFT JOIN groups g ON s.group_id = g.id
+        WHERE ($orClauses)
+        ORDER BY s.name ASC
+        LIMIT ?
+      ''';
+
+      final List<Map<String, Object?>> rows = await db.rawQuery(sql, args);
+
+      Set<int> attendedIds = {};
+      if (active?.id != null) {
+        final attendanceRows = await db.query(
+          DBQueries.tableAttendance,
+          columns: ['student_id'],
+          where: 'lesson_id = ?',
+          whereArgs: [active!.id],
+        );
+        attendedIds = attendanceRows.map((r) => r['student_id'] as int).toSet();
+      }
+
+      return rows.map((r) {
+        final studentMap = Map<String, dynamic>.from(r);
+        final id = studentMap['id'] as int;
+        studentMap['is_attended'] = attendedIds.contains(id);
+        studentMap['is_own_group'] = active != null && studentMap['group_id'] == active.groupId;
+        return studentMap;
+      }).toList();
+    } catch (e) {
+      return const [];
     }
   }
 
@@ -410,8 +544,9 @@ class LessonCubit extends Cubit<LessonState> {
       );
       await loadRosterForActiveLesson();
       if (state.selectedDate != null) {
-        await loadLessonsForDate(state.selectedDate!);
+        await loadLessonsForDate(state.selectedDate!, silent: true);
       }
+      _dataSyncService?.notifyAttendanceChanged();
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
     }
@@ -429,11 +564,20 @@ class LessonCubit extends Cubit<LessonState> {
         whereArgs: [lessonId],
       );
 
-      emit(state.copyWith(activeLesson: null, isLoading: false));
+      emit(
+        state.copyWith(
+          activeLesson: null,
+          attendedRoster: [],
+          absentRoster: [],
+          isLoading: false,
+        ),
+      );
 
       if (state.selectedDate != null) {
         await loadLessonsForDate(state.selectedDate!);
       }
+      _dataSyncService?.notifyAttendanceChanged();
+      _dataSyncService?.notifyLessonsChanged();
     } catch (e) {
       emit(state.copyWith(error: e.toString(), isLoading: false));
     }
@@ -530,12 +674,14 @@ class LessonCubit extends Cubit<LessonState> {
                     ((r['attended_count'] as int?) ?? 0))
                 .clamp(0, 999999),
           );
+          if (isClosed) return;
           emit(state.copyWith(activeLesson: updated));
         }
       }
 
       await loadLessonsForDate(date);
     } catch (e) {
+      if (isClosed) return;
       emit(state.copyWith(error: e.toString(), isLoading: false));
     }
   }
@@ -608,5 +754,11 @@ class LessonCubit extends Cubit<LessonState> {
       default:
         return englishDayName;
     }
+  }
+
+  @override
+  Future<void> close() {
+    _syncSub?.cancel();
+    return super.close();
   }
 }

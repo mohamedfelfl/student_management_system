@@ -92,6 +92,9 @@ class DatabaseService {
             // Execute PRAGMA key first to unlock the SQLCipher database
             await db.execute("PRAGMA key = '$password'");
             await db.execute('PRAGMA foreign_keys = ON');
+            await db.execute('PRAGMA busy_timeout = 5000');
+            await db.execute('PRAGMA journal_mode = WAL');
+            await db.execute('PRAGMA synchronous = NORMAL');
           },
         ),
       );
@@ -104,6 +107,9 @@ class DatabaseService {
         onOpen: _onOpen,
         onConfigure: (db) async {
           await db.execute('PRAGMA foreign_keys = ON');
+          await db.execute('PRAGMA busy_timeout = 5000');
+          await db.execute('PRAGMA journal_mode = WAL');
+          await db.execute('PRAGMA synchronous = NORMAL');
         },
       );
     }
@@ -159,6 +165,9 @@ class DatabaseService {
     await db.execute(DBQueries.createIdxLessonsDate);
     await db.execute(DBQueries.createIdxLessonsStatus);
     await db.execute(DBQueries.createIdxAttendanceLesson);
+    await db.execute(DBQueries.createIdxStudentsSerial);
+    await db.execute(DBQueries.createIdxStudentsName);
+    await db.execute(DBQueries.createIdxAttendanceLessonStudent);
   }
 
   /// Ensure all required tables exist on every open.
@@ -232,6 +241,9 @@ class DatabaseService {
       await db.execute(DBQueries.createIdxLessonsDate);
       await db.execute(DBQueries.createIdxLessonsStatus);
       await db.execute(DBQueries.createIdxAttendanceLesson);
+      await db.execute(DBQueries.createIdxStudentsSerial);
+      await db.execute(DBQueries.createIdxStudentsName);
+      await db.execute(DBQueries.createIdxAttendanceLessonStudent);
     } catch (_) {}
 
     // Auto-migrate legacy attendance records without a lesson_id
@@ -281,6 +293,80 @@ class DatabaseService {
         print('Legacy attendance migration notice: $e');
       }
     }
+
+    // Clean group names to remove redundant stage numbers (e.g. "1 ث", "2 ث", "3 ث")
+    try {
+      final List<Map<String, Object?>> groupRows =
+          await db.query(DBQueries.tableGroups);
+      for (final g in groupRows) {
+        final id = g['id'] as int;
+        final rawName = g['name']?.toString() ?? '';
+        String cleanName = rawName.replaceAll('الثللاثاء', 'الثلاثاء');
+        cleanName = cleanName.replaceAll(RegExp(r'\s*[123]\s*ث\s*'), ' ');
+        cleanName = cleanName.replaceAll(RegExp(r'\s+'), ' ').trim();
+        if (cleanName != rawName && cleanName.isNotEmpty) {
+          await db.update(
+            DBQueries.tableGroups,
+            {'name': cleanName},
+            where: 'id = ?',
+            whereArgs: [id],
+          );
+        }
+      }
+    } catch (_) {}
+
+    // Clean up any duplicate student names, keeping the oldest record
+    try {
+      final List<Map<String, Object?>> allStudents = await db.query(
+        DBQueries.tableStudents,
+        columns: ['id', 'name'],
+        orderBy: 'id ASC',
+      );
+      final Map<String, int> seenStudents = {};
+      final List<int> duplicateIdsToDelete = [];
+
+      for (final st in allStudents) {
+        final id = st['id'] as int;
+        final name = st['name']?.toString().trim() ?? '';
+        if (name.isEmpty) continue;
+        String norm = name.replaceAll(RegExp(r'^[\s\-.*#_]+|[\s\-.*#_]+$'), '').trim();
+        norm = norm.replaceAll(RegExp(r'[\u064B-\u065F\u0640]'), '');
+        norm = norm.replaceAll(RegExp(r'\s+'), ' ');
+        norm = norm.replaceAll(RegExp(r'[إأآٱ]'), 'ا');
+        norm = norm
+            .replaceAll('ئ', 'ي')
+            .replaceAll('ى', 'ي')
+            .replaceAll('ة', 'ه')
+            .replaceAll('ؤ', 'و')
+            .replaceAll('ء', '')
+            .replaceAll('ذكي', 'زكي');
+
+        // Unify specific compound prefixes only (e.g. عبد الرحمن / عبدالرحمن, أبو الفتوح / ابوالفتوح)
+        norm = norm.replaceAll(RegExp(r'عبد\s+'), 'عبد');
+        norm = norm.replaceAll(RegExp(r'ابو\s+'), 'ابو');
+        norm = norm.replaceAll(RegExp(r'نور\s+ال'), 'نورال');
+        norm = norm.replaceAll(RegExp(r'ضياء\s+ال'), 'ضياءال');
+        norm = norm.replaceAll(RegExp(r'سيف\s+ال'), 'سيفال');
+        norm = norm.replaceAll(RegExp(r'منه\s+الله'), 'منهالله');
+        norm = norm.replaceAll(RegExp(r'ايه\s+الله'), 'ايهالله');
+
+        norm = norm.replaceAll(RegExp(r'\s+'), ' ').trim();
+
+        if (seenStudents.containsKey(norm)) {
+          duplicateIdsToDelete.add(id);
+        } else {
+          seenStudents[norm] = id;
+        }
+      }
+
+      for (final dupId in duplicateIdsToDelete) {
+        await db.delete(
+          DBQueries.tableStudents,
+          where: 'id = ?',
+          whereArgs: [dupId],
+        );
+      }
+    } catch (_) {}
   }
 
   /// Close the database connection.

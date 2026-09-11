@@ -678,5 +678,17 @@
     "merge_flow_profile": "استكمال أي بيانات اتصال مفقودة (هواتف، مدرسة، عنوان) من الحساب المكرر إلى الأساسي.",
     "merge_flow_removal": "حذف السجل المكرر نهائياً بعد إتمام عملية الدمج بنجاح لضمان عدم التكرار.",
     "payments": "المصروفات",
-    "loading": "جارٍ التحميل..."
+    "loading": "جارٍ التحميل...",
+    "unsaved_marks": "توجد درجات غير محفوظة",
+    "all_marks_saved": "تم حفظ جميع الدرجات",
+    "clear": "مسح",
+    "search_student_attendance": "البحث عن طالب لتسجيل الحضور (بالاسم أو الرقم أو الهاتف)...",
+    "attendance_mark_success": "تم تسجيل الحضور بنجاح",
+    "already_attended_badge": "تم الحضور",
+    "mark_present_action": "تسجيل حضور",
+    "other_group_badge": "مجموعة أخرى: {}",
+    "this_group_badge": "نفس المجموعة",
+    "no_students_matching_query": "لم يتم العثور على طلاب يطابقون البحث",
+    "quick_student_search": "البحث السريع عن الطلاب وتسجيل الحضور",
+    "other_group": "مجموعة أخرى"
 }

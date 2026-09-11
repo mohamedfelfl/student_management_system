@@ -5,7 +5,10 @@ import 'package:sqflite_sqlcipher/sqflite.dart';
 import '../../../../generated/locale_keys.g.dart';
 
 import '../../../app/constants/db_queries.dart';
+import '../../../app/di/injection.dart';
+import '../../../app/services/data_sync_service.dart';
 import '../../../app/services/database_service.dart';
+import '../../../app/utils/qr_code_helper.dart';
 import '../../../app/utils/time_helper.dart';
 import '../models/attendance.dart';
 
@@ -24,10 +27,17 @@ abstract class AttendanceState with _$AttendanceState {
 
 class AttendanceCubit extends Cubit<AttendanceState> {
   final DatabaseService _databaseService;
+  final DataSyncService? _dataSyncService;
 
-  AttendanceCubit({required DatabaseService databaseService})
-    : _databaseService = databaseService,
-      super(const AttendanceState());
+  AttendanceCubit({
+    required DatabaseService databaseService,
+    DataSyncService? dataSyncService,
+  })  : _databaseService = databaseService,
+        _dataSyncService = dataSyncService ??
+            (getIt.isRegistered<DataSyncService>()
+                ? getIt<DataSyncService>()
+                : null),
+        super(const AttendanceState());
 
   /// Load attendance records for a student.
   Future<void> loadAttendance(int studentId) async {
@@ -84,29 +94,34 @@ class AttendanceCubit extends Cubit<AttendanceState> {
   }
 
   /// Record attendance via QR scan or manual ID entry.
-  /// [serialNumber] is the student's serial number from the QR code.
+  /// [rawScan] is the student's serial number or QR code payload.
   /// [lessonId] is the optional active lesson session ID.
   Future<void> recordAttendanceBySerial(
-    String serialNumber, {
+    String rawScan, {
     int? lessonId,
     AttendanceStatus status = AttendanceStatus.attended,
     String notes = '',
   }) async {
+    final serialNumber = QrCodeHelper.extractSerialNumber(rawScan);
+    final candidates = QrCodeHelper.extractAllCandidates(rawScan);
+    if (candidates.isEmpty) return;
+
     try {
       final Database db = await _databaseService.database;
 
-      // Find student by serial number
-      final List<Map<String, Object?>> students = await db.query(
+      // Find student by candidates using index
+      final placeholders = List.filled(candidates.length, '?').join(',');
+      List<Map<String, Object?>> students = await db.query(
         DBQueries.tableStudents,
-        where: 'serial_number = ?',
-        whereArgs: <Object?>[serialNumber.trim()],
+        where: 'serial_number IN ($placeholders)',
+        whereArgs: candidates,
       );
 
       if (students.isEmpty) {
         emit(
           state.copyWith(
             error: LocaleKeys.student_not_found_with_serial.tr(
-              args: [serialNumber],
+              args: [serialNumber.isNotEmpty ? serialNumber : rawScan.trim()],
             ),
             scanSuccess: false,
           ),
@@ -267,6 +282,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
           error: null,
         ),
       );
+      _dataSyncService?.notifyAttendanceChanged();
     } catch (e) {
       emit(state.copyWith(error: e.toString(), scanSuccess: false));
     }
@@ -290,6 +306,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
         'notes': notes,
       });
       await loadAttendance(studentId);
+      _dataSyncService?.notifyAttendanceChanged();
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
     }
@@ -314,6 +331,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
         where: 'id = ?',
         whereArgs: <Object?>[id],
       );
+      _dataSyncService?.notifyAttendanceChanged();
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
     }
@@ -332,6 +350,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
       } else {
         await loadAllAttendance();
       }
+      _dataSyncService?.notifyAttendanceChanged();
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
     }

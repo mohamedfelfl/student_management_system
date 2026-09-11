@@ -679,5 +679,17 @@
     "merge_flow_profile": "Missing contact details (phones, school, address) are copied over.",
     "merge_flow_removal": "Duplicate record is permanently removed after successful merge.",
     "payments": "Payments",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "unsaved_marks": "There are unsaved marks",
+    "all_marks_saved": "All marks saved",
+    "clear": "Clear",
+    "search_student_attendance": "Search student to mark attendance (by name, serial, or phone)...",
+    "attendance_mark_success": "Attendance recorded successfully",
+    "already_attended_badge": "Attended",
+    "mark_present_action": "Mark Present",
+    "other_group_badge": "Other Group: {}",
+    "this_group_badge": "Same Group",
+    "no_students_matching_query": "No students match the search query",
+    "quick_student_search": "Quick Student Search & Attendance",
+    "other_group": "Other Group"
 }

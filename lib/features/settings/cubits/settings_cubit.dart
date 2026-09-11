@@ -1,6 +1,9 @@
+import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../app/di/injection.dart';
+import '../../../app/services/data_migration_service.dart';
 import '../services/settings_service.dart';
 import '../services/backup_service.dart';
 import '../services/device_binding_service.dart';
@@ -399,6 +402,60 @@ class SettingsCubit extends Cubit<SettingsState> {
           errorMessage: LocaleKeys.reset_failed.tr(args: [e.toString()]),
         ),
       );
+    }
+  }
+
+  /// Import students and groups from external SQLite DB (e.g. elite.db)
+  Future<void> importFromEliteDb({String? path}) async {
+    emit(
+      state.copyWith(isSaving: true, errorMessage: null, successMessage: null),
+    );
+    try {
+      String? targetPath = path;
+      if (targetPath == null) {
+        final result = await FilePicker.platform.pickFiles(
+          type: FileType.custom,
+          allowedExtensions: ['db', 'sqlite', 'sqlite3'],
+          dialogTitle: 'اختر ملف قاعدة بيانات (elite.db / sqlite)',
+        );
+        if (result != null && result.files.single.path != null) {
+          targetPath = result.files.single.path!;
+        } else {
+          // Check default path
+          const defaultPath = DataMigrationService.defaultSourceDbPath;
+          if (File(defaultPath).existsSync()) {
+            targetPath = defaultPath;
+          } else {
+            emit(state.copyWith(isSaving: false));
+            return;
+          }
+        }
+      }
+
+      final migrationService = getIt<DataMigrationService>();
+      final migrationResult =
+          await migrationService.migrateFromEliteDb(targetPath);
+
+      if (migrationResult.success) {
+        await loadSettings();
+        emit(
+          state.copyWith(
+            isSaving: false,
+            successMessage:
+                'تم استيراد ${migrationResult.studentsImported} طالب و ${migrationResult.groupsImported} مجموعة بنجاح!',
+          ),
+        );
+      } else {
+        emit(
+          state.copyWith(
+            isSaving: false,
+            errorMessage:
+                migrationResult.errorMessage ?? 'فشل استيراد قاعدة البيانات',
+          ),
+        );
+      }
+    } catch (e) {
+      emit(state.copyWith(isSaving: false, errorMessage: e.toString()));
     }
   }
 

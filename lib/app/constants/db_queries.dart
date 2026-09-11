@@ -249,6 +249,12 @@ class DBQueries {
       'CREATE INDEX IF NOT EXISTS idx_lessons_status ON lessons(status)';
   static const String createIdxAttendanceLesson =
       'CREATE INDEX IF NOT EXISTS idx_attendance_lesson ON attendance(lesson_id)';
+  static const String createIdxStudentsSerial =
+      'CREATE INDEX IF NOT EXISTS idx_students_serial ON students(serial_number)';
+  static const String createIdxStudentsName =
+      'CREATE INDEX IF NOT EXISTS idx_students_name ON students(name)';
+  static const String createIdxAttendanceLessonStudent =
+      'CREATE INDEX IF NOT EXISTS idx_attendance_lesson_student ON attendance(lesson_id, student_id)';
 
   // ---------------------------------------------------------------------------
   // DDL Queries - Alter Tables

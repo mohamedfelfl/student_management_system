@@ -2,6 +2,8 @@ import 'package:get_it/get_it.dart';
 
 import '../services/database_service.dart';
 import '../services/encryption_service.dart';
+import '../services/data_sync_service.dart';
+import '../services/data_migration_service.dart';
 import '../../features/settings/services/settings_service.dart';
 import '../../features/settings/services/backup_service.dart';
 import '../../features/settings/services/device_binding_service.dart';
@@ -12,12 +14,20 @@ final getIt = GetIt.instance;
 
 /// Initialize all service dependencies.
 Future<void> configureDependencies() async {
+  // Global Event Bus & Sync
+  getIt.registerLazySingleton<DataSyncService>(() => DataSyncService());
+
   // Encryption
   getIt.registerLazySingleton<EncryptionService>(() => EncryptionService());
 
   // Database
   getIt.registerLazySingleton<DatabaseService>(
     () => DatabaseService(encryptionService: getIt<EncryptionService>()),
+  );
+
+  // Data Migration
+  getIt.registerLazySingleton<DataMigrationService>(
+    () => DataMigrationService(databaseService: getIt<DatabaseService>()),
   );
 
   // Settings

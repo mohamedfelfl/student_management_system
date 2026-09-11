@@ -5,26 +5,47 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../../app/constants/dimens.dart';
 import '../../../../../app/shared/animations/app_animations.dart';
+import '../../../../../app/utils/qr_code_helper.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../cubits/attendance_cubit.dart';
 
-/// Desktop scanner view with manual serial number entry field.
-class DesktopScannerView extends StatelessWidget {
+/// Desktop scanner view with manual serial number entry field, auto-refocus, and debouncing.
+class DesktopScannerView extends StatefulWidget {
   final TextEditingController manualController;
+  final FocusNode? focusNode;
   final ValueChanged<String>? onScan;
 
   const DesktopScannerView({
     super.key,
     required this.manualController,
+    this.focusNode,
     this.onScan,
   });
 
+  @override
+  State<DesktopScannerView> createState() => _DesktopScannerViewState();
+}
+
+class _DesktopScannerViewState extends State<DesktopScannerView> {
+  DateTime _lastScanTime = DateTime.fromMillisecondsSinceEpoch(0);
+  String _lastScanned = '';
+
   void _handleScan(BuildContext context, String rawValue) {
-    final serial = rawValue.trim();
+    final serial = QrCodeHelper.extractSerialNumber(rawValue);
+    widget.manualController.clear();
+    widget.focusNode?.requestFocus();
     if (serial.isEmpty) return;
 
-    if (onScan != null) {
-      onScan!(serial);
+    final now = DateTime.now();
+    if (now.difference(_lastScanTime).inMilliseconds < 800 &&
+        _lastScanned == serial) {
+      return;
+    }
+    _lastScanTime = now;
+    _lastScanned = serial;
+
+    if (widget.onScan != null) {
+      widget.onScan!(serial);
     } else {
       context.read<AttendanceCubit>().recordAttendanceBySerial(serial);
     }
@@ -36,96 +57,112 @@ class DesktopScannerView extends StatelessWidget {
     final TextTheme textTheme = Theme.of(context).textTheme;
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(
-        horizontal: 24.w,
-        vertical: 24.h,
-      ),
-      decoration: BoxDecoration(
-        color: isDark
-            ? colorScheme.surfaceContainerHigh
-            : colorScheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(AppDimens.r24),
-        border: Border.all(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: () {
+        widget.focusNode?.requestFocus();
+      },
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(
+          horizontal: 24.w,
+          vertical: 24.h,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+        decoration: BoxDecoration(
+          color: isDark
+              ? colorScheme.surfaceContainerHigh
+              : colorScheme.surfaceContainerLowest,
+          borderRadius: BorderRadius.circular(AppDimens.r24),
+          border: Border.all(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.4),
           ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.qr_code_scanner_rounded,
-            size: 48.r,
-            color: colorScheme.primary,
-          ).animatePulseHighlight(),
-          SizedBox(height: 10.h),
-          Text(
-            LocaleKeys.connect_scanner.tr(),
-            style: textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
-          ),
-          SizedBox(height: 4.h),
-          Text(
-            LocaleKeys.scanner_hint.tr(),
-            style: textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.qr_code_scanner_rounded,
+              size: 48.r,
+              color: colorScheme.primary,
+            ).animatePulseHighlight(),
+            SizedBox(height: 10.h),
+            Text(
+              LocaleKeys.connect_scanner.tr(),
+              style: textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: 18.h),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: manualController,
-                  autofocus: true,
-                  decoration: InputDecoration(
-                    hintText: LocaleKeys.student_serial_number.tr(),
-                    prefixIcon: const Icon(Icons.qr_code, size: 20),
-                    filled: true,
-                    isDense: true,
-                    fillColor: isDark
-                        ? colorScheme.surfaceContainerLow
-                        : colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(AppDimens.r14),
-                      borderSide: BorderSide.none,
+            SizedBox(height: 4.h),
+            Text(
+              LocaleKeys.scanner_hint.tr(),
+              style: textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 18.h),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: widget.manualController,
+                    focusNode: widget.focusNode,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      hintText: LocaleKeys.student_serial_number.tr(),
+                      prefixIcon: const Icon(Icons.qr_code, size: 20),
+                      filled: true,
+                      isDense: true,
+                      fillColor: isDark
+                          ? colorScheme.surfaceContainerLow
+                          : colorScheme.surfaceContainerHighest
+                              .withValues(alpha: 0.5),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(AppDimens.r14),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 16.w,
+                        vertical: 14.h,
+                      ),
                     ),
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 16.w,
+                    onChanged: (value) {
+                      if (value.contains('\n') ||
+                          value.contains('\r') ||
+                          QrCodeHelper.hasCompleteSerial(value)) {
+                        _handleScan(context, value);
+                      }
+                    },
+                    onSubmitted: (value) => _handleScan(context, value),
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                FilledButton(
+                  onPressed: () =>
+                      _handleScan(context, widget.manualController.text),
+                  style: FilledButton.styleFrom(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 20.w,
                       vertical: 14.h,
                     ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppDimens.r14),
+                    ),
                   ),
-                  onSubmitted: (value) => _handleScan(context, value),
+                  child: const Icon(Icons.send, size: 20),
                 ),
-              ),
-              SizedBox(width: 12.w),
-              FilledButton(
-                onPressed: () => _handleScan(context, manualController.text),
-                style: FilledButton.styleFrom(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 20.w,
-                    vertical: 14.h,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppDimens.r14),
-                  ),
-                ),
-                child: const Icon(Icons.send, size: 20),
-              ),
-            ],
-          ),
-        ],
-      ),
-    ).animateSpringEntrance();
+              ],
+            ),
+          ],
+        ),
+      ).animateSpringEntrance(),
+    );
   }
 }

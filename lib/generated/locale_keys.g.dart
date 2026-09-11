@@ -651,11 +651,7 @@ abstract class  LocaleKeys {
   static const quick_filters = 'quick_filters';
   static const search_student_or_serial = 'search_student_or_serial';
   static const only_ungraded = 'only_ungraded';
-  static const all_marks_saved = 'all_marks_saved';
-  static const unsaved_marks = 'unsaved_marks';
   static const grade_evaluation = 'grade_evaluation';
-  static const payments = 'payments';
-  static const loading = 'loading';
   static const manage_duplicates = 'manage_duplicates';
   static const merge_students = 'merge_students';
   static const merge_selected = 'merge_selected';
@@ -680,5 +676,19 @@ abstract class  LocaleKeys {
   static const merge_flow_notes = 'merge_flow_notes';
   static const merge_flow_profile = 'merge_flow_profile';
   static const merge_flow_removal = 'merge_flow_removal';
+  static const payments = 'payments';
+  static const loading = 'loading';
+  static const unsaved_marks = 'unsaved_marks';
+  static const all_marks_saved = 'all_marks_saved';
+  static const clear = 'clear';
+  static const search_student_attendance = 'search_student_attendance';
+  static const attendance_mark_success = 'attendance_mark_success';
+  static const already_attended_badge = 'already_attended_badge';
+  static const mark_present_action = 'mark_present_action';
+  static const other_group_badge = 'other_group_badge';
+  static const this_group_badge = 'this_group_badge';
+  static const no_students_matching_query = 'no_students_matching_query';
+  static const quick_student_search = 'quick_student_search';
+  static const other_group = 'other_group';
 
 }

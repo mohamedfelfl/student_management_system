@@ -689,7 +689,19 @@ class CodegenLoader extends AssetLoader{
   "merge_flow_profile": "استكمال أي بيانات اتصال مفقودة (هواتف، مدرسة، عنوان) من الحساب المكرر إلى الأساسي.",
   "merge_flow_removal": "حذف السجل المكرر نهائياً بعد إتمام عملية الدمج بنجاح لضمان عدم التكرار.",
   "payments": "المصروفات",
-  "loading": "جارٍ التحميل..."
+  "loading": "جارٍ التحميل...",
+  "unsaved_marks": "توجد درجات غير محفوظة",
+  "all_marks_saved": "تم حفظ جميع الدرجات",
+  "clear": "مسح",
+  "search_student_attendance": "البحث عن طالب لتسجيل الحضور (بالاسم أو الرقم أو الهاتف)...",
+  "attendance_mark_success": "تم تسجيل الحضور بنجاح",
+  "already_attended_badge": "تم الحضور",
+  "mark_present_action": "تسجيل حضور",
+  "other_group_badge": "مجموعة أخرى: {}",
+  "this_group_badge": "نفس المجموعة",
+  "no_students_matching_query": "لم يتم العثور على طلاب يطابقون البحث",
+  "quick_student_search": "البحث السريع عن الطلاب وتسجيل الحضور",
+  "other_group": "مجموعة أخرى"
 };
 static const Map<String,dynamic> _en = {
   "app_title": "Legendary Eagle",
@@ -1367,7 +1379,19 @@ static const Map<String,dynamic> _en = {
   "merge_flow_profile": "Missing contact details (phones, school, address) are copied over.",
   "merge_flow_removal": "Duplicate record is permanently removed after successful merge.",
   "payments": "Payments",
-  "loading": "Loading..."
+  "loading": "Loading...",
+  "unsaved_marks": "There are unsaved marks",
+  "all_marks_saved": "All marks saved",
+  "clear": "Clear",
+  "search_student_attendance": "Search student to mark attendance (by name, serial, or phone)...",
+  "attendance_mark_success": "Attendance recorded successfully",
+  "already_attended_badge": "Attended",
+  "mark_present_action": "Mark Present",
+  "other_group_badge": "Other Group: {}",
+  "this_group_badge": "Same Group",
+  "no_students_matching_query": "No students match the search query",
+  "quick_student_search": "Quick Student Search & Attendance",
+  "other_group": "Other Group"
 };
 static const Map<String, Map<String,dynamic>> mapLocales = {"ar": _ar, "en": _en};
 }

@@ -1,9 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
-import '../../../app/services/database_service.dart';
 import '../../../app/constants/db_queries.dart';
+import '../../../app/di/injection.dart';
+import '../../../app/services/data_migration_service.dart';
+import '../../../app/services/data_sync_service.dart';
+import '../../../app/services/database_service.dart';
+import '../../../app/utils/qr_code_helper.dart';
 import '../services/student_merge_service.dart';
 
 part 'student_cubit.freezed.dart';
@@ -24,18 +30,41 @@ abstract class StudentState with _$StudentState {
 class StudentCubit extends Cubit<StudentState> {
   final DatabaseService _databaseService;
   final StudentMergeService _mergeService;
+  final DataSyncService? _dataSyncService;
+  StreamSubscription<SyncEntity>? _syncSub;
 
   StudentCubit({
     required DatabaseService databaseService,
     StudentMergeService? mergeService,
+    DataSyncService? dataSyncService,
   })  : _databaseService = databaseService,
         _mergeService = mergeService ?? StudentMergeService(databaseService: databaseService),
-        super(const StudentState());
+        _dataSyncService = dataSyncService ?? (getIt.isRegistered<DataSyncService>() ? getIt<DataSyncService>() : null),
+        super(const StudentState()) {
+    _syncSub = _dataSyncService?.syncStream.listen((entity) {
+      if (entity == SyncEntity.groups || entity == SyncEntity.attendance) {
+        loadStudents(silent: true);
+      }
+    });
+  }
 
-  Future<void> loadStudents() async {
-    emit(state.copyWith(isLoading: true, error: null));
+  Future<void> loadStudents({bool silent = false}) async {
+    if (!silent) {
+      emit(state.copyWith(isLoading: true, error: null));
+    }
     try {
       final Database db = await _databaseService.database;
+
+      // Auto-check migration from external DB if students table is empty
+      try {
+        final checkCount = Sqflite.firstIntValue(
+              await db.rawQuery('SELECT COUNT(*) FROM students'),
+            ) ??
+            0;
+        if (checkCount == 0 && getIt.isRegistered<DataMigrationService>()) {
+          await getIt<DataMigrationService>().checkAndAutoMigrate();
+        }
+      } catch (_) {}
 
       // Always fetch total count (unfiltered)
       final List<Map<String, Object?>> countResult = await db.rawQuery(
@@ -172,7 +201,8 @@ class StudentCubit extends Cubit<StudentState> {
         return serial;
       });
 
-      await loadStudents();
+      await loadStudents(silent: true);
+      _dataSyncService?.notifyStudentsChanged();
       return finalSerial;
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
@@ -205,7 +235,8 @@ class StudentCubit extends Cubit<StudentState> {
         where: 'id = ?',
         whereArgs: <Object?>[id],
       );
-      await loadStudents();
+      await loadStudents(silent: true);
+      _dataSyncService?.notifyStudentsChanged();
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
       rethrow;
@@ -220,7 +251,8 @@ class StudentCubit extends Cubit<StudentState> {
         where: 'id = ?',
         whereArgs: <Object?>[id],
       );
-      await loadStudents();
+      await loadStudents(silent: true);
+      _dataSyncService?.notifyStudentsChanged();
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
     }
@@ -236,7 +268,8 @@ class StudentCubit extends Cubit<StudentState> {
         ids.toList(),
       );
       emit(state.copyWith(selectedIds: const {}));
-      await loadStudents();
+      await loadStudents(silent: true);
+      _dataSyncService?.notifyStudentsChanged();
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
     }
@@ -330,7 +363,8 @@ class StudentCubit extends Cubit<StudentState> {
         duplicateIds: duplicateIds,
       );
       emit(state.copyWith(selectedIds: const {}));
-      await loadStudents();
+      await loadStudents(silent: true);
+      _dataSyncService?.notifyStudentsChanged();
     } catch (e) {
       emit(state.copyWith(isLoading: false, error: e.toString()));
       rethrow;
@@ -350,13 +384,24 @@ class StudentCubit extends Cubit<StudentState> {
     }
   }
 
-  Future<Map<String, dynamic>?> getStudentBySerial(String serial) async {
+  Future<Map<String, dynamic>?> getStudentBySerial(String rawSerial) async {
+    final serial = QrCodeHelper.extractSerialNumber(rawSerial);
+    if (serial.isEmpty) return null;
+
     try {
       final Database db = await _databaseService.database;
-      final List<Map<String, Object?>> results = await db.rawQuery(
+      List<Map<String, Object?>> results = await db.rawQuery(
         DBQueries.getStudentBySerial,
         <Object?>[serial],
       );
+
+      if (results.isEmpty && rawSerial.trim() != serial) {
+        results = await db.rawQuery(
+          DBQueries.getStudentBySerial,
+          <Object?>[rawSerial.trim()],
+        );
+      }
+
       return results.isNotEmpty ? results.first : null;
     } catch (e) {
       return null;
@@ -471,5 +516,11 @@ class StudentCubit extends Cubit<StudentState> {
       args.add(state.selectedGroupId);
     }
     return args;
+  }
+
+  @override
+  Future<void> close() {
+    _syncSub?.cancel();
+    return super.close();
   }
 }
