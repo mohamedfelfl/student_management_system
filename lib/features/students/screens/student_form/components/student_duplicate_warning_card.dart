@@ -1,6 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../../../app/utils/arabic_name_helper.dart';
 import '../../../../../../generated/locale_keys.g.dart';
@@ -52,11 +51,11 @@ class _StudentDuplicateWarningCardState
         : widget.matches.take(3).toList();
 
     return Container(
-      margin: EdgeInsets.only(top: 8.h),
-      padding: EdgeInsets.all(14.r),
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: containerColor,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: borderColor, width: 1.2),
       ),
       child: Column(
@@ -70,9 +69,9 @@ class _StudentDuplicateWarningCardState
                     ? Icons.warning_rounded
                     : Icons.info_outline_rounded,
                 color: iconColor,
-                size: 22.r,
+                size: 20,
               ),
-              SizedBox(width: 8.w),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   LocaleKeys.possible_name_duplicates.tr(
@@ -80,6 +79,7 @@ class _StudentDuplicateWarningCardState
                   ),
                   style: textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.bold,
+                    fontSize: 14,
                     color: hasExactMatch
                         ? colorScheme.error
                         : (theme.brightness == Brightness.dark
@@ -90,7 +90,7 @@ class _StudentDuplicateWarningCardState
               ),
             ],
           ),
-          SizedBox(height: 10.h),
+          const SizedBox(height: 8),
 
           // Matches List
           ...displayMatches.map((match) {
@@ -101,13 +101,13 @@ class _StudentDuplicateWarningCardState
             final phone = student['phone1']?.toString() ?? '';
 
             return Container(
-              margin: EdgeInsets.only(bottom: 8.h),
-              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
                 color: theme.brightness == Brightness.dark
                     ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)
                     : Colors.white,
-                borderRadius: BorderRadius.circular(12.r),
+                borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color: colorScheme.outlineVariant.withValues(alpha: 0.35),
                 ),
@@ -115,24 +115,27 @@ class _StudentDuplicateWarningCardState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
+                  Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8,
+                    runSpacing: 4,
                     children: [
-                      Expanded(
-                        child: Text(
-                          studentName,
-                          style: textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: colorScheme.onSurface,
-                          ),
+                      Text(
+                        studentName,
+                        style: textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                          color: colorScheme.onSurface,
                         ),
                       ),
                       _buildMatchBadge(match, colorScheme, textTheme),
                     ],
                   ),
-                  SizedBox(height: 6.h),
+                  const SizedBox(height: 6),
                   Wrap(
-                    spacing: 12.w,
-                    runSpacing: 4.h,
+                    spacing: 12,
+                    runSpacing: 4,
                     children: [
                       if (serialNumber.isNotEmpty)
                         _buildDetailChip(
@@ -172,7 +175,7 @@ class _StudentDuplicateWarningCardState
                   _expanded
                       ? Icons.keyboard_arrow_up
                       : Icons.keyboard_arrow_down,
-                  size: 18.r,
+                  size: 18,
                 ),
                 label: Text(
                   _expanded
@@ -180,6 +183,9 @@ class _StudentDuplicateWarningCardState
                       : LocaleKeys.view_all_duplicates.tr(
                           args: [widget.matches.length.toString()],
                         ),
+                  style: textTheme.bodySmall?.copyWith(
+                    fontSize: 12,
+                  ),
                 ),
                 style: TextButton.styleFrom(
                   visualDensity: VisualDensity.compact,
@@ -218,18 +224,23 @@ class _StudentDuplicateWarningCardState
         break;
     }
 
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
-      decoration: BoxDecoration(
-        color: badgeColor,
-        borderRadius: BorderRadius.circular(8.r),
-      ),
-      child: Text(
-        badgeText,
-        style: textTheme.labelSmall?.copyWith(
-          color: textColor,
-          fontWeight: FontWeight.bold,
-          fontSize: 10.sp,
+    return Tooltip(
+      message: badgeText,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: badgeColor,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Text(
+          badgeText,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: textTheme.labelSmall?.copyWith(
+            color: textColor,
+            fontWeight: FontWeight.bold,
+            fontSize: 11,
+          ),
         ),
       ),
     );
@@ -241,19 +252,26 @@ class _StudentDuplicateWarningCardState
     required ColorScheme colorScheme,
     required TextTheme textTheme,
   }) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 13.r, color: colorScheme.onSurfaceVariant),
-        SizedBox(width: 4.w),
-        Text(
-          text,
-          style: textTheme.bodySmall?.copyWith(
-            color: colorScheme.onSurfaceVariant,
-            fontSize: 11.sp,
+    return Tooltip(
+      message: text,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: colorScheme.onSurfaceVariant),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                fontSize: 12,
+              ),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

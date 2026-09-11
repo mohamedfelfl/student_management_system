@@ -1,7 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../../app/constants/dimens.dart';
 import '../../../../../generated/locale_keys.g.dart';
@@ -51,7 +50,7 @@ class AttendanceTab extends StatelessWidget {
                       Icon(
                         Icons.card_giftcard_rounded,
                         color: Colors.amber.shade800,
-                        size: 20.r,
+                        size: 20,
                       ),
                       SizedBox(width: AppDimens.w10),
                       Expanded(
@@ -60,7 +59,7 @@ class AttendanceTab extends StatelessWidget {
                           style: TextStyle(
                             color: Colors.amber.shade900,
                             fontWeight: FontWeight.bold,
-                            fontSize: 12.sp,
+                            fontSize: 12,
                           ),
                         ),
                       ),

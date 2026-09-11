@@ -1,7 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:student_management_system/generated/locale_keys.g.dart';
 import 'package:student_management_system/features/students/cubits/student_cubit.dart';
@@ -40,7 +39,8 @@ class StudentMergeConfirmDialog extends StatefulWidget {
       _StudentMergeConfirmDialogState();
 }
 
-class _StudentMergeConfirmDialogState extends State<StudentMergeConfirmDialog> {
+class _StudentMergeConfirmDialogState
+    extends State<StudentMergeConfirmDialog> {
   int? _selectedPrimaryId;
   MergeSummary? _previewSummary;
   bool _isLoading = true;
@@ -58,13 +58,7 @@ class _StudentMergeConfirmDialogState extends State<StudentMergeConfirmDialog> {
   }
 
   Future<void> _loadPreview() async {
-    if (_selectedPrimaryId == null || widget.candidateStudentIds.length < 2) {
-      setState(() {
-        _isLoading = false;
-        _errorMessage = 'At least 2 students are required for merging.';
-      });
-      return;
-    }
+    if (_selectedPrimaryId == null) return;
 
     setState(() {
       _isLoading = true;
@@ -77,14 +71,14 @@ class _StudentMergeConfirmDialogState extends State<StudentMergeConfirmDialog> {
           .where((id) => id != _selectedPrimaryId)
           .toList();
 
-      final summary = await cubit.previewMerge(
+      final preview = await cubit.previewMerge(
         primaryId: _selectedPrimaryId!,
         duplicateIds: duplicateIds,
       );
 
       if (mounted) {
         setState(() {
-          _previewSummary = summary;
+          _previewSummary = preview;
           _isLoading = false;
         });
       }
@@ -132,15 +126,13 @@ class _StudentMergeConfirmDialogState extends State<StudentMergeConfirmDialog> {
             content: Row(
               children: [
                 const Icon(Icons.check_circle_rounded, color: Colors.white),
-                SizedBox(width: 12.w),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     LocaleKeys.students_merged_success.tr(
                       args: [
                         summary.primaryStudent.name,
-                        '${summary.marksToTransfer}',
-                        '${summary.attendanceToTransfer}',
-                        '${summary.paymentsToTransfer}',
+                        '${summary.duplicateStudents.length}',
                       ],
                     ),
                   ),
@@ -170,16 +162,16 @@ class _StudentMergeConfirmDialogState extends State<StudentMergeConfirmDialog> {
 
     return Dialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(16),
       ),
       elevation: 8,
       child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: 720.w,
-          maxHeight: 820.h,
+        constraints: const BoxConstraints(
+          maxWidth: 720,
+          maxHeight: 750,
         ),
         child: Padding(
-          padding: EdgeInsets.all(24.r),
+          padding: const EdgeInsets.all(20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -188,33 +180,35 @@ class _StudentMergeConfirmDialogState extends State<StudentMergeConfirmDialog> {
               Row(
                 children: [
                   Container(
-                    padding: EdgeInsets.all(10.r),
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(12.r),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
                       Icons.merge_type_rounded,
                       color: colorScheme.onPrimaryContainer,
-                      size: 26.r,
+                      size: 22,
                     ),
                   ),
-                  SizedBox(width: 14.w),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           LocaleKeys.merge_students.tr(),
-                          style: theme.textTheme.titleLarge?.copyWith(
+                          style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
+                            fontSize: 16,
                           ),
                         ),
-                        SizedBox(height: 4.h),
+                        const SizedBox(height: 2),
                         Text(
                           LocaleKeys.select_primary_desc.tr(),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
+                            fontSize: 12,
                           ),
                         ),
                       ],
@@ -227,7 +221,7 @@ class _StudentMergeConfirmDialogState extends State<StudentMergeConfirmDialog> {
                   ),
                 ],
               ),
-              const Divider(height: 24),
+              const Divider(height: 20),
 
               // ── Body ──
               Expanded(
@@ -236,22 +230,22 @@ class _StudentMergeConfirmDialogState extends State<StudentMergeConfirmDialog> {
                     : _errorMessage != null
                         ? Center(
                             child: Padding(
-                              padding: EdgeInsets.all(16.r),
+                              padding: const EdgeInsets.all(16),
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(
                                     Icons.error_outline_rounded,
                                     color: colorScheme.error,
-                                    size: 40.r,
+                                    size: 36,
                                   ),
-                                  SizedBox(height: 12.h),
+                                  const SizedBox(height: 10),
                                   Text(
                                     _errorMessage!,
-                                    style: TextStyle(color: colorScheme.error),
+                                    style: TextStyle(color: colorScheme.error, fontSize: 13),
                                     textAlign: TextAlign.center,
                                   ),
-                                  SizedBox(height: 12.h),
+                                  const SizedBox(height: 10),
                                   OutlinedButton(
                                     onPressed: _loadPreview,
                                     child: const Text('Retry'),
@@ -263,7 +257,7 @@ class _StudentMergeConfirmDialogState extends State<StudentMergeConfirmDialog> {
                         : _buildDialogContent(theme, colorScheme),
               ),
 
-              const Divider(height: 24),
+              const Divider(height: 20),
 
               // ── Actions ──
               Row(
@@ -275,35 +269,36 @@ class _StudentMergeConfirmDialogState extends State<StudentMergeConfirmDialog> {
                         : () => Navigator.of(context).pop(false),
                     child: Text(LocaleKeys.cancel.tr()),
                   ),
-                  SizedBox(width: 12.w),
+                  const SizedBox(width: 12),
                   ElevatedButton.icon(
                     onPressed: (_isMerging || _isLoading || _previewSummary == null)
                         ? null
                         : _performMerge,
                     icon: _isMerging
-                        ? SizedBox(
-                            width: 18.r,
-                            height: 18.r,
-                            child: const CircularProgressIndicator(
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
                               strokeWidth: 2,
                               color: Colors.white,
                             ),
                           )
-                        : const Icon(Icons.check_circle_rounded),
+                        : const Icon(Icons.check_circle_rounded, size: 18),
                     label: Text(
                       _isMerging
                           ? LocaleKeys.loading.tr()
                           : LocaleKeys.confirm_merge.tr(),
+                      style: const TextStyle(fontSize: 13),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colorScheme.primary,
                       foregroundColor: colorScheme.onPrimary,
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 20.w,
-                        vertical: 14.h,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
                       ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.r),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
                   ),
@@ -319,7 +314,7 @@ class _StudentMergeConfirmDialogState extends State<StudentMergeConfirmDialog> {
   Widget _buildDialogContent(ThemeData theme, ColorScheme colorScheme) {
     if (_previewSummary == null) return const SizedBox.shrink();
 
-    final allCandidates = [
+    final allCandidates = <DuplicateStudent>[
       _previewSummary!.primaryStudent,
       ..._previewSummary!.duplicateStudents,
     ];
@@ -333,10 +328,11 @@ class _StudentMergeConfirmDialogState extends State<StudentMergeConfirmDialog> {
             LocaleKeys.primary_student.tr(),
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.bold,
+              fontSize: 13,
               color: colorScheme.primary,
             ),
           ),
-          SizedBox(height: 8.h),
+          const SizedBox(height: 8),
           ...allCandidates.map(
             (student) => _buildStudentSelectionCard(
               student: student,
@@ -345,11 +341,11 @@ class _StudentMergeConfirmDialogState extends State<StudentMergeConfirmDialog> {
               theme: theme,
             ),
           ),
-          SizedBox(height: 16.h),
+          const SizedBox(height: 12),
 
           // ── Data Flow Hint Box (Explicit User Requirement) ──
           _buildDataFlowHintBox(theme, colorScheme),
-          SizedBox(height: 16.h),
+          const SizedBox(height: 12),
 
           // ── Merge Breakdown & Conflict Preview ──
           _buildMergePreviewBreakdown(theme, colorScheme),
@@ -365,12 +361,12 @@ class _StudentMergeConfirmDialogState extends State<StudentMergeConfirmDialog> {
     required ThemeData theme,
   }) {
     return Container(
-      margin: EdgeInsets.only(bottom: 10.h),
+      margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
         color: isSelectedPrimary
             ? colorScheme.primaryContainer.withAlpha(50)
             : colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: isSelectedPrimary
               ? colorScheme.primary
@@ -380,14 +376,14 @@ class _StudentMergeConfirmDialogState extends State<StudentMergeConfirmDialog> {
       ),
       child: InkWell(
         onTap: _isMerging ? null : () => _onPrimarySelected(student.id),
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(10),
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           child: Row(
             children: [
               Container(
-                width: 22.r,
-                height: 22.r,
+                width: 20,
+                height: 20,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
@@ -400,8 +396,8 @@ class _StudentMergeConfirmDialogState extends State<StudentMergeConfirmDialog> {
                 child: isSelectedPrimary
                     ? Center(
                         child: Container(
-                          width: 12.r,
-                          height: 12.r,
+                          width: 10,
+                          height: 10,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: colorScheme.primary,
@@ -410,7 +406,7 @@ class _StudentMergeConfirmDialogState extends State<StudentMergeConfirmDialog> {
                       )
                     : null,
               ),
-              SizedBox(width: 8.w),
+              const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -420,30 +416,31 @@ class _StudentMergeConfirmDialogState extends State<StudentMergeConfirmDialog> {
                         Flexible(
                           child: Text(
                             student.name,
-                            style: theme.textTheme.titleMedium?.copyWith(
+                            style: theme.textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.bold,
+                              fontSize: 14,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        SizedBox(width: 8.w),
+                        const SizedBox(width: 8),
                         Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 8.w,
-                            vertical: 2.h,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
                           ),
                           decoration: BoxDecoration(
                             color: isSelectedPrimary
                                 ? colorScheme.primary
                                 : colorScheme.secondaryContainer,
-                            borderRadius: BorderRadius.circular(6.r),
+                            borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
                             isSelectedPrimary
                                 ? LocaleKeys.primary_profile_badge.tr()
                                 : LocaleKeys.duplicate_profile_badge.tr(),
                             style: TextStyle(
-                              fontSize: 11.sp,
+                              fontSize: 11,
                               fontWeight: FontWeight.bold,
                               color: isSelectedPrimary
                                   ? colorScheme.onPrimary
@@ -453,10 +450,10 @@ class _StudentMergeConfirmDialogState extends State<StudentMergeConfirmDialog> {
                         ),
                       ],
                     ),
-                    SizedBox(height: 4.h),
+                    const SizedBox(height: 4),
                     Wrap(
-                      spacing: 12.w,
-                      runSpacing: 4.h,
+                      spacing: 12,
+                      runSpacing: 4,
                       children: [
                         _buildDetailChip(
                           icon: Icons.tag,
@@ -478,11 +475,11 @@ class _StudentMergeConfirmDialogState extends State<StudentMergeConfirmDialog> {
                           ),
                       ],
                     ),
-                    SizedBox(height: 6.h),
+                    const SizedBox(height: 6),
                     // Data stats pills
                     Wrap(
-                      spacing: 8.w,
-                      runSpacing: 4.h,
+                      spacing: 8,
+                      runSpacing: 4,
                       children: [
                         _buildStatBadge(
                           Icons.grade_outlined,
@@ -525,12 +522,12 @@ class _StudentMergeConfirmDialogState extends State<StudentMergeConfirmDialog> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 14.r, color: colorScheme.onSurfaceVariant),
-        SizedBox(width: 4.w),
+        Icon(icon, size: 13, color: colorScheme.onSurfaceVariant),
+        const SizedBox(width: 4),
         Text(
           label,
           style: TextStyle(
-            fontSize: 12.sp,
+            fontSize: 11,
             color: colorScheme.onSurfaceVariant,
           ),
         ),
@@ -540,21 +537,21 @@ class _StudentMergeConfirmDialogState extends State<StudentMergeConfirmDialog> {
 
   Widget _buildStatBadge(IconData icon, String text, Color color) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: color.withAlpha(25),
-        borderRadius: BorderRadius.circular(4.r),
+        borderRadius: BorderRadius.circular(4),
         border: Border.all(color: color.withAlpha(60), width: 0.8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12.r, color: color),
-          SizedBox(width: 4.w),
+          Icon(icon, size: 12, color: color),
+          const SizedBox(width: 4),
           Text(
             text,
             style: TextStyle(
-              fontSize: 11.sp,
+              fontSize: 11,
               fontWeight: FontWeight.w600,
               color: color,
             ),
@@ -567,10 +564,10 @@ class _StudentMergeConfirmDialogState extends State<StudentMergeConfirmDialog> {
   /// The Data Flow Hint Box explains how data transfers and where it goes.
   Widget _buildDataFlowHintBox(ThemeData theme, ColorScheme colorScheme) {
     return Container(
-      padding: EdgeInsets.all(14.r),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest.withAlpha(120),
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: colorScheme.outlineVariant.withAlpha(150),
         ),
@@ -583,19 +580,20 @@ class _StudentMergeConfirmDialogState extends State<StudentMergeConfirmDialog> {
               Icon(
                 Icons.lightbulb_outline_rounded,
                 color: Colors.amber.shade800,
-                size: 20.r,
+                size: 18,
               ),
-              SizedBox(width: 8.w),
+              const SizedBox(width: 8),
               Text(
                 LocaleKeys.merge_data_flow_hint.tr(),
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.bold,
+                  fontSize: 13,
                   color: colorScheme.onSurface,
                 ),
               ),
             ],
           ),
-          SizedBox(height: 10.h),
+          const SizedBox(height: 8),
           _buildHintItem(
             icon: Icons.grade_rounded,
             color: colorScheme.primary,
@@ -637,17 +635,17 @@ class _StudentMergeConfirmDialogState extends State<StudentMergeConfirmDialog> {
     required String text,
   }) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 3.h),
+      padding: const EdgeInsets.symmetric(vertical: 2.5),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 16.r, color: color),
-          SizedBox(width: 8.w),
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
               text,
               style: TextStyle(
-                fontSize: 12.sp,
+                fontSize: 12,
                 height: 1.3,
                 color: Colors.grey.shade800,
               ),
@@ -663,10 +661,10 @@ class _StudentMergeConfirmDialogState extends State<StudentMergeConfirmDialog> {
     final s = _previewSummary!;
 
     return Container(
-      padding: EdgeInsets.all(14.r),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: colorScheme.primaryContainer.withAlpha(40),
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: colorScheme.primary.withAlpha(80)),
       ),
       child: Column(
@@ -677,22 +675,23 @@ class _StudentMergeConfirmDialogState extends State<StudentMergeConfirmDialog> {
               Icon(
                 Icons.analytics_outlined,
                 color: colorScheme.primary,
-                size: 18.r,
+                size: 16,
               ),
-              SizedBox(width: 8.w),
+              const SizedBox(width: 8),
               Text(
                 LocaleKeys.data_merged_summary.tr(),
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.bold,
+                  fontSize: 13,
                   color: colorScheme.primary,
                 ),
               ),
             ],
           ),
-          SizedBox(height: 8.h),
+          const SizedBox(height: 8),
           Wrap(
-            spacing: 16.w,
-            runSpacing: 6.h,
+            spacing: 16,
+            runSpacing: 6,
             children: [
               _buildSummaryRow(
                 '${LocaleKeys.exams.tr()}:',
@@ -729,13 +728,13 @@ class _StudentMergeConfirmDialogState extends State<StudentMergeConfirmDialog> {
       children: [
         Text(
           title,
-          style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w600),
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
         ),
-        SizedBox(width: 4.w),
+        const SizedBox(width: 4),
         Text(
           value,
           style: TextStyle(
-            fontSize: 12.sp,
+            fontSize: 12,
             color: Colors.blueGrey.shade800,
           ),
         ),

@@ -1,7 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:student_management_system/generated/locale_keys.g.dart';
 import 'package:student_management_system/features/students/cubits/student_cubit.dart';
@@ -104,16 +103,16 @@ class _DuplicateStudentsDialogState extends State<DuplicateStudentsDialog> {
 
     return Dialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(16),
       ),
       elevation: 8,
       child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: 860.w,
-          maxHeight: 840.h,
+        constraints: const BoxConstraints(
+          maxWidth: 860,
+          maxHeight: 750,
         ),
         child: Padding(
-          padding: EdgeInsets.all(24.r),
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -121,29 +120,30 @@ class _DuplicateStudentsDialogState extends State<DuplicateStudentsDialog> {
               Row(
                 children: [
                   Container(
-                    padding: EdgeInsets.all(10.r),
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(12.r),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
                       Icons.people_alt_outlined,
                       color: colorScheme.onPrimaryContainer,
-                      size: 26.r,
+                      size: 22,
                     ),
                   ),
-                  SizedBox(width: 14.w),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           LocaleKeys.manage_duplicates.tr(),
-                          style: theme.textTheme.titleLarge?.copyWith(
+                          style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
+                            fontSize: 16,
                           ),
                         ),
-                        SizedBox(height: 4.h),
+                        const SizedBox(height: 2),
                         Text(
                           _isLoading
                               ? LocaleKeys.loading.tr()
@@ -152,6 +152,7 @@ class _DuplicateStudentsDialogState extends State<DuplicateStudentsDialog> {
                                 ),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
+                            fontSize: 12,
                           ),
                         ),
                       ],
@@ -169,32 +170,34 @@ class _DuplicateStudentsDialogState extends State<DuplicateStudentsDialog> {
                   ),
                 ],
               ),
-              const Divider(height: 24),
+              const Divider(height: 20),
 
               // ── Search / Filter Bar ──
               if (!_isLoading && _groups.isNotEmpty) ...[
                 TextField(
                   controller: _filterController,
                   onChanged: (val) => setState(() => _filterQuery = val),
+                  style: const TextStyle(fontSize: 13),
                   decoration: InputDecoration(
                     hintText: LocaleKeys.search_hint.tr(),
-                    prefixIcon: const Icon(Icons.search),
+                    hintStyle: const TextStyle(fontSize: 13),
+                    prefixIcon: const Icon(Icons.search, size: 20),
                     suffixIcon: _filterQuery.isNotEmpty
                         ? IconButton(
-                            icon: const Icon(Icons.clear),
+                            icon: const Icon(Icons.clear, size: 18),
                             onPressed: () {
                               _filterController.clear();
                               setState(() => _filterQuery = '');
                             },
                           )
                         : null,
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 16.w,
-                      vertical: 12.h,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
                     ),
                   ),
                 ),
-                SizedBox(height: 16.h),
+                const SizedBox(height: 12),
               ],
 
               // ── Body ──
@@ -218,14 +221,14 @@ class _DuplicateStudentsDialogState extends State<DuplicateStudentsDialog> {
                                 Icon(
                                   Icons.error_outline_rounded,
                                   color: colorScheme.error,
-                                  size: 40.r,
+                                  size: 36,
                                 ),
-                                SizedBox(height: 12.h),
+                                const SizedBox(height: 10),
                                 Text(
                                   _errorMessage!,
-                                  style: TextStyle(color: colorScheme.error),
+                                  style: TextStyle(color: colorScheme.error, fontSize: 13),
                                 ),
-                                SizedBox(height: 12.h),
+                                const SizedBox(height: 10),
                                 OutlinedButton(
                                   onPressed: _scanDuplicates,
                                   child: const Text('Retry'),
@@ -240,15 +243,16 @@ class _DuplicateStudentsDialogState extends State<DuplicateStudentsDialog> {
                                   children: [
                                     Icon(
                                       Icons.verified_outlined,
-                                      size: 56.r,
+                                      size: 48,
                                       color: Colors.green.shade600,
                                     ),
-                                    SizedBox(height: 16.h),
+                                    const SizedBox(height: 12),
                                     Text(
                                       LocaleKeys.no_duplicates_found.tr(),
                                       style:
                                           theme.textTheme.titleMedium?.copyWith(
                                         fontWeight: FontWeight.bold,
+                                        fontSize: 15,
                                       ),
                                     ),
                                   ],
@@ -257,7 +261,7 @@ class _DuplicateStudentsDialogState extends State<DuplicateStudentsDialog> {
                             : ListView.separated(
                                 itemCount: filtered.length,
                                 separatorBuilder: (ctx, idx) =>
-                                    SizedBox(height: 14.h),
+                                    const SizedBox(height: 10),
                                 itemBuilder: (ctx, idx) {
                                   final group = filtered[idx];
                                   return _buildGroupCard(
@@ -269,7 +273,7 @@ class _DuplicateStudentsDialogState extends State<DuplicateStudentsDialog> {
                               ),
               ),
 
-              const Divider(height: 24),
+              const Divider(height: 20),
 
               // ── Close ──
               Align(
@@ -294,13 +298,13 @@ class _DuplicateStudentsDialogState extends State<DuplicateStudentsDialog> {
     return Container(
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(14.r),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: colorScheme.outlineVariant.withAlpha(120),
         ),
       ),
       child: Padding(
-        padding: EdgeInsets.all(16.r),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -312,25 +316,26 @@ class _DuplicateStudentsDialogState extends State<DuplicateStudentsDialog> {
                     children: [
                       Text(
                         group.displayName,
-                        style: theme.textTheme.titleMedium?.copyWith(
+                        style: theme.textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.bold,
+                          fontSize: 14,
                         ),
                       ),
-                      SizedBox(width: 10.w),
+                      const SizedBox(width: 8),
                       Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 8.w,
-                          vertical: 2.h,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
                         ),
                         decoration: BoxDecoration(
                           color: Colors.amber.shade100,
-                          borderRadius: BorderRadius.circular(6.r),
+                          borderRadius: BorderRadius.circular(6),
                           border: Border.all(color: Colors.amber.shade400),
                         ),
                         child: Text(
                           '${group.students.length} records',
                           style: TextStyle(
-                            fontSize: 11.sp,
+                            fontSize: 11,
                             fontWeight: FontWeight.bold,
                             color: Colors.amber.shade900,
                           ),
@@ -341,35 +346,38 @@ class _DuplicateStudentsDialogState extends State<DuplicateStudentsDialog> {
                 ),
                 ElevatedButton.icon(
                   onPressed: () => _openMergeForGroup(group),
-                  icon: const Icon(Icons.merge_type_rounded, size: 18),
-                  label: Text(LocaleKeys.review_and_merge.tr()),
+                  icon: const Icon(Icons.merge_type_rounded, size: 16),
+                  label: Text(
+                    LocaleKeys.review_and_merge.tr(),
+                    style: const TextStyle(fontSize: 12),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colorScheme.primary,
                     foregroundColor: colorScheme.onPrimary,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 14.w,
-                      vertical: 10.h,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.r),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 12.h),
+            const SizedBox(height: 8),
 
             // Students in group
             ...group.students.map(
               (student) => Container(
-                margin: EdgeInsets.only(bottom: 6.h),
-                padding: EdgeInsets.symmetric(
-                  horizontal: 12.w,
-                  vertical: 8.h,
+                margin: const EdgeInsets.only(bottom: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
                 ),
                 decoration: BoxDecoration(
                   color: colorScheme.surface,
-                  borderRadius: BorderRadius.circular(8.r),
+                  borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: colorScheme.outlineVariant.withAlpha(80),
                   ),
@@ -377,29 +385,29 @@ class _DuplicateStudentsDialogState extends State<DuplicateStudentsDialog> {
                 child: Row(
                   children: [
                     Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 6.w,
-                        vertical: 2.h,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
                       ),
                       decoration: BoxDecoration(
                         color: colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(4.r),
+                        borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
                         student.serialNumber,
-                        style: TextStyle(
-                          fontSize: 11.sp,
+                        style: const TextStyle(
+                          fontSize: 11,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
-                    SizedBox(width: 10.w),
+                    const SizedBox(width: 10),
                     Expanded(
                       flex: 2,
                       child: Text(
                         student.name,
-                        style: TextStyle(
-                          fontSize: 13.sp,
+                        style: const TextStyle(
+                          fontSize: 13,
                           fontWeight: FontWeight.w600,
                         ),
                         overflow: TextOverflow.ellipsis,
@@ -407,31 +415,31 @@ class _DuplicateStudentsDialogState extends State<DuplicateStudentsDialog> {
                     ),
                     if (student.groupName != null &&
                         student.groupName!.isNotEmpty) ...[
-                      SizedBox(width: 8.w),
+                      const SizedBox(width: 8),
                       Text(
                         student.groupName!,
                         style: TextStyle(
-                          fontSize: 12.sp,
+                          fontSize: 11,
                           color: colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
                     if (student.phone1.isNotEmpty) ...[
-                      SizedBox(width: 8.w),
+                      const SizedBox(width: 8),
                       Text(
                         student.phone1,
                         style: TextStyle(
-                          fontSize: 12.sp,
+                          fontSize: 11,
                           color: colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
-                    SizedBox(width: 12.w),
+                    const SizedBox(width: 10),
                     // Mini stat badges
                     _buildMiniBadge('${student.marksCount} 📝'),
-                    SizedBox(width: 4.w),
+                    const SizedBox(width: 4),
                     _buildMiniBadge('${student.attendanceCount} 📅'),
-                    SizedBox(width: 4.w),
+                    const SizedBox(width: 4),
                     _buildMiniBadge('${student.paymentsCount} 💳'),
                   ],
                 ),
@@ -445,15 +453,15 @@ class _DuplicateStudentsDialogState extends State<DuplicateStudentsDialog> {
 
   Widget _buildMiniBadge(String text) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 1.h),
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
       decoration: BoxDecoration(
         color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(4.r),
+        borderRadius: BorderRadius.circular(4),
         border: Border.all(color: Colors.grey.shade300),
       ),
       child: Text(
         text,
-        style: TextStyle(fontSize: 11.sp),
+        style: const TextStyle(fontSize: 11),
       ),
     );
   }
