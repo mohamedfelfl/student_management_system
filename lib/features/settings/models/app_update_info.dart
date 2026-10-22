@@ -6,6 +6,8 @@ class AppUpdateInfo {
   final int? packageSize;
   final bool isMandatory;
   final DateTime? publishedAt;
+  final bool canInstallAutomatically;
+  final String? releasePageUrl;
 
   const AppUpdateInfo({
     required this.currentVersion,
@@ -14,6 +16,8 @@ class AppUpdateInfo {
     this.packageSize,
     this.isMandatory = false,
     this.publishedAt,
+    this.canInstallAutomatically = true,
+    this.releasePageUrl,
   });
 
   /// Calculates formatted package size in MB.

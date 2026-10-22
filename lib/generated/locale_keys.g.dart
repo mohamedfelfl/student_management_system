@@ -705,5 +705,6 @@ abstract class  LocaleKeys {
   static const only_admin_can_manage_admins = 'only_admin_can_manage_admins';
   static const cannot_remove_last_admin = 'cannot_remove_last_admin';
   static const cannot_delete_own_account = 'cannot_delete_own_account';
+  static const update_manual_install_message = 'update_manual_install_message';
 
 }

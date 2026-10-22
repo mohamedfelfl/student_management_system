@@ -716,7 +716,8 @@ class CodegenLoader extends AssetLoader{
   "permission_denied": "ليس لديك صلاحية لتنفيذ هذا الإجراء.",
   "only_admin_can_manage_admins": "فقط المدير يمكنه إنشاء حسابات المديرين أو تعديلها أو حذفها.",
   "cannot_remove_last_admin": "لا يمكن حذف آخر مدير في النظام أو تحويله لمستخدم عادي.",
-  "cannot_delete_own_account": "لا يمكنك حذف الحساب المسجّل به حالياً."
+  "cannot_delete_own_account": "لا يمكنك حذف الحساب المسجّل به حالياً.",
+  "update_manual_install_message": "هذه النسخة لم تُثبَّت باستخدام برنامج التثبيت، لذلك لا يمكنها تحديث نفسها. حمّل برنامج التثبيت للنسخة الجديدة من صفحة الإصدار:"
 };
 static const Map<String,dynamic> _en = {
   "app_title": "Legendary Eagle",
@@ -1421,7 +1422,8 @@ static const Map<String,dynamic> _en = {
   "permission_denied": "You don't have permission to do this.",
   "only_admin_can_manage_admins": "Only an admin can create, edit or delete admin accounts.",
   "cannot_remove_last_admin": "The last admin cannot be deleted or changed to a regular user.",
-  "cannot_delete_own_account": "You cannot delete the account you are signed in with."
+  "cannot_delete_own_account": "You cannot delete the account you are signed in with.",
+  "update_manual_install_message": "This copy was not installed with the installer, so it can't update itself. Download the new installer from the release page:"
 };
 static const Map<String, Map<String,dynamic>> mapLocales = {"ar": _ar, "en": _en};
 }

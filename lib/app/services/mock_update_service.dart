@@ -59,4 +59,7 @@ class MockUpdateService implements UpdateService {
   Future<void> applyUpdateOnExit() async {
     wasExitCalled = true;
   }
+
+  @override
+  Future<void> applyPendingUpdateOnExit() async {}
 }

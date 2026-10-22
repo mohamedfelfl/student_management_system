@@ -12,6 +12,7 @@ import 'di/injection.dart';
 import 'router/app_router.dart';
 import 'router/app_router.gr.dart';
 import 'services/database_service.dart';
+import 'services/update_service.dart';
 import 'shared/widgets/theme_mask/circular_reveal_theme_wrapper.dart';
 import 'theme/app_theme.dart';
 import '../features/auth/cubits/auth_cubit.dart';
@@ -60,14 +61,25 @@ class _StudentsManagementAppState extends State<StudentsManagementApp>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.detached) {
-      _handleAutoBackupOnClose();
+      _handleAppClosing();
     }
   }
 
   @override
   Future<AppExitResponse> didRequestAppExit() async {
-    await _handleAutoBackupOnClose();
+    await _handleAppClosing();
     return AppExitResponse.exit;
+  }
+
+  /// Backup first, then hand over to the updater if the user chose to install
+  /// a downloaded update "later"; it waits until this process has exited.
+  Future<void> _handleAppClosing() async {
+    await _handleAutoBackupOnClose();
+    try {
+      await getIt<UpdateService>().applyPendingUpdateOnExit();
+    } catch (e) {
+      debugPrint('Update on close failed: $e');
+    }
   }
 
   Future<void> _handleAutoBackupOnClose() async {

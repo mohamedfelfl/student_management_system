@@ -706,5 +706,6 @@
     "permission_denied": "You don't have permission to do this.",
     "only_admin_can_manage_admins": "Only an admin can create, edit or delete admin accounts.",
     "cannot_remove_last_admin": "The last admin cannot be deleted or changed to a regular user.",
-    "cannot_delete_own_account": "You cannot delete the account you are signed in with."
+    "cannot_delete_own_account": "You cannot delete the account you are signed in with.",
+    "update_manual_install_message": "This copy was not installed with the installer, so it can't update itself. Download the new installer from the release page:"
 }

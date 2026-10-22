@@ -1,13 +1,18 @@
+import 'dart:ui' as ui;
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../generated/locale_keys.g.dart';
 import '../cubits/update_cubit.dart';
 import '../cubits/update_state.dart';
 import '../models/app_update_info.dart';
 
 /// Modal dialog providing detailed update notes, live download progress, and restart actions.
 class UpdateDialog extends StatelessWidget {
+  static const Key downloadButtonKey = Key('update_dialog_download');
+
   final AppUpdateInfo info;
 
   const UpdateDialog({
@@ -161,6 +166,23 @@ class UpdateDialog extends StatelessWidget {
                   const SizedBox(height: 24),
                 ],
 
+                // This copy cannot replace itself: point to the installer.
+                if (!info.canInstallAutomatically) ...[
+                  Text(
+                    LocaleKeys.update_manual_install_message.tr(),
+                    style: const TextStyle(color: Color(0xFFE2E8F0), fontSize: 13),
+                  ),
+                  if (info.releasePageUrl != null) ...[
+                    const SizedBox(height: 8),
+                    SelectableText(
+                      info.releasePageUrl!,
+                      textDirection: ui.TextDirection.ltr,
+                      style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 13),
+                    ),
+                  ],
+                  const SizedBox(height: 20),
+                ],
+
                 // Actions Footer
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -211,8 +233,9 @@ class UpdateDialog extends StatelessWidget {
                           isRestarting ? 'restart_now'.tr() : 'downloading_update'.tr(),
                         ),
                       )
-                    else
+                    else if (info.canInstallAutomatically)
                       FilledButton.icon(
+                        key: downloadButtonKey,
                         onPressed: () => context.read<UpdateCubit>().downloadUpdate(),
                         icon: const Icon(Icons.download_rounded, size: 18),
                         label: Text('download_and_update'.tr()),

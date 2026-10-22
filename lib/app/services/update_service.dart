@@ -26,8 +26,14 @@ abstract class UpdateService {
   /// Applies the update and restarts the application immediately.
   Future<void> applyUpdateAndRestart();
 
-  /// Applies the update when the application exits or is launched next time.
+  /// Schedules the downloaded update to be applied after the app is closed.
+  /// Nothing is started while the app keeps running.
   Future<void> applyUpdateOnExit();
+
+  /// Called while the app is closing: starts the updater for an update
+  /// scheduled with [applyUpdateOnExit]. The updater waits for this process
+  /// to exit before replacing any files.
+  Future<void> applyPendingUpdateOnExit();
 }
 
 /// Production implementation of [UpdateService] communicating with
@@ -36,17 +42,35 @@ class VelopackUpdateService implements UpdateService {
   final String owner;
   final String repo;
   final http.Client _httpClient;
+  final String Function() _executablePath;
+  final Future<void> Function(String executable, List<String> arguments)
+      _startDetachedProcess;
+  final void Function(int code) _exitApp;
+  final int Function() _processId;
 
   String _cachedVersion = '1.0.0';
   String? _downloadedPackagePath;
   String? _downloadedFileName;
   String? _latestDownloadUrl;
+  bool _applyOnExitRequested = false;
 
   VelopackUpdateService({
     this.owner = 'mohamedfelfl',
     this.repo = 'student_management_system',
     http.Client? httpClient,
-  }) : _httpClient = httpClient ?? http.Client();
+    String Function()? executablePath,
+    Future<void> Function(String executable, List<String> arguments)?
+        startDetachedProcess,
+    void Function(int code)? exitApp,
+    int Function()? processId,
+  }) : _httpClient = httpClient ?? http.Client(),
+       _executablePath = executablePath ?? (() => Platform.resolvedExecutable),
+       _startDetachedProcess = startDetachedProcess ?? _startDetached,
+       _exitApp = exitApp ?? exit,
+       _processId = processId ?? (() => pid);
+
+  static Future<void> _startDetached(String executable, List<String> args) =>
+      Process.start(executable, args, mode: ProcessStartMode.detached);
 
   @override
   Future<void> initialize({String? updateUrl}) async {
@@ -70,7 +94,7 @@ class VelopackUpdateService implements UpdateService {
   /// Checks if the running application is an installed Velopack app.
   bool get _isInstalledApp {
     try {
-      final currentExeDir = p.dirname(Platform.resolvedExecutable);
+      final currentExeDir = p.dirname(_executablePath());
       final updateExe = p.normalize(p.join(currentExeDir, '..', 'Update.exe'));
       return File(updateExe).existsSync();
     } catch (_) {
@@ -139,33 +163,13 @@ class VelopackUpdateService implements UpdateService {
           }
         }
 
-        // For non-installed / standalone apps or fallback: prefer Setup.exe
-        if (assetDownloadUrl == null) {
-          for (final asset in assets) {
-            final name = (asset['name'] as String? ?? '').toLowerCase();
-            if (name.contains('setup') && name.endsWith('.exe')) {
-              assetDownloadUrl = asset['browser_download_url'] as String?;
-              packageSize = asset['size'] as int?;
-              targetFileName = asset['name'] as String?;
-              break;
-            }
-          }
-        }
-
-        if (assetDownloadUrl == null) {
-          for (final asset in assets) {
-            final name = (asset['name'] as String? ?? '').toLowerCase();
-            if (name.endsWith('.exe') || (name.endsWith('.nupkg') && !name.endsWith('delta.nupkg'))) {
-              assetDownloadUrl = asset['browser_download_url'] as String?;
-              packageSize = asset['size'] as int?;
-              targetFileName = asset['name'] as String?;
-              break;
-            }
-          }
-        }
-
+        // A copy that was not installed with Setup.exe (no Update.exe next to
+        // it) is never updated automatically: running Setup.exe from here would
+        // install a second copy over whatever uses the same package id.
         _latestDownloadUrl = assetDownloadUrl;
         _downloadedFileName = targetFileName;
+        _downloadedPackagePath = null;
+        _applyOnExitRequested = false;
 
         if (cleanTag.isNotEmpty && _isNewerVersion(current, cleanTag, allowDowngrade)) {
           return AppUpdateInfo(
@@ -174,6 +178,8 @@ class VelopackUpdateService implements UpdateService {
             releaseNotes: body.isNotEmpty ? body : 'General improvements and bug fixes.',
             packageSize: packageSize,
             publishedAt: data['published_at'] != null ? DateTime.tryParse(data['published_at']) : null,
+            canInstallAutomatically: assetDownloadUrl != null,
+            releasePageUrl: data['html_url'] as String?,
           );
         }
       }
@@ -186,7 +192,7 @@ class VelopackUpdateService implements UpdateService {
   /// Resolves the directory where update packages should be downloaded and staged.
   Future<Directory> _getUpdateDirectory() async {
     try {
-      final currentExeDir = p.dirname(Platform.resolvedExecutable);
+      final currentExeDir = p.dirname(_executablePath());
       
       // For Velopack directory structure (where executable is in <rootDir>/current/),
       // the packages folder is in <rootDir>/packages
@@ -206,12 +212,10 @@ class VelopackUpdateService implements UpdateService {
   Stream<double> downloadUpdate(AppUpdateInfo info) async* {
     final downloadUrl = _latestDownloadUrl;
     if (downloadUrl == null || downloadUrl.isEmpty) {
-      // Fallback mock progress for local testing
-      for (int i = 1; i <= 10; i++) {
-        await Future.delayed(const Duration(milliseconds: 100));
-        yield i / 10.0;
-      }
-      return;
+      throw StateError(
+        'This copy cannot be updated automatically; install the new version '
+        'from the release page.',
+      );
     }
 
     try {
@@ -257,105 +261,74 @@ class VelopackUpdateService implements UpdateService {
 
   @override
   Future<void> applyUpdateAndRestart() async {
-    final pkgPath = _downloadedPackagePath;
-    if (pkgPath != null && File(pkgPath).existsSync()) {
-      if (!kIsWeb && Platform.isWindows) {
-        final currentExeDir = p.dirname(Platform.resolvedExecutable);
-        final updateExe = _findUpdateExe();
-        final currentPid = pid;
+    // Throws (and keeps the app open) when there is nothing to apply.
+    final (String updateExe, List<String> args) = _updaterCommand(restart: true);
+    await _startDetachedProcess(updateExe, args);
 
-        if (updateExe != null && pkgPath.endsWith('.nupkg')) {
-          final isCurrentFolder = p.basename(currentExeDir).toLowerCase() == 'current';
-          final rootDir = isCurrentFolder ? p.dirname(currentExeDir) : currentExeDir;
-
-          // Velopack Update.exe global options come before the 'apply' command
-          final List<String> updateArgs = [
-            '--silent',
-          ];
-          if (isCurrentFolder) {
-            updateArgs.addAll(['--rootDir', rootDir]);
-          }
-          updateArgs.addAll([
-            'apply',
-            '--waitPid',
-            currentPid.toString(),
-            '-p',
-            pkgPath,
-          ]);
-
-          await Process.start(
-            updateExe,
-            updateArgs,
-            mode: ProcessStartMode.detached,
-          );
-        } else if (pkgPath.endsWith('.zip')) {
-          // Portable ZIP update in-place
-          final exePath = Platform.resolvedExecutable;
-          final script = 'Start-Sleep -Milliseconds 500; '
-              'Wait-Process -Id $currentPid -Timeout 15 -ErrorAction SilentlyContinue; '
-              'Expand-Archive -Path "$pkgPath" -DestinationPath "$currentExeDir" -Force; '
-              'Remove-Item -Path "$pkgPath" -Force -ErrorAction SilentlyContinue; '
-              'Start-Process -FilePath "$exePath"';
-
-          await Process.start(
-            'powershell',
-            ['-NoProfile', '-NonInteractive', '-WindowStyle', 'Hidden', '-Command', script],
-            mode: ProcessStartMode.detached,
-          );
-        } else if (pkgPath.endsWith('.exe')) {
-          // Execute Setup.exe with --silent in detached mode
-          await Process.start(
-            pkgPath,
-            ['--silent', '--waitPid', currentPid.toString()],
-            mode: ProcessStartMode.detached,
-          );
-        }
-
-        // Allow child process to detach cleanly before parent exits
-        await Future.delayed(const Duration(milliseconds: 300));
-      }
-    }
-    exit(0);
+    // Allow child process to detach cleanly before parent exits
+    await Future.delayed(const Duration(milliseconds: 300));
+    _exitApp(0);
   }
 
   @override
   Future<void> applyUpdateOnExit() async {
-    final pkgPath = _downloadedPackagePath;
-    if (pkgPath != null && File(pkgPath).existsSync()) {
-      if (!kIsWeb && Platform.isWindows) {
-        final currentExeDir = p.dirname(Platform.resolvedExecutable);
-        final updateExe = _findUpdateExe();
-        if (updateExe != null && pkgPath.endsWith('.nupkg')) {
-          final isCurrentFolder = p.basename(currentExeDir).toLowerCase() == 'current';
-          final rootDir = isCurrentFolder ? p.dirname(currentExeDir) : currentExeDir;
+    // Only remember the choice: Velopack closes every process running from
+    // the install folder, so starting it now would close the app right away.
+    _updaterCommand(restart: false);
+    _applyOnExitRequested = true;
+  }
 
-          final List<String> updateArgs = [
-            '--silent',
-          ];
-          if (isCurrentFolder) {
-            updateArgs.addAll(['--rootDir', rootDir]);
-          }
-          updateArgs.addAll([
-            'apply',
-            '--norestart',
-            '-p',
-            pkgPath,
-          ]);
-
-          await Process.start(
-            updateExe,
-            updateArgs,
-            mode: ProcessStartMode.detached,
-          );
-        }
-      }
+  @override
+  Future<void> applyPendingUpdateOnExit() async {
+    if (!_applyOnExitRequested) return;
+    _applyOnExitRequested = false;
+    try {
+      final (String updateExe, List<String> args) =
+          _updaterCommand(restart: false);
+      await _startDetachedProcess(updateExe, args);
+    } catch (e) {
+      debugPrint('[VelopackUpdateService] Update on exit skipped: $e');
     }
+  }
+
+  /// The Velopack `Update.exe` command that applies the downloaded package
+  /// once this process has exited (`--waitPid`).
+  ///
+  /// Throws [StateError] when this copy was not installed with Setup.exe or
+  /// no full package has been downloaded.
+  (String, List<String>) _updaterCommand({required bool restart}) {
+    final String? pkgPath = _downloadedPackagePath;
+    final String? updateExe = _findUpdateExe();
+    if (!Platform.isWindows ||
+        updateExe == null ||
+        pkgPath == null ||
+        !pkgPath.endsWith('.nupkg') ||
+        !File(pkgPath).existsSync()) {
+      throw StateError('No downloaded update package to apply');
+    }
+
+    final String exeDir = p.dirname(_executablePath());
+    final bool inCurrentFolder = p.basename(exeDir).toLowerCase() == 'current';
+    return (
+      updateExe,
+      [
+        // Velopack Update.exe global options come before the 'apply' command
+        '--silent',
+        if (inCurrentFolder) ...['--rootDir', p.dirname(exeDir)],
+        'apply',
+        if (!restart) '--norestart',
+        '--waitPid',
+        '${_processId()}',
+        '-p',
+        pkgPath,
+      ],
+    );
   }
 
   /// Locates Velopack's `Update.exe` in the parent or current directory of an installed app.
   String? _findUpdateExe() {
     try {
-      final currentExeDir = p.dirname(Platform.resolvedExecutable);
+      final currentExeDir = p.dirname(_executablePath());
       final candidate1 = p.normalize(p.join(currentExeDir, '..', 'Update.exe'));
       if (File(candidate1).existsSync()) return candidate1;
 
