@@ -1,9 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 
 import '../../../../generated/locale_keys.g.dart';
 import '../../../app/constants/db_queries.dart';
@@ -68,11 +68,20 @@ class ReportCubit extends Cubit<ReportState> {
         marginBottom: 24,
       );
 
+  static pw.Font? _regularFont;
+  static pw.Font? _boldFont;
+
+  /// Fonts are bundled with the app so reports work offline. Downloading them
+  /// silently fell back to Helvetica, which has no Arabic glyphs.
   Future<pw.Document> _createDocument() async {
-    final font = await PdfGoogleFonts.cairoRegular();
-    final fontBold = await PdfGoogleFonts.cairoBold();
+    _regularFont ??= pw.Font.ttf(
+      await rootBundle.load('assets/fonts/pdf/Cairo-Regular.ttf'),
+    );
+    _boldFont ??= pw.Font.ttf(
+      await rootBundle.load('assets/fonts/pdf/Cairo-Bold.ttf'),
+    );
     return pw.Document(
-      theme: pw.ThemeData.withFont(base: font, bold: fontBold),
+      theme: pw.ThemeData.withFont(base: _regularFont, bold: _boldFont),
     );
   }
 

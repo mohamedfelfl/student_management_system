@@ -6,7 +6,6 @@ import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import '../../../app/constants/db_queries.dart';
 import '../../../app/di/injection.dart';
-import '../../../app/services/data_migration_service.dart';
 import '../../../app/services/data_sync_service.dart';
 import '../../../app/services/database_service.dart';
 import '../services/student_merge_service.dart';
@@ -54,17 +53,6 @@ class StudentCubit extends Cubit<StudentState> {
     }
     try {
       final Database db = await _databaseService.database;
-
-      // Auto-check migration from external DB if students table is empty
-      try {
-        final checkCount = Sqflite.firstIntValue(
-              await db.rawQuery('SELECT COUNT(*) FROM students'),
-            ) ??
-            0;
-        if (checkCount == 0 && getIt.isRegistered<DataMigrationService>()) {
-          await getIt<DataMigrationService>().checkAndAutoMigrate();
-        }
-      } catch (_) {}
 
       // Always fetch total count (unfiltered)
       final List<Map<String, Object?>> countResult = await db.rawQuery(
@@ -123,14 +111,24 @@ class StudentCubit extends Cubit<StudentState> {
     emit(state.copyWith(selectedIds: updated));
   }
 
-  void toggleAll() {
-    if (state.selectedIds.length == state.students.length) {
-      // Deselect all
-      emit(state.copyWith(selectedIds: const {}));
+  /// Drops selected students that are no longer visible, e.g. after the
+  /// on-screen grade filter changes.
+  void retainSelection(Set<int> visibleIds) {
+    emit(state.copyWith(
+      selectedIds: state.selectedIds.intersection(visibleIds),
+    ));
+  }
+
+  /// Selects exactly the students the user can see, or clears the selection
+  /// when they are all selected already. Hidden students are never selected.
+  void toggleAll(Set<int> visibleIds) {
+    final bool allVisibleSelected = visibleIds.isNotEmpty &&
+        state.selectedIds.length == visibleIds.length &&
+        state.selectedIds.containsAll(visibleIds);
+    if (allVisibleSelected) {
+      clearSelection();
     } else {
-      // Select all visible
-      final allIds = state.students.map((s) => s['id'] as int).toSet();
-      emit(state.copyWith(selectedIds: allIds));
+      emit(state.copyWith(selectedIds: Set<int>.from(visibleIds)));
     }
   }
 

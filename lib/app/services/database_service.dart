@@ -23,9 +23,13 @@ class DatabaseService {
 
   // ignore: unused_field
   final EncryptionService _encryptionService;
+  final Future<String> Function()? _databasePath;
 
-  DatabaseService({required EncryptionService encryptionService})
-    : _encryptionService = encryptionService;
+  DatabaseService({
+    required EncryptionService encryptionService,
+    Future<String> Function()? databasePath,
+  }) : _encryptionService = encryptionService,
+       _databasePath = databasePath;
 
   /// Returns the singleton database instance, initializing if needed.
   Future<Database> get database async {
@@ -59,22 +63,10 @@ class DatabaseService {
     try {
       return await _openDbWithPassword(dbPath, password);
     } catch (e) {
-      // If the database is an old unencrypted database, SQLCipher will throw "file is not a database".
-      // We will backup the old DB and create a fresh encrypted one.
+      // SQLCipher reports a wrong key exactly like a corrupt file. Never move
+      // or replace the file here: the user decides on the recovery screen.
       if (e.toString().contains('not a database')) {
-        if (kDebugMode) {
-          print(
-            'Found old unencrypted DB, renaming to .old and starting fresh encrypted one.',
-          );
-        }
-        try {
-          final File oldDb = File(dbPath);
-          if (await oldDb.exists()) {
-            await oldDb.rename('$dbPath.old');
-          }
-        } catch (_) {}
-        // Try opening again
-        return await _openDbWithPassword(dbPath, password);
+        throw DatabaseUnlockException(dbPath, e);
       }
       rethrow;
     }
@@ -116,6 +108,7 @@ class DatabaseService {
   }
 
   Future<String> _getDatabasePath() async {
+    if (_databasePath != null) return _databasePath();
     final Directory documentsDir = await getApplicationDocumentsDirectory();
     final Directory dbDir = Directory(
       join(documentsDir.path, 'StudentManagement'),
@@ -325,6 +318,66 @@ class DatabaseService {
   @visibleForTesting
   Future<void> runOnOpenForTesting(Database db) => _onOpen(db);
 
+  /// Moves an unreadable database file (and its WAL/SHM side files) aside
+  /// under a unique timestamped name, so the next access creates an empty
+  /// database. Nothing is deleted. Returns the new path of the moved file.
+  Future<String> quarantineDatabaseAndStartFresh() async {
+    await close();
+    final String dbPath = await _getDatabasePath();
+    final String stamp = DateTime.now()
+        .toIso8601String()
+        .replaceAll(':', '-')
+        .replaceAll('.', '-');
+    String target = '$dbPath.unreadable-$stamp';
+    for (int n = 1; await File(target).exists(); n++) {
+      target = '$dbPath.unreadable-$stamp-$n';
+    }
+
+    await File(dbPath).rename(target);
+    for (final String suffix in ['-wal', '-shm']) {
+      final File side = File('$dbPath$suffix');
+      if (await side.exists()) {
+        await side.rename('$target$suffix');
+      }
+    }
+    return target;
+  }
+
+  /// Throws [DatabaseUnlockException] unless [path] is a database this device
+  /// can unlock. Used before restoring a backup over the live database.
+  Future<void> verifyCanOpen(String path) async {
+    final String password = await _encryptionService.getDatabaseKey();
+    Database? db;
+    try {
+      db = await _openWithKeyOnly(path, password);
+      final List<Map<String, Object?>> tables = await db.rawQuery(
+        "SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?",
+        [DBQueries.tableStudents],
+      );
+      if (tables.isEmpty) {
+        throw StateError('Not a Student Management database');
+      }
+    } catch (e) {
+      throw DatabaseUnlockException(path, e);
+    } finally {
+      await db?.close();
+    }
+  }
+
+  /// Opens [path] with the encryption key but without creating tables or
+  /// running the on-open maintenance.
+  Future<Database> _openWithKeyOnly(String path, String password) {
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      return ffi.databaseFactoryFfi.openDatabase(
+        path,
+        options: ffi.OpenDatabaseOptions(
+          onConfigure: (db) => db.execute("PRAGMA key = '$password'"),
+        ),
+      );
+    }
+    return mobile.openDatabase(path, password: password);
+  }
+
   /// Close the database connection.
   Future<void> close() async {
     if (_database != null) {
@@ -332,4 +385,16 @@ class DatabaseService {
       _database = null;
     }
   }
+}
+
+/// Thrown when the database file exists but cannot be opened with this
+/// device's encryption key (lost key, or a database copied from elsewhere).
+class DatabaseUnlockException implements Exception {
+  final String path;
+  final Object cause;
+
+  const DatabaseUnlockException(this.path, this.cause);
+
+  @override
+  String toString() => 'DatabaseUnlockException($path): $cause';
 }

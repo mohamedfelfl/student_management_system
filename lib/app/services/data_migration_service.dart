@@ -36,9 +36,6 @@ class DataMigrationService {
   DataMigrationService({required DatabaseService databaseService})
       : _databaseService = databaseService;
 
-  static const String defaultSourceDbPath =
-      r'C:\Users\moham\Desktop\kamal\Elite Series - Mohamed Kamal\Elite_Data\elite.db';
-
   /// Maps source stage IDs (stage_1, stage_2, stage_3) to app grade tokens (sec_1, sec_2, sec_3)
   static String mapStageToGrade(String stageId) {
     switch (stageId.trim().toLowerCase()) {
@@ -96,47 +93,6 @@ class DataMigrationService {
 
     t = t.replaceAll(RegExp(r'\s+'), ' ').trim();
     return t;
-  }
-
-  /// Check if auto-migration is needed and run it if the source database exists.
-  Future<MigrationResult?> checkAndAutoMigrate({String? customPath}) async {
-    final path = customPath ?? defaultSourceDbPath;
-    final file = File(path);
-    if (!await file.exists()) {
-      return null;
-    }
-
-    try {
-      sql.Database? sourceDb;
-      int sourceStudentCount = 0;
-      try {
-        sourceDb = sql.sqlite3.open(path, mode: sql.OpenMode.readOnly);
-        final res = sourceDb.select('SELECT COUNT(*) as c FROM students');
-        if (res.isNotEmpty) {
-          sourceStudentCount = (res.first['c'] as num?)?.toInt() ?? 0;
-        }
-      } catch (e) {
-        debugPrint('Reading source DB student count error: $e');
-      } finally {
-        sourceDb?.dispose();
-      }
-
-      final db = await _databaseService.database;
-      final targetStudentCount = Sqflite.firstIntValue(
-            await db.rawQuery('SELECT COUNT(*) FROM students'),
-          ) ??
-          0;
-
-      if (sourceStudentCount > targetStudentCount || targetStudentCount == 0) {
-        debugPrint(
-          'Automated sync/migration: target has $targetStudentCount, source has $sourceStudentCount. Starting migration from: $path',
-        );
-        return await migrateFromEliteDb(path);
-      }
-    } catch (e) {
-      debugPrint('checkAndAutoMigrate check failed: $e');
-    }
-    return null;
   }
 
   /// Migrates all stages, groups, group schedules, and students from an external SQLite DB

@@ -690,5 +690,16 @@ abstract class  LocaleKeys {
   static const no_students_matching_query = 'no_students_matching_query';
   static const quick_student_search = 'quick_student_search';
   static const other_group = 'other_group';
+  static const db_unlock_title = 'db_unlock_title';
+  static const db_unlock_message = 'db_unlock_message';
+  static const db_unlock_hint = 'db_unlock_hint';
+  static const db_unlock_file_label = 'db_unlock_file_label';
+  static const db_unlock_still_locked = 'db_unlock_still_locked';
+  static const db_start_fresh = 'db_start_fresh';
+  static const db_start_fresh_confirm_title = 'db_start_fresh_confirm_title';
+  static const db_start_fresh_confirm_message = 'db_start_fresh_confirm_message';
+  static const db_start_fresh_confirm = 'db_start_fresh_confirm';
+  static const delete_group_title = 'delete_group_title';
+  static const delete_group_message = 'delete_group_message';
 
 }

@@ -701,7 +701,18 @@ class CodegenLoader extends AssetLoader{
   "this_group_badge": "نفس المجموعة",
   "no_students_matching_query": "لم يتم العثور على طلاب يطابقون البحث",
   "quick_student_search": "البحث السريع عن الطلاب وتسجيل الحضور",
-  "other_group": "مجموعة أخرى"
+  "other_group": "مجموعة أخرى",
+  "db_unlock_title": "تعذّر فتح قاعدة البيانات",
+  "db_unlock_message": "ملف البيانات موجود، لكن لا يمكن فتحه بمفتاح التشفير الخاص بهذا الجهاز. لم يتم حذف أو تغيير أي بيانات.",
+  "db_unlock_hint": "قد يحدث هذا بعد تغيير حساب ويندوز، أو إعادة تثبيت النظام، أو نقل الملف من جهاز آخر. جرّب تسجيل الدخول بحساب ويندوز الأصلي، أو تواصل مع الدعم الفني قبل البدء من جديد.",
+  "db_unlock_file_label": "مسار ملف البيانات:",
+  "db_unlock_still_locked": "ما زال تعذّر فتح قاعدة البيانات.",
+  "db_start_fresh": "البدء بقاعدة بيانات جديدة",
+  "db_start_fresh_confirm_title": "البدء بقاعدة بيانات فارغة؟",
+  "db_start_fresh_confirm_message": "سيتم نقل الملف الحالي جانباً والاحتفاظ به كما هو دون حذف، وسيبدأ البرنامج بقاعدة بيانات فارغة. يمكن استعادة الملف القديم لاحقاً إذا توفر مفتاحه.",
+  "db_start_fresh_confirm": "نعم، ابدأ من جديد",
+  "delete_group_title": "حذف المجموعة؟",
+  "delete_group_message": "سيتم حذف المجموعة \"{}\" نهائياً، ومعها {} حصة و{} سجل حضور. الطلاب المسجلون فيها ({}) سيبقون بدون مجموعة. لا يمكن التراجع عن هذه العملية."
 };
 static const Map<String,dynamic> _en = {
   "app_title": "Legendary Eagle",
@@ -1391,7 +1402,18 @@ static const Map<String,dynamic> _en = {
   "this_group_badge": "Same Group",
   "no_students_matching_query": "No students match the search query",
   "quick_student_search": "Quick Student Search & Attendance",
-  "other_group": "Other Group"
+  "other_group": "Other Group",
+  "db_unlock_title": "The database could not be opened",
+  "db_unlock_message": "The data file exists, but it cannot be opened with this device's encryption key. No data has been deleted or changed.",
+  "db_unlock_hint": "This can happen after changing the Windows account, reinstalling the system, or copying the file from another computer. Try signing in with the original Windows account, or contact support before starting over.",
+  "db_unlock_file_label": "Data file location:",
+  "db_unlock_still_locked": "The database still cannot be opened.",
+  "db_start_fresh": "Start with a new database",
+  "db_start_fresh_confirm_title": "Start with an empty database?",
+  "db_start_fresh_confirm_message": "The current file will be moved aside and kept unchanged, and the app will start with an empty database. The old file can be recovered later if its key becomes available.",
+  "db_start_fresh_confirm": "Yes, start over",
+  "delete_group_title": "Delete group?",
+  "delete_group_message": "The group \"{}\" will be permanently deleted, together with {} lessons and {} attendance records. Its {} students will be left without a group. This cannot be undone."
 };
 static const Map<String, Map<String,dynamic>> mapLocales = {"ar": _ar, "en": _en};
 }

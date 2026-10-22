@@ -14,13 +14,18 @@ import '../../../app/services/database_service.dart';
 /// The database file is already SQLCipher-encrypted, providing inherent encryption.
 class BackupService {
   final DatabaseService _databaseService;
+  final Future<Directory> Function() _documentsDirectory;
 
-  BackupService({required DatabaseService databaseService})
-    : _databaseService = databaseService;
+  BackupService({
+    required DatabaseService databaseService,
+    Future<Directory> Function()? documentsDirectory,
+  }) : _databaseService = databaseService,
+       _documentsDirectory =
+           documentsDirectory ?? getApplicationDocumentsDirectory;
 
   /// Get the fixed backup directory path.
   Future<String> getBackupDirectory() async {
-    final documentsDir = await getApplicationDocumentsDirectory();
+    final documentsDir = await _documentsDirectory();
     final backupDir = Directory(
       p.join(documentsDir.path, 'StudentManagement', 'Backups'),
     );
@@ -32,7 +37,7 @@ class BackupService {
 
   /// Get the database file path.
   Future<String> getDatabasePath() async {
-    final documentsDir = await getApplicationDocumentsDirectory();
+    final documentsDir = await _documentsDirectory();
     return p.join(
       documentsDir.path,
       'StudentManagement',
@@ -83,6 +88,39 @@ class BackupService {
     }
   }
 
+  static const String _autoBackupPrefix = 'auto_backup_';
+
+  /// Create the backup taken automatically when the app closes, then delete
+  /// the oldest automatic backups so that only [keep] remain.
+  ///
+  /// Every run writes a new timestamped file, so a damaged database can never
+  /// overwrite the last good copy. Manual backups are never pruned here.
+  Future<String> createAutoBackup({required int keep}) async {
+    final timestamp = DateTime.now()
+        .toIso8601String()
+        .replaceAll(':', '-')
+        .replaceAll('.', '-');
+    final path = await createBackup(customName: '$_autoBackupPrefix$timestamp');
+
+    final dir = Directory(await getBackupDirectory());
+    // Timestamped names sort chronologically, oldest first.
+    final autoBackups = dir
+        .listSync()
+        .whereType<File>()
+        .where((f) {
+          final name = p.basename(f.path);
+          return name.startsWith(_autoBackupPrefix) && name.endsWith('.db');
+        })
+        .toList()
+      ..sort((a, b) => p.basename(a.path).compareTo(p.basename(b.path)));
+    final excess = autoBackups.length - keep;
+    for (int i = 0; i < excess; i++) {
+      await autoBackups[i].delete();
+    }
+
+    return path;
+  }
+
   /// Restore the database from a backup file.
   /// Returns true if successful.
   Future<bool> restoreFromBackup(String backupPath) async {
@@ -93,6 +131,10 @@ class BackupService {
       if (!await backupFile.exists()) {
         throw Exception('Backup file not found: $backupPath');
       }
+
+      // Refuse a file this device cannot open (e.g. a backup from another
+      // PC) before touching the live database.
+      await _databaseService.verifyCanOpen(backupPath);
 
       // Close the current database
       await _databaseService.close();

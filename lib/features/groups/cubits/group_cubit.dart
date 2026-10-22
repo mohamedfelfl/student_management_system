@@ -5,7 +5,6 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../../app/constants/db_queries.dart';
 import '../../../app/services/database_service.dart';
 import '../../../app/di/injection.dart';
-import '../../../app/services/data_migration_service.dart';
 import '../../../app/services/data_sync_service.dart';
 
 part 'group_cubit.freezed.dart';
@@ -47,21 +46,8 @@ class GroupCubit extends Cubit<GroupState> {
       final db = await _databaseService.database;
 
       // Load groups with student count
-      List<Map<String, Object?>> groupResults =
+      final List<Map<String, Object?>> groupResults =
           await db.rawQuery(DBQueries.loadGroupsWithStudentCount);
-
-      if (groupResults.isEmpty) {
-        try {
-          if (getIt.isRegistered<DataMigrationService>()) {
-            final migrationResult =
-                await getIt<DataMigrationService>().checkAndAutoMigrate();
-            if (migrationResult != null && migrationResult.groupsImported > 0) {
-              groupResults =
-                  await db.rawQuery(DBQueries.loadGroupsWithStudentCount);
-            }
-          }
-        } catch (_) {}
-      }
 
       // Batch load all group schedules in a single query to eliminate N+1 overhead
       final allSchedules = await db.query(DBQueries.tableGroupSchedules);
@@ -174,6 +160,26 @@ class GroupCubit extends Cubit<GroupState> {
     }
   }
 
+  /// Counts what [deleteGroup] would remove, so the user can confirm it.
+  Future<GroupDeletionImpact> getDeletionImpact(int groupId) async {
+    final db = await _databaseService.database;
+    Future<int> count(String sql) async =>
+        (await db.rawQuery(sql, [groupId])).first['cnt'] as int? ?? 0;
+
+    return GroupDeletionImpact(
+      lessons: await count(
+        'SELECT COUNT(*) AS cnt FROM lessons WHERE group_id = ?',
+      ),
+      attendanceRecords: await count(
+        'SELECT COUNT(*) AS cnt FROM attendance a '
+        'JOIN lessons l ON a.lesson_id = l.id WHERE l.group_id = ?',
+      ),
+      students: await count(
+        'SELECT COUNT(*) AS cnt FROM students WHERE group_id = ?',
+      ),
+    );
+  }
+
   Future<void> deleteGroup(int id) async {
     try {
       final db = await _databaseService.database;
@@ -269,4 +275,22 @@ class GroupCubit extends Cubit<GroupState> {
     _syncSub?.cancel();
     return super.close();
   }
+}
+
+/// What deleting a group removes or changes, shown before the user confirms.
+class GroupDeletionImpact {
+  /// Lessons of the group (deleted by cascade).
+  final int lessons;
+
+  /// Attendance rows of those lessons (deleted by cascade).
+  final int attendanceRecords;
+
+  /// Students currently in the group (left without a group).
+  final int students;
+
+  const GroupDeletionImpact({
+    required this.lessons,
+    required this.attendanceRecords,
+    required this.students,
+  });
 }

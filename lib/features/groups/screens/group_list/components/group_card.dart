@@ -10,6 +10,9 @@ import '../../../cubits/group_cubit.dart';
 
 /// A card widget for displaying a single group with schedule and student count.
 class GroupCard extends StatelessWidget {
+  static const Key confirmDeleteKey = Key('group_card_confirm_delete');
+  static const Key cancelDeleteKey = Key('group_card_cancel_delete');
+
   final Map<String, dynamic> group;
 
   const GroupCard({super.key, required this.group});
@@ -60,9 +63,7 @@ class GroupCard extends StatelessWidget {
                           GroupFormRoute(id: group['id'] as int),
                         );
                       } else {
-                        context.read<GroupCubit>().deleteGroup(
-                          group['id'] as int,
-                        );
+                        _confirmDelete(context);
                       }
                     },
                   ),
@@ -150,6 +151,57 @@ class GroupCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Deleting a group cascades to its lessons and their attendance, so show
+  /// exactly what will be lost and only delete after an explicit confirmation.
+  Future<void> _confirmDelete(BuildContext context) async {
+    final GroupCubit cubit = context.read<GroupCubit>();
+    final int groupId = group['id'] as int;
+    final GroupDeletionImpact impact = await cubit.getDeletionImpact(groupId);
+    if (!context.mounted) return;
+
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext ctx) => AlertDialog(
+        icon: Icon(
+          Icons.warning_amber_rounded,
+          color: Theme.of(ctx).colorScheme.error,
+          size: 48,
+        ),
+        title: Text(LocaleKeys.delete_group_title.tr()),
+        content: Text(
+          LocaleKeys.delete_group_message.tr(
+            args: [
+              group['name']?.toString() ?? '',
+              '${impact.lessons}',
+              '${impact.attendanceRecords}',
+              '${impact.students}',
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            key: cancelDeleteKey,
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(LocaleKeys.cancel.tr()),
+          ),
+          ElevatedButton(
+            key: confirmDeleteKey,
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(ctx).colorScheme.error,
+              foregroundColor: Theme.of(ctx).colorScheme.onError,
+            ),
+            child: Text(LocaleKeys.delete.tr()),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await cubit.deleteGroup(groupId);
+    }
   }
 
   String _localizeGrade(String grade) {

@@ -45,7 +45,10 @@ class _LoginScreenState extends State<LoginScreen> {
       // Check if a binding sentinel exists — means the app was already
       // set up on another device and the files were copied here.
       final bindingService = getIt<DeviceBindingService>();
-      if (bindingService.hasBindingSentinel()) {
+      final bool copiedFromAnotherDevice =
+          await bindingService.isBoundToAnotherDevice();
+      if (!mounted) return;
+      if (copiedFromAnotherDevice) {
         _showAlreadyBoundError();
         return;
       }

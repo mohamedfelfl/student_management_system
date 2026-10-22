@@ -88,6 +88,9 @@ class _StudentListScreenState extends State<StudentListScreen> {
                           .where((s) => s['grade']?.toString() == _selectedGrade)
                           .toList();
 
+              final Set<int> displayedIds =
+                  displayedStudents.map((s) => s['id'] as int).toSet();
+
               final int filteredCount = displayedStudents.length;
               final int totalStudents = state.totalCount;
 
@@ -122,6 +125,15 @@ class _StudentListScreenState extends State<StudentListScreen> {
                       selectedGrade: _selectedGrade,
                       onGradeChanged: (grade) {
                         setState(() => _selectedGrade = grade);
+                        // Never keep hidden students selected.
+                        context.read<StudentCubit>().retainSelection(
+                              state.students
+                                  .where((s) =>
+                                      grade == null ||
+                                      s['grade']?.toString() == grade)
+                                  .map((s) => s['id'] as int)
+                                  .toSet(),
+                            );
                       },
                       selectedGroupId: state.selectedGroupId,
                       onGroupChanged: (groupId) {
@@ -148,12 +160,14 @@ class _StudentListScreenState extends State<StudentListScreen> {
                     StudentBatchActionBar(
                       selectedCount: state.selectedIds.length,
                       totalCount: displayedStudents.length,
-                      onToggleAll: () =>
-                          context.read<StudentCubit>().toggleAll(),
+                      onToggleAll: () => context
+                          .read<StudentCubit>()
+                          .toggleAll(displayedIds),
                       onClearSelection: () =>
                           context.read<StudentCubit>().clearSelection(),
-                      onDeletePressed: () =>
-                          _confirmBulkDelete(state.selectedIds),
+                      onDeletePressed: () => _confirmBulkDelete(
+                        state.selectedIds.intersection(displayedIds),
+                      ),
                     ),
 
                     // ── Student List Area (Desktop Table vs. Mobile Cards) ──
@@ -178,7 +192,7 @@ class _StudentListScreenState extends State<StudentListScreen> {
                                         isDense: _isDense,
                                         onToggleAll: () => context
                                             .read<StudentCubit>()
-                                            .toggleAll(),
+                                            .toggleAll(displayedIds),
                                         onToggleSelection: (id) => context
                                             .read<StudentCubit>()
                                             .toggleSelection(id),

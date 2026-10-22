@@ -83,6 +83,8 @@ flutter:
     - assets/translations/
     - assets/images/
     - assets/fonts/
+    # Static Cairo fonts embedded in PDF reports (works offline).
+    - assets/fonts/pdf/
 
   fonts:
     - family: Cairo

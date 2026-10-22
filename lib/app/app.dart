@@ -87,8 +87,7 @@ class _StudentsManagementAppState extends State<StudentsManagementApp>
         // This is a fire-and-forget but since it's "detached",
         // we hope it completes or we might need to use a more robust way
         // for background tasks if available.
-        await backupService.createBackup(customName: 'auto_backup');
-        await backupService.pruneBackups(maxBackups);
+        await backupService.createAutoBackup(keep: maxBackups);
       }
     } catch (e) {
       debugPrint('Auto-backup on close failed: $e');

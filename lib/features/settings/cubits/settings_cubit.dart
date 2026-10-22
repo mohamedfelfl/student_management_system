@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -421,14 +420,8 @@ class SettingsCubit extends Cubit<SettingsState> {
         if (result != null && result.files.single.path != null) {
           targetPath = result.files.single.path!;
         } else {
-          // Check default path
-          const defaultPath = DataMigrationService.defaultSourceDbPath;
-          if (File(defaultPath).existsSync()) {
-            targetPath = defaultPath;
-          } else {
-            emit(state.copyWith(isSaving: false));
-            return;
-          }
+          emit(state.copyWith(isSaving: false));
+          return;
         }
       }
 
