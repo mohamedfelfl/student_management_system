@@ -2,16 +2,22 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import '../../../app/constants/db_queries.dart';
+import '../../../app/services/authorization_service.dart';
 import '../../../app/services/database_service.dart';
+import '../../auth/models/user.dart';
 import '../models/note.dart';
 import 'notes_state.dart';
 
 class NotesCubit extends Cubit<NotesState> {
   final DatabaseService _databaseService;
+  final AuthorizationService _authorization;
 
-  NotesCubit({required DatabaseService databaseService})
-    : _databaseService = databaseService,
-      super(const NotesState()) {
+  NotesCubit({
+    required DatabaseService databaseService,
+    AuthorizationService? authorization,
+  }) : _databaseService = databaseService,
+       _authorization = resolveAuthorization(authorization),
+       super(const NotesState()) {
     loadNotes();
   }
 
@@ -34,6 +40,7 @@ class NotesCubit extends Cubit<NotesState> {
   Future<void> addNote(String name, double price) async {
     emit(state.copyWith(isLoading: true, error: null));
     try {
+      _authorization.require(UserPermission.manageNotes);
       final db = await _databaseService.database;
       await db.insert(DBQueries.tableNotes, {'name': name, 'price': price});
       await loadNotes();
@@ -46,6 +53,7 @@ class NotesCubit extends Cubit<NotesState> {
   Future<void> updateNote(int id, String name, double price) async {
     emit(state.copyWith(isLoading: true, error: null));
     try {
+      _authorization.require(UserPermission.manageNotes);
       final db = await _databaseService.database;
       await db.update(
         DBQueries.tableNotes,
@@ -63,6 +71,7 @@ class NotesCubit extends Cubit<NotesState> {
   Future<void> deleteNote(int id) async {
     emit(state.copyWith(isLoading: true, error: null));
     try {
+      _authorization.require(UserPermission.manageNotes);
       final db = await _databaseService.database;
       await db.delete(DBQueries.tableNotes, where: 'id = ?', whereArgs: [id]);
       await loadNotes();
@@ -150,6 +159,7 @@ class NotesCubit extends Cubit<NotesState> {
     emit(state.copyWith(isLoading: true, error: null));
 
     try {
+      _authorization.require(UserPermission.manageNotes);
       final db = await _databaseService.database;
       final newCurrent = Map<int, bool>.from(state.currentDeliveries);
 

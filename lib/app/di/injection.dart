@@ -1,5 +1,6 @@
 import 'package:get_it/get_it.dart';
 
+import '../services/authorization_service.dart';
 import '../services/database_service.dart';
 import '../services/encryption_service.dart';
 import '../services/data_sync_service.dart';
@@ -19,6 +20,11 @@ Future<void> configureDependencies() async {
 
   // Encryption
   getIt.registerLazySingleton<EncryptionService>(() => EncryptionService());
+
+  // Permissions of the signed-in user, enforced by the cubits
+  getIt.registerLazySingleton<AuthorizationService>(
+    () => AuthorizationService(),
+  );
 
   // Database
   getIt.registerLazySingleton<DatabaseService>(

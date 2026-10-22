@@ -3,7 +3,9 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import '../../../app/constants/db_queries.dart';
+import '../../../app/services/authorization_service.dart';
 import '../../../app/services/database_service.dart';
+import '../../auth/models/user.dart';
 
 part 'assistant_cubit.freezed.dart';
 
@@ -21,10 +23,14 @@ abstract class AssistantState with _$AssistantState {
 
 class AssistantCubit extends Cubit<AssistantState> {
   final DatabaseService _databaseService;
+  final AuthorizationService _authorization;
 
-  AssistantCubit({required DatabaseService databaseService})
-    : _databaseService = databaseService,
-      super(const AssistantState());
+  AssistantCubit({
+    required DatabaseService databaseService,
+    AuthorizationService? authorization,
+  }) : _databaseService = databaseService,
+       _authorization = resolveAuthorization(authorization),
+       super(const AssistantState());
 
   Future<void> loadAssistants() async {
     emit(state.copyWith(isLoading: true, error: null));
@@ -93,6 +99,7 @@ class AssistantCubit extends Cubit<AssistantState> {
 
   Future<void> createAssistant(Map<String, dynamic> data) async {
     try {
+      _authorization.require(UserPermission.manageAssistants);
       final Database db = await _databaseService.database;
       await db.insert(DBQueries.tableAssistants, data);
       await loadAssistants();
@@ -104,6 +111,7 @@ class AssistantCubit extends Cubit<AssistantState> {
 
   Future<void> updateAssistant(int id, Map<String, dynamic> data) async {
     try {
+      _authorization.require(UserPermission.manageAssistants);
       final Database db = await _databaseService.database;
       await db.update(
         DBQueries.tableAssistants,
@@ -120,6 +128,7 @@ class AssistantCubit extends Cubit<AssistantState> {
 
   Future<void> deleteAssistant(int id) async {
     try {
+      _authorization.require(UserPermission.manageAssistants);
       final Database db = await _databaseService.database;
       await db.delete(DBQueries.tableAssistants, where: 'id = ?', whereArgs: <Object?>[id]);
       await loadAssistants();
@@ -132,6 +141,7 @@ class AssistantCubit extends Cubit<AssistantState> {
   Future<void> deleteMultipleAssistants(Set<int> ids) async {
     if (ids.isEmpty) return;
     try {
+      _authorization.require(UserPermission.manageAssistants);
       final Database db = await _databaseService.database;
       final placeholders = List.filled(ids.length, '?').join(',');
       await db.rawDelete(

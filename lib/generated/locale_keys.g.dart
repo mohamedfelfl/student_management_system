@@ -701,5 +701,9 @@ abstract class  LocaleKeys {
   static const db_start_fresh_confirm = 'db_start_fresh_confirm';
   static const delete_group_title = 'delete_group_title';
   static const delete_group_message = 'delete_group_message';
+  static const permission_denied = 'permission_denied';
+  static const only_admin_can_manage_admins = 'only_admin_can_manage_admins';
+  static const cannot_remove_last_admin = 'cannot_remove_last_admin';
+  static const cannot_delete_own_account = 'cannot_delete_own_account';
 
 }

@@ -7,6 +7,8 @@ import 'package:sqflite_sqlcipher/sqflite.dart';
 import '../../../app/constants/db_queries.dart';
 import '../../../app/di/injection.dart';
 import '../../../app/services/data_sync_service.dart';
+import '../../../app/services/authorization_service.dart';
+import '../../auth/models/user.dart';
 import '../../../app/services/database_service.dart';
 import '../services/student_merge_service.dart';
 import '../services/student_scan_lookup.dart';
@@ -30,13 +32,16 @@ class StudentCubit extends Cubit<StudentState> {
   final DatabaseService _databaseService;
   final StudentMergeService _mergeService;
   final DataSyncService? _dataSyncService;
+  final AuthorizationService _authorization;
   StreamSubscription<SyncEntity>? _syncSub;
 
   StudentCubit({
     required DatabaseService databaseService,
     StudentMergeService? mergeService,
     DataSyncService? dataSyncService,
+    AuthorizationService? authorization,
   })  : _databaseService = databaseService,
+        _authorization = resolveAuthorization(authorization),
         _mergeService = mergeService ?? StudentMergeService(databaseService: databaseService),
         _dataSyncService = dataSyncService ?? (getIt.isRegistered<DataSyncService>() ? getIt<DataSyncService>() : null),
         super(const StudentState()) {
@@ -143,6 +148,7 @@ class StudentCubit extends Cubit<StudentState> {
     bool allowDuplicateName = false,
   }) async {
     try {
+      _authorization.require(UserPermission.manageStudents);
       final Database db = await _databaseService.database;
       final name = data['name']?.toString().trim() ?? '';
       if (!allowDuplicateName && name.isNotEmpty) {
@@ -214,6 +220,7 @@ class StudentCubit extends Cubit<StudentState> {
     bool allowDuplicateName = false,
   }) async {
     try {
+      _authorization.require(UserPermission.manageStudents);
       final Database db = await _databaseService.database;
       final name = data['name']?.toString().trim() ?? '';
       if (!allowDuplicateName && name.isNotEmpty) {
@@ -243,6 +250,7 @@ class StudentCubit extends Cubit<StudentState> {
 
   Future<void> deleteStudent(int id) async {
     try {
+      _authorization.require(UserPermission.manageStudents);
       final Database db = await _databaseService.database;
       await db.delete(
         DBQueries.tableStudents,
@@ -259,6 +267,7 @@ class StudentCubit extends Cubit<StudentState> {
   Future<void> deleteMultipleStudents(Set<int> ids) async {
     if (ids.isEmpty) return;
     try {
+      _authorization.require(UserPermission.manageStudents);
       final Database db = await _databaseService.database;
       final placeholders = List.filled(ids.length, '?').join(',');
       await db.rawDelete(
@@ -356,6 +365,7 @@ class StudentCubit extends Cubit<StudentState> {
   }) async {
     emit(state.copyWith(isLoading: true, error: null));
     try {
+      _authorization.require(UserPermission.manageStudents);
       await _mergeService.mergeStudents(
         primaryId: primaryId,
         duplicateIds: duplicateIds,

@@ -4,7 +4,9 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import '../../../../generated/locale_keys.g.dart';
 
+import '../../../app/services/authorization_service.dart';
 import '../../../app/services/database_service.dart';
+import '../../auth/models/user.dart';
 
 part 'assistant_attendance_cubit.freezed.dart';
 
@@ -19,10 +21,14 @@ abstract class AssistantAttendanceState with _$AssistantAttendanceState {
 
 class AssistantAttendanceCubit extends Cubit<AssistantAttendanceState> {
   final DatabaseService _databaseService;
+  final AuthorizationService _authorization;
 
-  AssistantAttendanceCubit({required DatabaseService databaseService})
-    : _databaseService = databaseService,
-      super(const AssistantAttendanceState());
+  AssistantAttendanceCubit({
+    required DatabaseService databaseService,
+    AuthorizationService? authorization,
+  }) : _databaseService = databaseService,
+       _authorization = resolveAuthorization(authorization),
+       super(const AssistantAttendanceState());
 
   Future<void> loadAttendance(int assistantId) async {
     emit(state.copyWith(isLoading: true, error: null));
@@ -45,6 +51,7 @@ class AssistantAttendanceCubit extends Cubit<AssistantAttendanceState> {
 
   Future<void> recordAttendance(int assistantId, String type) async {
     try {
+      _authorization.require(UserPermission.manageAssistants);
       final Database db = await _databaseService.database;
       final today = DateTime.now().toIso8601String().split('T').first;
 
@@ -113,6 +120,7 @@ class AssistantAttendanceCubit extends Cubit<AssistantAttendanceState> {
 
   Future<void> deleteAttendance(int id, int assistantId) async {
     try {
+      _authorization.require(UserPermission.manageAssistants);
       final Database db = await _databaseService.database;
       await db.delete(
         'assistant_attendance',

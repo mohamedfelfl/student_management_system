@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../../app/constants/db_queries.dart';
+import '../../../app/services/authorization_service.dart';
+import '../../auth/models/user.dart';
 import '../../../app/services/database_service.dart';
 import '../../../app/di/injection.dart';
 import '../../../app/services/data_sync_service.dart';
@@ -23,12 +25,15 @@ abstract class GroupState with _$GroupState {
 class GroupCubit extends Cubit<GroupState> {
   final DatabaseService _databaseService;
   final DataSyncService? _dataSyncService;
+  final AuthorizationService _authorization;
   StreamSubscription<SyncEntity>? _syncSub;
 
   GroupCubit({
     required DatabaseService databaseService,
     DataSyncService? dataSyncService,
+    AuthorizationService? authorization,
   })  : _databaseService = databaseService,
+        _authorization = resolveAuthorization(authorization),
         _dataSyncService = dataSyncService ?? (getIt.isRegistered<DataSyncService>() ? getIt<DataSyncService>() : null),
         super(const GroupState()) {
     _syncSub = _dataSyncService?.syncStream.listen((entity) {
@@ -74,6 +79,7 @@ class GroupCubit extends Cubit<GroupState> {
 
   Future<void> createGroup(Map<String, dynamic> data) async {
     try {
+      _authorization.require(UserPermission.manageGroups);
       final String name = data['name']?.toString().trim() ?? '';
       final db = await _databaseService.database;
 
@@ -123,6 +129,7 @@ class GroupCubit extends Cubit<GroupState> {
 
   Future<void> updateGroup(int id, Map<String, dynamic> data) async {
     try {
+      _authorization.require(UserPermission.manageGroups);
       final String name = data['name']?.toString().trim() ?? '';
       final db = await _databaseService.database;
 
@@ -182,6 +189,7 @@ class GroupCubit extends Cubit<GroupState> {
 
   Future<void> deleteGroup(int id) async {
     try {
+      _authorization.require(UserPermission.manageGroups);
       final db = await _databaseService.database;
       await db.delete(DBQueries.tableGroups, where: 'id = ?', whereArgs: [id]);
       await loadGroups(silent: true);
@@ -235,6 +243,7 @@ class GroupCubit extends Cubit<GroupState> {
   /// Link a student to this group.
   Future<void> linkStudentToGroup(int studentId, int groupId, {String? grade}) async {
     try {
+      _authorization.require(UserPermission.manageGroups);
       final db = await _databaseService.database;
       await db.update(
         DBQueries.tableStudents,
@@ -254,6 +263,7 @@ class GroupCubit extends Cubit<GroupState> {
   /// Unlink a student from their group.
   Future<void> unlinkStudentFromGroup(int studentId, int groupId, {String? grade}) async {
     try {
+      _authorization.require(UserPermission.manageGroups);
       final db = await _databaseService.database;
       await db.update(
         DBQueries.tableStudents,

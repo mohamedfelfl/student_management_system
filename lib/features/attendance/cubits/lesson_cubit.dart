@@ -9,6 +9,8 @@ import '../../../../generated/locale_keys.g.dart';
 import '../../../app/constants/db_queries.dart';
 import '../../../app/di/injection.dart';
 import '../../../app/services/data_sync_service.dart';
+import '../../../app/services/authorization_service.dart';
+import '../../auth/models/user.dart';
 import '../../../app/services/database_service.dart';
 import '../../../app/utils/qr_code_helper.dart';
 import '../../students/services/student_scan_lookup.dart';
@@ -35,12 +37,15 @@ abstract class LessonState with _$LessonState {
 class LessonCubit extends Cubit<LessonState> {
   final DatabaseService _databaseService;
   final DataSyncService? _dataSyncService;
+  final AuthorizationService _authorization;
   StreamSubscription<SyncEntity>? _syncSub;
 
   LessonCubit({
     required DatabaseService databaseService,
     DataSyncService? dataSyncService,
+    AuthorizationService? authorization,
   })  : _databaseService = databaseService,
+        _authorization = resolveAuthorization(authorization),
         _dataSyncService = dataSyncService ??
             (getIt.isRegistered<DataSyncService>() ? getIt<DataSyncService>() : null),
         super(const LessonState()) {
@@ -184,6 +189,7 @@ class LessonCubit extends Cubit<LessonState> {
   Future<void> startLesson(Lesson lesson) async {
     emit(state.copyWith(isLoading: true, error: null));
     try {
+      _authorization.require(UserPermission.manageAttendance);
       final Database db = await _databaseService.database;
       int lessonId;
 
@@ -312,6 +318,7 @@ class LessonCubit extends Cubit<LessonState> {
     if (serialNumber.isEmpty) return;
 
     try {
+      _authorization.require(UserPermission.manageAttendance);
       final Database db = await _databaseService.database;
 
       final Map<String, Object?>? student =
@@ -400,6 +407,7 @@ class LessonCubit extends Cubit<LessonState> {
     if (active == null || active.id == null) return;
 
     try {
+      _authorization.require(UserPermission.manageAttendance);
       final Database db = await _databaseService.database;
 
       final List<Map<String, Object?>> existing = await db.query(
@@ -530,6 +538,7 @@ class LessonCubit extends Cubit<LessonState> {
   /// Delete an attendance record from the active lesson.
   Future<void> removeAttendanceRecord(int attendanceId) async {
     try {
+      _authorization.require(UserPermission.manageAttendance);
       final Database db = await _databaseService.database;
       await db.delete(
         DBQueries.tableAttendance,
@@ -550,6 +559,7 @@ class LessonCubit extends Cubit<LessonState> {
   Future<void> endLesson(int lessonId) async {
     emit(state.copyWith(isLoading: true, error: null));
     try {
+      _authorization.require(UserPermission.manageAttendance);
       final Database db = await _databaseService.database;
       await db.update(
         DBQueries.tableLessons,
@@ -593,6 +603,7 @@ class LessonCubit extends Cubit<LessonState> {
   }) async {
     emit(state.copyWith(isLoading: true, error: null));
     try {
+      _authorization.require(UserPermission.manageAttendance);
       final Database db = await _databaseService.database;
       final String dateStr = date.toIso8601String().split('T').first;
 
@@ -623,6 +634,7 @@ class LessonCubit extends Cubit<LessonState> {
   }) async {
     emit(state.copyWith(isLoading: true, error: null));
     try {
+      _authorization.require(UserPermission.manageAttendance);
       final Database db = await _databaseService.database;
       final String dateStr = date.toIso8601String().split('T').first;
 
@@ -683,6 +695,7 @@ class LessonCubit extends Cubit<LessonState> {
   /// Delete a lesson session and its attendance records.
   Future<void> deleteLesson(int lessonId) async {
     try {
+      _authorization.require(UserPermission.manageAttendance);
       final Database db = await _databaseService.database;
       await db.delete(
         DBQueries.tableLessons,

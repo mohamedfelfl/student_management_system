@@ -1,19 +1,20 @@
+@TestOn('windows')
+library;
+
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:student_management_system/app/constants/db_queries.dart';
 import 'package:student_management_system/app/services/database_service.dart';
 import 'package:student_management_system/app/services/encryption_service.dart';
 import 'package:student_management_system/features/settings/services/backup_service.dart';
 
-class _FixedKeyEncryptionService extends EncryptionService {
-  @override
-  Future<String> getDatabaseKey() async => 'test-key';
-}
+import '../../helpers/memory_secure_storage.dart';
+import '../../helpers/sqlcipher_test_factory.dart';
 
 void main() {
-  sqfliteFfiInit();
+  final factory = sqlcipherTestFactory();
 
   late Directory root;
   late String dbPath;
@@ -26,8 +27,9 @@ void main() {
       ..createSync(recursive: true);
     dbPath = p.join(appDir.path, 'student_management.db');
     databaseService = DatabaseService(
-      encryptionService: _FixedKeyEncryptionService(),
+      encryptionService: EncryptionService(secureStorage: MemorySecureStorage()),
       databasePath: () async => dbPath,
+      desktopFactory: factory,
     );
     backupService = BackupService(
       databaseService: databaseService,
@@ -43,6 +45,23 @@ void main() {
   tearDown(() async {
     await databaseService.close();
     await root.delete(recursive: true);
+  });
+
+  test('a backup taken by an older (unencrypted) version can still be restored',
+      () async {
+    final oldBackup = p.join(root.path, 'backup_from_v1_0_5.db');
+    final plain = await factory.openDatabase(oldBackup);
+    await plain.execute(DBQueries.createGroupsTable);
+    await plain.execute(DBQueries.createStudentsTable);
+    await plain.insert('students', {'serial_number': 'EL-01-00001', 'name': 'أحمد'});
+    await plain.insert('students', {'serial_number': 'EL-01-00002', 'name': 'منى'});
+    await plain.close();
+
+    await backupService.restoreFromBackup(oldBackup);
+
+    expect(isPlaintextSqlite(dbPath), isFalse);
+    final db = await databaseService.database;
+    expect(await db.query('students'), hasLength(2));
   });
 
   test('restoring a backup this device cannot unlock keeps the current data',

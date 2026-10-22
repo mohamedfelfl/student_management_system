@@ -712,7 +712,11 @@ class CodegenLoader extends AssetLoader{
   "db_start_fresh_confirm_message": "سيتم نقل الملف الحالي جانباً والاحتفاظ به كما هو دون حذف، وسيبدأ البرنامج بقاعدة بيانات فارغة. يمكن استعادة الملف القديم لاحقاً إذا توفر مفتاحه.",
   "db_start_fresh_confirm": "نعم، ابدأ من جديد",
   "delete_group_title": "حذف المجموعة؟",
-  "delete_group_message": "سيتم حذف المجموعة \"{}\" نهائياً، ومعها {} حصة و{} سجل حضور. الطلاب المسجلون فيها ({}) سيبقون بدون مجموعة. لا يمكن التراجع عن هذه العملية."
+  "delete_group_message": "سيتم حذف المجموعة \"{}\" نهائياً، ومعها {} حصة و{} سجل حضور. الطلاب المسجلون فيها ({}) سيبقون بدون مجموعة. لا يمكن التراجع عن هذه العملية.",
+  "permission_denied": "ليس لديك صلاحية لتنفيذ هذا الإجراء.",
+  "only_admin_can_manage_admins": "فقط المدير يمكنه إنشاء حسابات المديرين أو تعديلها أو حذفها.",
+  "cannot_remove_last_admin": "لا يمكن حذف آخر مدير في النظام أو تحويله لمستخدم عادي.",
+  "cannot_delete_own_account": "لا يمكنك حذف الحساب المسجّل به حالياً."
 };
 static const Map<String,dynamic> _en = {
   "app_title": "Legendary Eagle",
@@ -1413,7 +1417,11 @@ static const Map<String,dynamic> _en = {
   "db_start_fresh_confirm_message": "The current file will be moved aside and kept unchanged, and the app will start with an empty database. The old file can be recovered later if its key becomes available.",
   "db_start_fresh_confirm": "Yes, start over",
   "delete_group_title": "Delete group?",
-  "delete_group_message": "The group \"{}\" will be permanently deleted, together with {} lessons and {} attendance records. Its {} students will be left without a group. This cannot be undone."
+  "delete_group_message": "The group \"{}\" will be permanently deleted, together with {} lessons and {} attendance records. Its {} students will be left without a group. This cannot be undone.",
+  "permission_denied": "You don't have permission to do this.",
+  "only_admin_can_manage_admins": "Only an admin can create, edit or delete admin accounts.",
+  "cannot_remove_last_admin": "The last admin cannot be deleted or changed to a regular user.",
+  "cannot_delete_own_account": "You cannot delete the account you are signed in with."
 };
 static const Map<String, Map<String,dynamic>> mapLocales = {"ar": _ar, "en": _en};
 }

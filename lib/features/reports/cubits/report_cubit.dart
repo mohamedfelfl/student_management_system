@@ -7,6 +7,8 @@ import 'package:pdf/widgets.dart' as pw;
 
 import '../../../../generated/locale_keys.g.dart';
 import '../../../app/constants/db_queries.dart';
+import '../../../app/services/authorization_service.dart';
+import '../../auth/models/user.dart';
 import '../../../app/services/database_service.dart';
 
 part 'report_cubit.freezed.dart';
@@ -39,9 +41,13 @@ abstract class ReportState with _$ReportState {
 
 class ReportCubit extends Cubit<ReportState> {
   final DatabaseService _databaseService;
+  final AuthorizationService _authorization;
 
-  ReportCubit({required DatabaseService databaseService})
-      : _databaseService = databaseService,
+  ReportCubit({
+    required DatabaseService databaseService,
+    AuthorizationService? authorization,
+  })  : _databaseService = databaseService,
+        _authorization = resolveAuthorization(authorization),
         super(const ReportState());
 
   void resetState() {
@@ -90,6 +96,7 @@ class ReportCubit extends Cubit<ReportState> {
     if (state.isLoading) return;
     emit(const ReportState(isLoading: true));
     try {
+      _authorization.require(UserPermission.viewReports);
       final db = await _databaseService.database;
 
       final studentRows = await db.rawQuery(
@@ -158,6 +165,7 @@ class ReportCubit extends Cubit<ReportState> {
     if (state.isLoading) return;
     emit(const ReportState(isLoading: true));
     try {
+      _authorization.require(UserPermission.viewReports);
       final db = await _databaseService.database;
       final String dateStr = date.toIso8601String().split('T').first;
 
@@ -340,6 +348,7 @@ class ReportCubit extends Cubit<ReportState> {
     if (state.isLoading) return;
     emit(const ReportState(isLoading: true));
     try {
+      _authorization.require(UserPermission.viewReports);
       final db = await _databaseService.database;
       final conditions = <String>[];
       final args = <dynamic>[];
@@ -510,6 +519,7 @@ class ReportCubit extends Cubit<ReportState> {
     if (state.isLoading) return;
     emit(const ReportState(isLoading: true));
     try {
+      _authorization.require(UserPermission.viewReports);
       final db = await _databaseService.database;
       final conditions = <String>[];
       final args = <dynamic>[];
@@ -927,6 +937,7 @@ class ReportCubit extends Cubit<ReportState> {
     if (state.isLoading) return;
     emit(const ReportState(isLoading: true));
     try {
+      _authorization.require(UserPermission.viewReports);
       final db = await _databaseService.database;
 
       final int startVal = fromDate.year * 12 + fromDate.month;
@@ -1117,6 +1128,7 @@ class ReportCubit extends Cubit<ReportState> {
     if (state.isLoading) return;
     emit(const ReportState(isLoading: true));
     try {
+      _authorization.require(UserPermission.viewReports);
       final db = await _databaseService.database;
       final conditions = <String>['aa.assistant_id = ?'];
       final args = <dynamic>[assistantId];
@@ -1224,6 +1236,7 @@ class ReportCubit extends Cubit<ReportState> {
     if (state.isLoading) return;
     emit(const ReportState(isLoading: true));
     try {
+      _authorization.require(UserPermission.viewReports);
       final db = await _databaseService.database;
 
       final notes = noteId != null
@@ -1356,6 +1369,7 @@ class ReportCubit extends Cubit<ReportState> {
     if (state.isLoading) return;
     emit(const ReportState(isLoading: true));
     try {
+      _authorization.require(UserPermission.viewReports);
       final db = await _databaseService.database;
 
       final List<Map<String, Object?>> lessonRows = await db.rawQuery(
@@ -1664,6 +1678,7 @@ class ReportCubit extends Cubit<ReportState> {
     if (state.isLoading) return;
     emit(const ReportState(isLoading: true));
     try {
+      _authorization.require(UserPermission.viewReports);
       final db = await _databaseService.database;
 
       final List<Map<String, Object?>> lessonRows = await db.rawQuery(
@@ -1801,6 +1816,7 @@ class ReportCubit extends Cubit<ReportState> {
     if (state.isLoading) return;
     emit(const ReportState(isLoading: true));
     try {
+      _authorization.require(UserPermission.viewReports);
       final db = await _databaseService.database;
 
       final List<Map<String, Object?>> groupRows = await db.query(

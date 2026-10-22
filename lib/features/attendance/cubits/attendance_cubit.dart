@@ -7,6 +7,8 @@ import '../../../../generated/locale_keys.g.dart';
 import '../../../app/constants/db_queries.dart';
 import '../../../app/di/injection.dart';
 import '../../../app/services/data_sync_service.dart';
+import '../../../app/services/authorization_service.dart';
+import '../../auth/models/user.dart';
 import '../../../app/services/database_service.dart';
 import '../../../app/utils/qr_code_helper.dart';
 import '../../../app/utils/time_helper.dart';
@@ -29,11 +31,14 @@ abstract class AttendanceState with _$AttendanceState {
 class AttendanceCubit extends Cubit<AttendanceState> {
   final DatabaseService _databaseService;
   final DataSyncService? _dataSyncService;
+  final AuthorizationService _authorization;
 
   AttendanceCubit({
     required DatabaseService databaseService,
     DataSyncService? dataSyncService,
+    AuthorizationService? authorization,
   })  : _databaseService = databaseService,
+        _authorization = resolveAuthorization(authorization),
         _dataSyncService = dataSyncService ??
             (getIt.isRegistered<DataSyncService>()
                 ? getIt<DataSyncService>()
@@ -107,6 +112,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
     if (serialNumber.isEmpty) return;
 
     try {
+      _authorization.require(UserPermission.manageAttendance);
       final Database db = await _databaseService.database;
 
       final Map<String, Object?>? student =
@@ -291,6 +297,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
     String notes = '',
   }) async {
     try {
+      _authorization.require(UserPermission.manageAttendance);
       final Database db = await _databaseService.database;
       await db.insert(DBQueries.tableAttendance, <String, Object?>{
         'lesson_id': ?lessonId,
@@ -313,6 +320,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
     String? notes,
   }) async {
     try {
+      _authorization.require(UserPermission.manageAttendance);
       final Database db = await _databaseService.database;
       final Map<String, Object?> updates = <String, Object?>{
         'status': status.name,
@@ -333,6 +341,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
 
   Future<void> deleteAttendance(int id, {int? studentId}) async {
     try {
+      _authorization.require(UserPermission.manageAttendance);
       final Database db = await _databaseService.database;
       await db.delete(
         DBQueries.tableAttendance,

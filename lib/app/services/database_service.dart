@@ -21,15 +21,21 @@ class DatabaseService {
   static const int _dbVersion = 1;
   static const String _dbName = 'student_management.db';
 
-  // ignore: unused_field
   final EncryptionService _encryptionService;
   final Future<String> Function()? _databasePath;
+  final DatabaseFactory _desktopFactory;
+
+  /// Desktop factory whose database isolate loads SQLCipher.
+  static final DatabaseFactory _sqlcipherDesktopFactory =
+      ffi.createDatabaseFactoryFfi(ffiInit: sqlcipherIsolateInit);
 
   DatabaseService({
     required EncryptionService encryptionService,
     Future<String> Function()? databasePath,
+    DatabaseFactory? desktopFactory,
   }) : _encryptionService = encryptionService,
-       _databasePath = databasePath;
+       _databasePath = databasePath,
+       _desktopFactory = desktopFactory ?? _sqlcipherDesktopFactory;
 
   /// Returns the singleton database instance, initializing if needed.
   Future<Database> get database async {
@@ -54,27 +60,240 @@ class DatabaseService {
 
   Future<Database> _initDatabase() async {
     final String dbPath = await _getDatabasePath();
-    final String password = await _encryptionService.getDatabaseKey();
 
     if (kDebugMode) {
       print('Database path: $dbPath');
     }
 
+    await _finishInterruptedEncryption(dbPath);
+    if (await _isPlaintextDatabase(dbPath)) {
+      await _encryptPlaintextDatabase(dbPath);
+    }
+
+    final String password = await _encryptionService.getDatabaseKey();
+    Database db;
     try {
-      return await _openDbWithPassword(dbPath, password);
+      db = await _openDbWithPassword(dbPath, password);
     } catch (e) {
       // SQLCipher reports a wrong key exactly like a corrupt file. Never move
       // or replace the file here: the user decides on the recovery screen.
-      if (e.toString().contains('not a database')) {
-        throw DatabaseUnlockException(dbPath, e);
-      }
-      rethrow;
+      if (!e.toString().contains('not a database')) rethrow;
+      db = await _openWithPendingKey(dbPath, e);
+    }
+
+    if (await _encryptionService.hasLegacyKey()) {
+      await _rotateLegacyKey(db);
+    }
+    return db;
+  }
+
+  static const String _encryptingSuffix = '.encrypting';
+  static const String _plaintextCopyMarker = '.plaintext-';
+
+  /// Whether [path] is an unencrypted SQLite file (readable by any tool).
+  /// Older versions wrote such files on Windows.
+  static Future<bool> _isPlaintextDatabase(String path) async {
+    final File file = File(path);
+    if (!await file.exists() || await file.length() < 16) return false;
+    final RandomAccessFile raf = await file.open();
+    try {
+      final List<int> header = await raf.read(16);
+      return String.fromCharCodes(header) == 'SQLite format 3\u0000';
+    } finally {
+      await raf.close();
     }
   }
 
+  /// Encrypts an unencrypted database in place with a new random key.
+  ///
+  /// The data is exported to an encrypted copy, the copy is verified table
+  /// by table, and only then does it replace the original. If the app stops
+  /// at any point, [_finishInterruptedEncryption] or a new attempt on the
+  /// next launch picks up safely; the original is never deleted before the
+  /// verified copy is in place.
+  Future<void> _encryptPlaintextDatabase(String dbPath) async {
+    final String encryptedPath = '$dbPath$_encryptingSuffix';
+
+    // The stored key never protected anything (the file is unencrypted), so
+    // start from a fresh random key. It is saved before it is used.
+    final String key = await _encryptionService.replaceDatabaseKey();
+    await _exportEncryptedCopy(dbPath, encryptedPath, key);
+
+    final String plaintextCopy =
+        '$dbPath$_plaintextCopyMarker${_fileTimestamp()}';
+    await _renameWithSideFiles(dbPath, plaintextCopy);
+    await File(encryptedPath).rename(dbPath);
+    await _deleteWithSideFiles(plaintextCopy);
+  }
+
+  /// Writes an encrypted copy of the unencrypted database at [sourcePath] to
+  /// [targetPath] with [key], and checks that every table has the same number
+  /// of rows in both. The source is not modified.
+  Future<void> _exportEncryptedCopy(
+    String sourcePath,
+    String targetPath,
+    String key,
+  ) async {
+    await _deleteWithSideFiles(targetPath);
+
+    final Map<String, int> sourceCounts;
+    final Database plain = await _openWithoutKey(sourcePath);
+    try {
+      sourceCounts = await _tableRowCounts(plain);
+      final Object? userVersion =
+          (await plain.rawQuery('PRAGMA user_version')).first.values.first;
+      await plain.execute(
+        'ATTACH DATABASE ? AS encrypted KEY ?',
+        [targetPath, key],
+      );
+      await plain.rawQuery("SELECT sqlcipher_export('encrypted')");
+      await plain.execute('PRAGMA encrypted.user_version = $userVersion');
+      await plain.execute('DETACH DATABASE encrypted');
+    } finally {
+      await plain.close();
+    }
+
+    final Database encrypted = await _openWithKeyOnly(targetPath, key);
+    try {
+      if (!mapEquals(sourceCounts, await _tableRowCounts(encrypted))) {
+        throw StateError('The encrypted copy does not match the original');
+      }
+    } finally {
+      await encrypted.close();
+    }
+  }
+
+  /// Checks a backup before it replaces the live database and returns the
+  /// file to copy over it. A backup made by an older, unencrypted version is
+  /// first converted into an encrypted temporary copy with this device's key;
+  /// the caller deletes that copy afterwards.
+  ///
+  /// Throws [DatabaseUnlockException] when the backup cannot be used.
+  Future<String> prepareBackupForRestore(String backupPath) async {
+    if (!await _isPlaintextDatabase(backupPath)) {
+      await verifyCanOpen(backupPath);
+      return backupPath;
+    }
+
+    final Directory tempDir =
+        await Directory.systemTemp.createTemp('student_management_restore');
+    final String encryptedPath = join(tempDir.path, basename(backupPath));
+    try {
+      await _exportEncryptedCopy(
+        backupPath,
+        encryptedPath,
+        await _encryptionService.getDatabaseKey(),
+      );
+    } catch (e) {
+      await tempDir.delete(recursive: true);
+      throw DatabaseUnlockException(backupPath, e);
+    }
+    await verifyCanOpen(encryptedPath);
+    return encryptedPath;
+  }
+
+  /// Completes an encryption that stopped while swapping files, and removes
+  /// unencrypted copies once the encrypted database is in place.
+  Future<void> _finishInterruptedEncryption(String dbPath) async {
+    final File encryptedCopy = File('$dbPath$_encryptingSuffix');
+    if (!await File(dbPath).exists() && await encryptedCopy.exists()) {
+      // The verified copy was ready and the original already moved aside.
+      await encryptedCopy.rename(dbPath);
+    }
+
+    if (await File(dbPath).exists() && !await _isPlaintextDatabase(dbPath)) {
+      final String prefix = '${basename(dbPath)}$_plaintextCopyMarker';
+      await for (final FileSystemEntity entity in File(dbPath).parent.list()) {
+        if (entity is File && basename(entity.path).startsWith(prefix)) {
+          await entity.delete();
+        }
+      }
+    }
+  }
+
+  /// Opens the database with the key saved by a re-key that finished before
+  /// the new key was stored as current.
+  Future<Database> _openWithPendingKey(String dbPath, Object error) async {
+    final String? pending = await _encryptionService.getPendingKey();
+    if (pending != null) {
+      try {
+        final Database db = await _openDbWithPassword(dbPath, pending);
+        await _encryptionService.completeKeyRotation();
+        return db;
+      } catch (_) {
+        // Fall through: the pending key does not open it either.
+      }
+    }
+    throw DatabaseUnlockException(dbPath, error);
+  }
+
+  /// Re-keys a database that still uses a key from an older version.
+  ///
+  /// The new key is saved as pending before `PRAGMA rekey`, so if the app
+  /// stops halfway the next launch can open the database with either key.
+  Future<void> _rotateLegacyKey(Database db) async {
+    try {
+      final String newKey = await _encryptionService.beginKeyRotation();
+      await db.rawQuery('PRAGMA journal_mode = DELETE');
+      await db.execute("PRAGMA rekey = '$newKey'");
+      await db.rawQuery('PRAGMA journal_mode = WAL');
+      await _encryptionService.completeKeyRotation();
+    } catch (e) {
+      // The database keeps working with its current key; retried next launch.
+      if (kDebugMode) {
+        print('Database key rotation skipped: $e');
+      }
+    }
+  }
+
+  /// Opens an unencrypted database file (no key) through SQLCipher.
+  Future<Database> _openWithoutKey(String path) {
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      return _desktopFactory.openDatabase(
+        path,
+        options: ffi.OpenDatabaseOptions(onConfigure: _ensureSqlcipher),
+      );
+    }
+    return mobile.openDatabase(path);
+  }
+
+  static Future<Map<String, int>> _tableRowCounts(Database db) async {
+    final List<Map<String, Object?>> tables = await db.rawQuery(
+      "SELECT name FROM sqlite_master WHERE type = 'table' "
+      "AND name NOT LIKE 'sqlite_%' ORDER BY name",
+    );
+    final Map<String, int> counts = {};
+    for (final Map<String, Object?> table in tables) {
+      final String name = table['name'] as String;
+      counts[name] = Sqflite.firstIntValue(
+            await db.rawQuery('SELECT COUNT(*) FROM "$name"'),
+          ) ??
+          0;
+    }
+    return counts;
+  }
+
+  static Future<void> _renameWithSideFiles(String from, String to) async {
+    await File(from).rename(to);
+    for (final String suffix in ['-wal', '-shm']) {
+      final File side = File('$from$suffix');
+      if (await side.exists()) await side.rename('$to$suffix');
+    }
+  }
+
+  static Future<void> _deleteWithSideFiles(String path) async {
+    for (final String suffix in ['', '-wal', '-shm']) {
+      final File file = File('$path$suffix');
+      if (await file.exists()) await file.delete();
+    }
+  }
+
+  static String _fileTimestamp() =>
+      DateTime.now().toIso8601String().replaceAll(':', '-').replaceAll('.', '-');
+
   Future<Database> _openDbWithPassword(String dbPath, String password) {
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-      return ffi.databaseFactoryFfi.openDatabase(
+      return _desktopFactory.openDatabase(
         dbPath,
         options: ffi.OpenDatabaseOptions(
           version: _dbVersion,
@@ -83,6 +302,7 @@ class DatabaseService {
           onConfigure: (db) async {
             // Execute PRAGMA key first to unlock the SQLCipher database
             await db.execute("PRAGMA key = '$password'");
+            await _ensureSqlcipher(db);
             await db.execute('PRAGMA foreign_keys = ON');
             await db.execute('PRAGMA busy_timeout = 5000');
             await db.execute('PRAGMA journal_mode = WAL');
@@ -368,14 +588,30 @@ class DatabaseService {
   /// running the on-open maintenance.
   Future<Database> _openWithKeyOnly(String path, String password) {
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-      return ffi.databaseFactoryFfi.openDatabase(
+      return _desktopFactory.openDatabase(
         path,
         options: ffi.OpenDatabaseOptions(
-          onConfigure: (db) => db.execute("PRAGMA key = '$password'"),
+          onConfigure: (db) async {
+            await db.execute("PRAGMA key = '$password'");
+            await _ensureSqlcipher(db);
+          },
         ),
       );
     }
     return mobile.openDatabase(path, password: password);
+  }
+
+  /// On Windows, refuse to continue unless the connection really is SQLCipher.
+  /// Plain SQLite accepts `PRAGMA key` silently and writes unencrypted files.
+  static Future<void> _ensureSqlcipher(Database db) async {
+    if (!Platform.isWindows) return;
+    final List<Map<String, Object?>> rows =
+        await db.rawQuery('PRAGMA cipher_version');
+    final String version =
+        rows.isEmpty ? '' : (rows.first.values.first?.toString() ?? '');
+    if (version.isEmpty) {
+      throw DatabaseEncryptionUnavailableException();
+    }
   }
 
   /// Close the database connection.
@@ -385,6 +621,27 @@ class DatabaseService {
       _database = null;
     }
   }
+}
+
+/// Runs inside the background isolate that sqflite_common_ffi uses for all
+/// database work. The SQLCipher override must be applied here: an override
+/// made in the main isolate does not reach this isolate, which would then
+/// silently use plain SQLite and write unencrypted files.
+void sqlcipherIsolateInit() {
+  if (Platform.isWindows) {
+    sqlite_open.open.overrideFor(
+      sqlite_open.OperatingSystem.windows,
+      openSQLCipherOnWindows,
+    );
+  }
+}
+
+/// Thrown on Windows when the SQLCipher library is not the one in use, so the
+/// database would be read and written without encryption.
+class DatabaseEncryptionUnavailableException implements Exception {
+  @override
+  String toString() =>
+      'DatabaseEncryptionUnavailableException: SQLCipher is not loaded';
 }
 
 /// Thrown when the database file exists but cannot be opened with this

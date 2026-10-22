@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../../app/di/injection.dart';
+import '../../../app/services/authorization_service.dart';
 import '../../../app/services/data_migration_service.dart';
 import '../services/settings_service.dart';
 import '../services/backup_service.dart';
@@ -53,15 +54,25 @@ class SettingsCubit extends Cubit<SettingsState> {
   final SettingsService _settingsService;
   final BackupService _backupService;
   final DeviceBindingService _deviceBindingService;
+  final AuthorizationService _authorization;
 
   SettingsCubit({
     required SettingsService settingsService,
     required BackupService backupService,
     required DeviceBindingService deviceBindingService,
+    AuthorizationService? authorization,
   }) : _settingsService = settingsService,
        _backupService = backupService,
        _deviceBindingService = deviceBindingService,
+       _authorization = resolveAuthorization(authorization),
        super(const SettingsState());
+
+  /// Backup, restore, import, export and data clean-up are shown only to
+  /// admins (this app has no separate settings permission), so the cubit
+  /// refuses them for everyone else too.
+  void _requireAdmin() {
+    if (!_authorization.isAdmin) throw PermissionDeniedException();
+  }
 
   /// Load all settings from the database.
   Future<void> loadSettings() async {
@@ -165,6 +176,7 @@ class SettingsCubit extends Cubit<SettingsState> {
       state.copyWith(isSaving: true, errorMessage: null, successMessage: null),
     );
     try {
+      _requireAdmin();
       final path = await _backupService.createBackup();
 
       // Prune old backups
@@ -197,6 +209,7 @@ class SettingsCubit extends Cubit<SettingsState> {
       state.copyWith(isSaving: true, errorMessage: null, successMessage: null),
     );
     try {
+      _requireAdmin();
       await _backupService.restoreFromBackup(path);
 
       emit(
@@ -220,6 +233,7 @@ class SettingsCubit extends Cubit<SettingsState> {
       state.copyWith(isSaving: true, errorMessage: null, successMessage: null),
     );
     try {
+      _requireAdmin();
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['db'],
@@ -249,6 +263,12 @@ class SettingsCubit extends Cubit<SettingsState> {
   }
 
   Future<void> deleteBackup(String path) async {
+    if (!_authorization.isAdmin) {
+      emit(state.copyWith(
+        errorMessage: PermissionDeniedException().toString(),
+      ));
+      return;
+    }
     await _backupService.deleteBackup(path);
     final backups = await _backupService.listBackups();
     emit(state.copyWith(backups: backups));
@@ -261,6 +281,7 @@ class SettingsCubit extends Cubit<SettingsState> {
       state.copyWith(isSaving: true, errorMessage: null, successMessage: null),
     );
     try {
+      _requireAdmin();
       await _backupService.optimizeDatabase();
       final dbSize = await _backupService.getDatabaseSize();
       emit(
@@ -310,6 +331,7 @@ class SettingsCubit extends Cubit<SettingsState> {
       state.copyWith(isSaving: true, errorMessage: null, successMessage: null),
     );
     try {
+      _requireAdmin();
       String csv;
       switch (type) {
         case 'students':
@@ -350,6 +372,7 @@ class SettingsCubit extends Cubit<SettingsState> {
       state.copyWith(isSaving: true, errorMessage: null, successMessage: null),
     );
     try {
+      _requireAdmin();
       final counts = await _backupService.purgeOldData(years);
       final recordCounts = await _backupService.getRecordCounts();
       final dbSize = await _backupService.getDatabaseSize();
@@ -382,6 +405,7 @@ class SettingsCubit extends Cubit<SettingsState> {
       state.copyWith(isSaving: true, errorMessage: null, successMessage: null),
     );
     try {
+      _requireAdmin();
       await _backupService.resetAllData();
       final recordCounts = await _backupService.getRecordCounts();
       final dbSize = await _backupService.getDatabaseSize();
@@ -410,6 +434,7 @@ class SettingsCubit extends Cubit<SettingsState> {
       state.copyWith(isSaving: true, errorMessage: null, successMessage: null),
     );
     try {
+      _requireAdmin();
       String? targetPath = path;
       if (targetPath == null) {
         final result = await FilePicker.platform.pickFiles(

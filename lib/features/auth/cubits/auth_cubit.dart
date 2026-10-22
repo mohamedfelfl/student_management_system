@@ -7,6 +7,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import '../models/user.dart';
+import '../../../app/services/authorization_service.dart';
 import '../../../app/services/database_service.dart';
 import '../../../app/constants/db_queries.dart';
 import '../../../app/constants/app_constants.dart';
@@ -25,13 +26,17 @@ abstract class AuthState with _$AuthState {
 
 class AuthCubit extends Cubit<AuthState> {
   final DatabaseService _databaseService;
+  final AuthorizationService _authorization;
 
   AuthCubit({
     required DatabaseService databaseService,
+    AuthorizationService? authorization,
   }) : _databaseService = databaseService,
+       _authorization = resolveAuthorization(authorization),
        super(const AuthState.initial());
 
   Future<void> login(String username, String password) async {
+    _authorization.signOut();
     emit(const AuthState.loading());
     try {
       final Database db = await _databaseService.database;
@@ -64,14 +69,7 @@ class AuthCubit extends Cubit<AuthState> {
         username: row['username'] as String,
         passwordHash: row['password_hash'] as String,
         role: row['role'] == AppConstants.adminRole ? UserRole.admin : UserRole.user,
-        permissions: (jsonDecode(row['permissions'] as String) as List)
-            .map(
-              (p) => UserPermission.values.firstWhere(
-                (e) => e.name == p,
-                orElse: () => UserPermission.manageStudents,
-              ),
-            )
-            .toList(),
+        permissions: parseUserPermissions(row['permissions']),
         createdAt: DateTime.tryParse(row['created_at'] as String? ?? ''),
       );
 
@@ -80,6 +78,7 @@ class AuthCubit extends Cubit<AuthState> {
         await _migrateToCryptedPassword(db, user.id!, password);
       }
 
+      _authorization.signIn(user);
       emit(AuthState.authenticated(user));
     } catch (e) {
       emit(AuthState.error(e.toString()));
@@ -87,6 +86,7 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   void logout() {
+    _authorization.signOut();
     emit(const AuthState.initial());
   }
 

@@ -1,22 +1,22 @@
+@TestOn('windows')
+library;
+
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:student_management_system/app/services/database_service.dart';
 import 'package:student_management_system/app/services/encryption_service.dart';
 
-class _FixedKeyEncryptionService extends EncryptionService {
-  @override
-  Future<String> getDatabaseKey() async => 'test-key';
-}
+import '../../helpers/memory_secure_storage.dart';
+import '../../helpers/sqlcipher_test_factory.dart';
 
 /// Bytes that are not a SQLite database: what SQLCipher sees when the file is
 /// opened with the wrong key.
 final List<int> _unreadableBytes = List<int>.generate(4096, (i) => (i * 7) % 251);
 
 void main() {
-  sqfliteFfiInit();
+  final factory = sqlcipherTestFactory();
 
   late Directory dir;
   late String dbPath;
@@ -29,8 +29,9 @@ void main() {
     dir = await Directory.systemTemp.createTemp('db_unlock_test');
     dbPath = p.join(dir.path, 'student_management.db');
     service = DatabaseService(
-      encryptionService: _FixedKeyEncryptionService(),
+      encryptionService: EncryptionService(secureStorage: MemorySecureStorage()),
       databasePath: () async => dbPath,
+      desktopFactory: factory,
     );
   });
 
@@ -84,7 +85,7 @@ void main() {
   test('verifyCanOpen rejects a readable database that is not an app database',
       () async {
     final candidate = p.join(dir.path, 'some_other_app.db');
-    final other = await databaseFactoryFfi.openDatabase(candidate);
+    final other = await factory.openDatabase(candidate);
     await other.execute('CREATE TABLE notes_of_another_app (id INTEGER)');
     await other.close();
 

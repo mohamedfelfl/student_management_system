@@ -6,8 +6,11 @@ import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import '../../auth/cubits/auth_cubit.dart';
 import '../../auth/models/user.dart';
+import '../../../app/constants/app_constants.dart';
 import '../../../app/constants/db_queries.dart';
+import '../../../app/services/authorization_service.dart';
 import '../../../app/services/database_service.dart';
+import '../../../generated/locale_keys.g.dart';
 
 part 'admin_cubit.freezed.dart';
 
@@ -22,14 +25,19 @@ abstract class AdminState with _$AdminState {
 
 class AdminCubit extends Cubit<AdminState> {
   final DatabaseService _databaseService;
+  final AuthorizationService _authorization;
 
-  AdminCubit({required DatabaseService databaseService})
-    : _databaseService = databaseService,
-      super(const AdminState());
+  AdminCubit({
+    required DatabaseService databaseService,
+    AuthorizationService? authorization,
+  }) : _databaseService = databaseService,
+       _authorization = resolveAuthorization(authorization),
+       super(const AdminState());
 
   Future<void> loadUsers() async {
     emit(state.copyWith(isLoading: true, error: null));
     try {
+      _authorization.require(UserPermission.manageUsers);
       final Database db = await _databaseService.database;
       final List<Map<String, Object?>> results = await db.query(
         DBQueries.tableUsers,
@@ -42,14 +50,7 @@ class AdminCubit extends Cubit<AdminState> {
               username: row['username'] as String,
               passwordHash: row['password_hash'] as String,
               role: row['role'] == 'admin' ? UserRole.admin : UserRole.user,
-              permissions: (jsonDecode(row['permissions'] as String) as List)
-                  .map(
-                    (p) => UserPermission.values.firstWhere(
-                      (e) => e.name == p,
-                      orElse: () => UserPermission.manageStudents,
-                    ),
-                  )
-                  .toList(),
+              permissions: parseUserPermissions(row['permissions']),
               createdAt: DateTime.tryParse(row['created_at'] as String? ?? ''),
             ),
           )
@@ -68,6 +69,8 @@ class AdminCubit extends Cubit<AdminState> {
     required List<UserPermission> permissions,
   }) async {
     try {
+      _authorization.require(UserPermission.manageUsers);
+      if (role == UserRole.admin) _authorization.requireAdmin();
       final Database db = await _databaseService.database;
 
       // Use salted password hashing
@@ -94,7 +97,19 @@ class AdminCubit extends Cubit<AdminState> {
     List<UserPermission>? permissions,
   }) async {
     try {
+      _authorization.require(UserPermission.manageUsers);
       final Database db = await _databaseService.database;
+      final bool targetIsAdmin = await _isAdmin(db, id);
+      // Only admins may touch admin accounts or hand out the admin role.
+      if (targetIsAdmin || role == UserRole.admin) {
+        _authorization.requireAdmin();
+      }
+      if (targetIsAdmin &&
+          role == UserRole.user &&
+          await _adminCount(db) <= 1) {
+        throw PermissionDeniedException(LocaleKeys.cannot_remove_last_admin);
+      }
+
       final Map<String, Object?> updates = <String, Object?>{};
       if (username != null) updates['username'] = username;
       if (password != null) {
@@ -121,11 +136,41 @@ class AdminCubit extends Cubit<AdminState> {
 
   Future<void> deleteUser(int id) async {
     try {
+      _authorization.require(UserPermission.manageUsers);
+      if (_authorization.currentUser?.id == id) {
+        throw PermissionDeniedException(LocaleKeys.cannot_delete_own_account);
+      }
       final Database db = await _databaseService.database;
+      if (await _isAdmin(db, id)) {
+        _authorization.requireAdmin();
+        if (await _adminCount(db) <= 1) {
+          throw PermissionDeniedException(LocaleKeys.cannot_remove_last_admin);
+        }
+      }
       await db.delete(DBQueries.tableUsers, where: 'id = ?', whereArgs: <Object?>[id]);
       await loadUsers();
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
     }
+  }
+
+  static Future<bool> _isAdmin(Database db, int id) async {
+    final List<Map<String, Object?>> rows = await db.query(
+      DBQueries.tableUsers,
+      columns: ['role'],
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    return rows.isNotEmpty && rows.first['role'] == AppConstants.adminRole;
+  }
+
+  static Future<int> _adminCount(Database db) async {
+    return Sqflite.firstIntValue(
+          await db.rawQuery(
+            'SELECT COUNT(*) FROM ${DBQueries.tableUsers} WHERE role = ?',
+            [AppConstants.adminRole],
+          ),
+        ) ??
+        0;
   }
 }

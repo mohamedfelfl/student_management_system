@@ -3,7 +3,9 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import '../../../app/constants/db_queries.dart';
+import '../../../app/services/authorization_service.dart';
 import '../../../app/services/database_service.dart';
+import '../../auth/models/user.dart';
 import '../models/student_exam_result.dart';
 
 part 'exam_cubit.freezed.dart';
@@ -26,10 +28,14 @@ abstract class ExamState with _$ExamState {
 
 class ExamCubit extends Cubit<ExamState> {
   final DatabaseService _databaseService;
+  final AuthorizationService _authorization;
 
-  ExamCubit({required DatabaseService databaseService})
-    : _databaseService = databaseService,
-      super(const ExamState());
+  ExamCubit({
+    required DatabaseService databaseService,
+    AuthorizationService? authorization,
+  }) : _databaseService = databaseService,
+       _authorization = resolveAuthorization(authorization),
+       super(const ExamState());
 
   void resetTopStudents() {
     emit(state.copyWith(topStudents: []));
@@ -80,6 +86,7 @@ class ExamCubit extends Cubit<ExamState> {
     List<int>? groupIds,
   }) async {
     try {
+      _authorization.require(UserPermission.manageExams);
       final Database db = await _databaseService.database;
       await db.transaction((txn) async {
         final id = await txn.insert(DBQueries.tableExams, data);
@@ -105,6 +112,7 @@ class ExamCubit extends Cubit<ExamState> {
     List<int>? groupIds,
   }) async {
     try {
+      _authorization.require(UserPermission.manageExams);
       final Database db = await _databaseService.database;
       await db.transaction((txn) async {
         await txn.update(
@@ -136,6 +144,7 @@ class ExamCubit extends Cubit<ExamState> {
 
   Future<void> deleteExam(int id) async {
     try {
+      _authorization.require(UserPermission.manageExams);
       final Database db = await _databaseService.database;
       await db.delete(DBQueries.tableExams, where: 'id = ?', whereArgs: <Object?>[id]);
       await loadInitialData();
@@ -371,6 +380,7 @@ class ExamCubit extends Cubit<ExamState> {
     required double score,
   }) async {
     try {
+      _authorization.require(UserPermission.manageExams);
       final Database db = await _databaseService.database;
       await db.insert('marks', <String, Object?>{
         'exam_id': examId,
@@ -391,6 +401,7 @@ class ExamCubit extends Cubit<ExamState> {
     List<int>? clearedStudentIds,
   }) async {
     try {
+      _authorization.require(UserPermission.manageExams);
       final Database db = await _databaseService.database;
       final Batch batch = db.batch();
       for (final MapEntry<int, double> entry in studentScores.entries) {
@@ -427,6 +438,7 @@ class ExamCubit extends Cubit<ExamState> {
     List<int>? clearedStudentIds,
   }) async {
     try {
+      _authorization.require(UserPermission.manageExams);
       final Database db = await _databaseService.database;
       final Batch batch = db.batch();
       for (final MapEntry<int, double> entry in studentScores.entries) {
@@ -464,6 +476,7 @@ class ExamCubit extends Cubit<ExamState> {
     required int studentId,
   }) async {
     try {
+      _authorization.require(UserPermission.manageExams);
       final Database db = await _databaseService.database;
       await db.delete(
         DBQueries.tableMarks,

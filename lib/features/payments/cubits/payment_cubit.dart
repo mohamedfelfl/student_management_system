@@ -4,6 +4,8 @@ import 'package:sqflite_sqlcipher/sqflite.dart';
 import '../../../app/constants/db_queries.dart';
 import '../../../app/di/injection.dart';
 import '../../../app/services/data_sync_service.dart';
+import '../../../app/services/authorization_service.dart';
+import '../../auth/models/user.dart';
 import '../../../app/services/database_service.dart';
 
 part 'payment_cubit.freezed.dart';
@@ -22,11 +24,14 @@ abstract class PaymentState with _$PaymentState {
 class PaymentCubit extends Cubit<PaymentState> {
   final DatabaseService _databaseService;
   final DataSyncService? _dataSyncService;
+  final AuthorizationService _authorization;
 
   PaymentCubit({
     required DatabaseService databaseService,
     DataSyncService? dataSyncService,
+    AuthorizationService? authorization,
   })  : _databaseService = databaseService,
+        _authorization = resolveAuthorization(authorization),
         _dataSyncService = dataSyncService ??
             (getIt.isRegistered<DataSyncService>()
                 ? getIt<DataSyncService>()
@@ -69,6 +74,7 @@ class PaymentCubit extends Cubit<PaymentState> {
     required double paidAmount,
   }) async {
     try {
+      _authorization.require(UserPermission.managePayments);
       final Database db = await _databaseService.database;
 
       await db.insert(DBQueries.tablePayments, <String, Object?>{
@@ -128,6 +134,7 @@ class PaymentCubit extends Cubit<PaymentState> {
 
   Future<void> updatePayment(int id, Map<String, dynamic> data) async {
     try {
+      _authorization.require(UserPermission.managePayments);
       final Database db = await _databaseService.database;
       await db.update(
         DBQueries.tablePayments,
@@ -147,6 +154,7 @@ class PaymentCubit extends Cubit<PaymentState> {
 
   Future<void> deletePayment(int id, int studentId) async {
     try {
+      _authorization.require(UserPermission.managePayments);
       final Database db = await _databaseService.database;
       await db.delete(DBQueries.tablePayments, where: 'id = ?', whereArgs: <Object?>[id]);
       await loadPayments(studentId);

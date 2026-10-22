@@ -133,21 +133,29 @@ class BackupService {
       }
 
       // Refuse a file this device cannot open (e.g. a backup from another
-      // PC) before touching the live database.
-      await _databaseService.verifyCanOpen(backupPath);
+      // PC) before touching the live database. Backups from older,
+      // unencrypted versions come back as an encrypted temporary copy.
+      final String source =
+          await _databaseService.prepareBackupForRestore(backupPath);
 
-      // Close the current database
-      await _databaseService.close();
+      try {
+        // Close the current database
+        await _databaseService.close();
 
-      // Create a backup of the current database before restoring
-      final currentDb = File(dbPath);
-      if (await currentDb.exists()) {
-        final preRestoreBackup = '$dbPath.pre_restore';
-        await currentDb.copy(preRestoreBackup);
+        // Create a backup of the current database before restoring
+        final currentDb = File(dbPath);
+        if (await currentDb.exists()) {
+          final preRestoreBackup = '$dbPath.pre_restore';
+          await currentDb.copy(preRestoreBackup);
+        }
+
+        // Copy backup over the current database
+        await File(source).copy(dbPath);
+      } finally {
+        if (source != backupPath) {
+          await File(source).parent.delete(recursive: true);
+        }
       }
-
-      // Copy backup over the current database
-      await backupFile.copy(dbPath);
 
       if (kDebugMode) {
         print('BackupService: Database restored from $backupPath');
