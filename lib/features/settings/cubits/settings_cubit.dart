@@ -177,10 +177,9 @@ class SettingsCubit extends Cubit<SettingsState> {
     );
     try {
       _requireAdmin();
+      // Manual backups are never pruned: the "keep last N" limit applies only
+      // to the automatic backups taken when the app closes.
       final path = await _backupService.createBackup();
-
-      // Prune old backups
-      await _backupService.pruneBackups(state.maxBackups);
 
       // Refresh backup list
       final backups = await _backupService.listBackups();

@@ -333,7 +333,7 @@
     "schedule": "Schedule",
     "on_close": "On Close",
     "max_backups": "Max Backups",
-    "max_backups_desc": "Keep last {} backups",
+    "max_backups_desc": "Keep the last {} automatic backups (manual backups are never deleted)",
     "create_backup_now": "Create Backup Now",
     "recent_backups": "Recent Backups",
     "restore_backup": "Restore Backup",

@@ -211,21 +211,6 @@ class BackupService {
     }
   }
 
-  /// Delete old backups, keeping only the most recent [maxBackups].
-  Future<int> pruneBackups(int maxBackups) async {
-    final backups = await listBackups();
-    int deletedCount = 0;
-
-    if (backups.length > maxBackups) {
-      for (int i = maxBackups; i < backups.length; i++) {
-        await deleteBackup(backups[i].path);
-        deletedCount++;
-      }
-    }
-
-    return deletedCount;
-  }
-
   /// Get the current database file size in bytes.
   Future<int> getDatabaseSize() async {
     final dbPath = await getDatabasePath();
