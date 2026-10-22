@@ -14,6 +14,7 @@ import 'components/payment_stats_card.dart';
 import 'components/remaining_balance_card.dart';
 import 'components/student_search_section.dart';
 import 'components/transaction_list_section.dart';
+import '../../../../app/shared/widgets/active_tab_ticker_mode.dart';
 
 @RoutePage()
 class PaymentListScreen extends StatefulWidget {
@@ -56,7 +57,10 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) =>
+      ActiveTabTickerMode(child: Builder(builder: _buildTabContent));
+
+  Widget _buildTabContent(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final TextTheme textTheme = Theme.of(context).textTheme;
 

@@ -8,6 +8,7 @@ import '../../../../app/shared/animations/app_animations.dart';
 import '../../../../generated/locale_keys.g.dart';
 import '../../cubits/group_cubit.dart';
 import 'components/group_card.dart';
+import '../../../../app/shared/widgets/active_tab_ticker_mode.dart';
 
 @RoutePage()
 class GroupListScreen extends StatefulWidget {
@@ -25,7 +26,10 @@ class _GroupListScreenState extends State<GroupListScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) =>
+      ActiveTabTickerMode(child: Builder(builder: _buildTabContent));
+
+  Widget _buildTabContent(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
 

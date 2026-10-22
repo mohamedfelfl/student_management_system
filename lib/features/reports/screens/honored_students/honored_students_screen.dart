@@ -8,6 +8,7 @@ import '../../../../generated/locale_keys.g.dart';
 import '../../../exams/cubits/exam_cubit.dart';
 import '../../../exams/models/student_exam_result.dart';
 import '../../../exams/widgets/multi_exam_selector.dart';
+import '../../../../app/shared/widgets/active_tab_ticker_mode.dart';
 
 @RoutePage()
 class HonoredStudentsScreen extends StatefulWidget {
@@ -70,7 +71,10 @@ class _HonoredStudentsScreenState extends State<HonoredStudentsScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) =>
+      ActiveTabTickerMode(child: Builder(builder: _buildTabContent));
+
+  Widget _buildTabContent(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;

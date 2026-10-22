@@ -10,6 +10,7 @@ import '../../../auth/models/user.dart';
 import '../../cubits/dashboard_cubit.dart';
 import 'components/premium_banner.dart';
 import 'components/quick_actions_grid.dart';
+import '../../../../app/shared/widgets/active_tab_ticker_mode.dart';
 
 @RoutePage()
 class DashboardScreen extends StatefulWidget {
@@ -35,7 +36,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) =>
+      ActiveTabTickerMode(child: Builder(builder: _buildTabContent));
+
+  Widget _buildTabContent(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final TextTheme textTheme = Theme.of(context).textTheme;
 

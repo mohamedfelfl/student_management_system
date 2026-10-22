@@ -18,6 +18,7 @@ import 'components/notes_delivery_report_form.dart';
 import 'components/payment_report_forms.dart';
 import 'components/student_report_form.dart';
 import 'components/lesson_attendance_report_form.dart';
+import '../../../../app/shared/widgets/active_tab_ticker_mode.dart';
 
 @RoutePage()
 class ReportScreen extends StatefulWidget {
@@ -40,7 +41,10 @@ class _ReportScreenState extends State<ReportScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) =>
+      ActiveTabTickerMode(child: Builder(builder: _buildTabContent));
+
+  Widget _buildTabContent(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 

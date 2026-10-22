@@ -12,6 +12,7 @@ import 'settings/components/database_management_section.dart';
 import 'settings/components/device_binding_section.dart';
 import 'settings/components/general_appearance_section.dart';
 import 'settings/components/security_section.dart';
+import '../../../../app/shared/widgets/active_tab_ticker_mode.dart';
 
 @RoutePage()
 class SettingsScreen extends StatefulWidget {
@@ -29,7 +30,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) =>
+      ActiveTabTickerMode(child: Builder(builder: _buildTabContent));
+
+  Widget _buildTabContent(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return BlocConsumer<SettingsCubit, SettingsState>(

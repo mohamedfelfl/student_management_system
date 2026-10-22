@@ -315,59 +315,15 @@ class DatabaseService {
       }
     } catch (_) {}
 
-    // Clean up any duplicate student names, keeping the oldest record
-    try {
-      final List<Map<String, Object?>> allStudents = await db.query(
-        DBQueries.tableStudents,
-        columns: ['id', 'name'],
-        orderBy: 'id ASC',
-      );
-      final Map<String, int> seenStudents = {};
-      final List<int> duplicateIdsToDelete = [];
-
-      for (final st in allStudents) {
-        final id = st['id'] as int;
-        final name = st['name']?.toString().trim() ?? '';
-        if (name.isEmpty) continue;
-        String norm = name.replaceAll(RegExp(r'^[\s\-.*#_]+|[\s\-.*#_]+$'), '').trim();
-        norm = norm.replaceAll(RegExp(r'[\u064B-\u065F\u0640]'), '');
-        norm = norm.replaceAll(RegExp(r'\s+'), ' ');
-        norm = norm.replaceAll(RegExp(r'[إأآٱ]'), 'ا');
-        norm = norm
-            .replaceAll('ئ', 'ي')
-            .replaceAll('ى', 'ي')
-            .replaceAll('ة', 'ه')
-            .replaceAll('ؤ', 'و')
-            .replaceAll('ء', '')
-            .replaceAll('ذكي', 'زكي');
-
-        // Unify specific compound prefixes only (e.g. عبد الرحمن / عبدالرحمن, أبو الفتوح / ابوالفتوح)
-        norm = norm.replaceAll(RegExp(r'عبد\s+'), 'عبد');
-        norm = norm.replaceAll(RegExp(r'ابو\s+'), 'ابو');
-        norm = norm.replaceAll(RegExp(r'نور\s+ال'), 'نورال');
-        norm = norm.replaceAll(RegExp(r'ضياء\s+ال'), 'ضياءال');
-        norm = norm.replaceAll(RegExp(r'سيف\s+ال'), 'سيفال');
-        norm = norm.replaceAll(RegExp(r'منه\s+الله'), 'منهالله');
-        norm = norm.replaceAll(RegExp(r'ايه\s+الله'), 'ايهالله');
-
-        norm = norm.replaceAll(RegExp(r'\s+'), ' ').trim();
-
-        if (seenStudents.containsKey(norm)) {
-          duplicateIdsToDelete.add(id);
-        } else {
-          seenStudents[norm] = id;
-        }
-      }
-
-      for (final dupId in duplicateIdsToDelete) {
-        await db.delete(
-          DBQueries.tableStudents,
-          where: 'id = ?',
-          whereArgs: [dupId],
-        );
-      }
-    } catch (_) {}
+    // Never delete students here. Two students may legitimately share a name
+    // (siblings, common names), and deleting one cascades to their payments,
+    // attendance, marks and notes. Duplicates are resolved only through the
+    // user-confirmed merge flow (StudentMergeService).
   }
+
+  /// Runs the on-open routine against [db] so tests can simulate an app restart.
+  @visibleForTesting
+  Future<void> runOnOpenForTesting(Database db) => _onOpen(db);
 
   /// Close the database connection.
   Future<void> close() async {

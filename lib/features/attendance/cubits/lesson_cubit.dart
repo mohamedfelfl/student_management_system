@@ -11,6 +11,7 @@ import '../../../app/di/injection.dart';
 import '../../../app/services/data_sync_service.dart';
 import '../../../app/services/database_service.dart';
 import '../../../app/utils/qr_code_helper.dart';
+import '../../students/services/student_scan_lookup.dart';
 import '../models/attendance.dart';
 import '../models/lesson.dart';
 
@@ -308,21 +309,15 @@ class LessonCubit extends Cubit<LessonState> {
     }
 
     final serialNumber = QrCodeHelper.extractSerialNumber(rawScan);
-    final candidates = QrCodeHelper.extractAllCandidates(rawScan);
-    if (candidates.isEmpty) return;
+    if (serialNumber.isEmpty) return;
 
     try {
       final Database db = await _databaseService.database;
 
-      // Find student by candidate serials using index
-      final placeholders = List.filled(candidates.length, '?').join(',');
-      List<Map<String, Object?>> students = await db.query(
-        DBQueries.tableStudents,
-        where: 'serial_number IN ($placeholders)',
-        whereArgs: candidates,
-      );
+      final Map<String, Object?>? student =
+          await StudentScanLookup.find(db, rawScan);
 
-      if (students.isEmpty) {
+      if (student == null) {
         emit(
           state.copyWith(
             error: LocaleKeys.student_not_found_with_serial.tr(
@@ -334,7 +329,6 @@ class LessonCubit extends Cubit<LessonState> {
         return;
       }
 
-      final student = students.first;
       final int studentId = student['id'] as int;
       final String studentName = student['name'] as String? ?? '';
       final int? studentGroupId = student['group_id'] as int?;

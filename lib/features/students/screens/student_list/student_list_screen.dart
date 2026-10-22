@@ -14,6 +14,7 @@ import 'components/student_card_list.dart';
 import 'components/student_data_table.dart';
 import 'components/student_list_banner.dart';
 import 'components/student_search_header.dart';
+import '../../../../app/shared/widgets/active_tab_ticker_mode.dart';
 
 @RoutePage()
 class StudentListScreen extends StatefulWidget {
@@ -50,7 +51,10 @@ class _StudentListScreenState extends State<StudentListScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) =>
+      ActiveTabTickerMode(child: Builder(builder: _buildTabContent));
+
+  Widget _buildTabContent(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
@@ -64,6 +68,9 @@ class _StudentListScreenState extends State<StudentListScreen> {
             )
           : null,
       body: BlocBuilder<GroupCubit, GroupState>(
+        // Only the group list is read here; loading flags must not rebuild
+        // the whole student table.
+        buildWhen: (previous, current) => previous.groups != current.groups,
         builder: (context, groupState) {
           return BlocBuilder<StudentCubit, StudentState>(
             builder: (BuildContext context, StudentState state) {

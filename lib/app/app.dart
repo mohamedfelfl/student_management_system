@@ -132,7 +132,7 @@ class _StudentsManagementAppState extends State<StudentsManagementApp>
         BlocProvider(
           create: (_) => QrCardCubit(
             repository: QrCardRepository(databaseService: dbService),
-          )..loadInitialData(),
+          ),
         ),
         BlocProvider(create: (_) => ShellNavigationCubit()),
         BlocProvider(

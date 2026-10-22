@@ -4,13 +4,17 @@ import 'package:auto_route/auto_route.dart';
 import '../../../generated/locale_keys.g.dart';
 import 'tabs/notes_crud_tab.dart';
 import 'tabs/notes_delivery_tab.dart';
+import '../../../app/shared/widgets/active_tab_ticker_mode.dart';
 
 @RoutePage()
 class NotesScreen extends StatelessWidget {
   const NotesScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) =>
+      ActiveTabTickerMode(child: Builder(builder: _buildTabContent));
+
+  Widget _buildTabContent(BuildContext context) {
     final theme = Theme.of(context);
 
     return DefaultTabController(

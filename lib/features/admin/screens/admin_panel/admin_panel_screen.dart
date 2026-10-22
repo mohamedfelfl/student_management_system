@@ -9,6 +9,7 @@ import '../../../../app/router/app_router.gr.dart';
 import '../../../auth/models/user.dart';
 import '../../cubits/admin_cubit.dart';
 import 'components/user_tile.dart';
+import '../../../../app/shared/widgets/active_tab_ticker_mode.dart';
 
 @RoutePage()
 class AdminPanelScreen extends StatefulWidget {
@@ -26,7 +27,10 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) =>
+      ActiveTabTickerMode(child: Builder(builder: _buildTabContent));
+
+  Widget _buildTabContent(BuildContext context) {
     return BlocBuilder<AdminCubit, AdminState>(
       builder: (BuildContext context, AdminState state) {
         return Scaffold(

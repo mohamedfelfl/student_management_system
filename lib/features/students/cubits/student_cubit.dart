@@ -9,8 +9,8 @@ import '../../../app/di/injection.dart';
 import '../../../app/services/data_migration_service.dart';
 import '../../../app/services/data_sync_service.dart';
 import '../../../app/services/database_service.dart';
-import '../../../app/utils/qr_code_helper.dart';
 import '../services/student_merge_service.dart';
+import '../services/student_scan_lookup.dart';
 
 part 'student_cubit.freezed.dart';
 
@@ -385,24 +385,9 @@ class StudentCubit extends Cubit<StudentState> {
   }
 
   Future<Map<String, dynamic>?> getStudentBySerial(String rawSerial) async {
-    final serial = QrCodeHelper.extractSerialNumber(rawSerial);
-    if (serial.isEmpty) return null;
-
     try {
       final Database db = await _databaseService.database;
-      List<Map<String, Object?>> results = await db.rawQuery(
-        DBQueries.getStudentBySerial,
-        <Object?>[serial],
-      );
-
-      if (results.isEmpty && rawSerial.trim() != serial) {
-        results = await db.rawQuery(
-          DBQueries.getStudentBySerial,
-          <Object?>[rawSerial.trim()],
-        );
-      }
-
-      return results.isNotEmpty ? results.first : null;
+      return await StudentScanLookup.find(db, rawSerial);
     } catch (e) {
       return null;
     }

@@ -16,6 +16,7 @@ import '../widgets/qr_card_control_bar.dart';
 import '../widgets/qr_card_preview_panel.dart';
 import '../widgets/qr_card_template_widget.dart';
 import '../widgets/student_selection_panel.dart';
+import '../../../../app/shared/widgets/active_tab_ticker_mode.dart';
 
 @RoutePage()
 class QrCardGeneratorScreen extends StatefulWidget {
@@ -106,7 +107,10 @@ class _QrCardGeneratorScreenState extends State<QrCardGeneratorScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) =>
+      ActiveTabTickerMode(child: Builder(builder: _buildTabContent));
+
+  Widget _buildTabContent(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 

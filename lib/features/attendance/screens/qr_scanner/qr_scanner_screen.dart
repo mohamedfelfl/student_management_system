@@ -23,6 +23,7 @@ import 'components/lessons_tab_view.dart';
 import 'components/live_roster_view.dart';
 import 'components/mobile_scanner_view.dart';
 import 'components/student_attendance_search_bar.dart';
+import '../../../../app/shared/widgets/active_tab_ticker_mode.dart';
 
 @RoutePage()
 class QrScannerScreen extends StatefulWidget {
@@ -103,7 +104,10 @@ class _QrScannerScreenState extends State<QrScannerScreen>
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) =>
+      ActiveTabTickerMode(child: Builder(builder: _buildTabContent));
+
+  Widget _buildTabContent(BuildContext context) {
     final theme = Theme.of(context);
     final ColorScheme colorScheme = theme.colorScheme;
     final TextTheme textTheme = theme.textTheme;
